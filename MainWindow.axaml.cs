@@ -35,8 +35,9 @@ namespace Ultimate_Gshop
             foreach (var cat in _shop.Categories)
             {
                 Console.WriteLine($"Carregando categoria: {cat.Title}");
-
             }
+
+            CategoryList.ItemsSource = _shop.Categories;
 
             // Carrega os itens na tabela
             FillTable(_shop.Itens);

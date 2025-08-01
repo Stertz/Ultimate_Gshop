@@ -9,9 +9,17 @@
     <UseWPF>True</UseWPF>
   </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup>
+    <AvaloniaXaml Remove="Resources\surfaces\**" />
+    <Compile Remove="Resources\surfaces\**" />
+    <EmbeddedResource Remove="Resources\surfaces\**" />
+    <None Remove="Resources\surfaces\**" />
+    <Page Remove="Resources\surfaces\**" />
+  </ItemGroup>
+
+	<!-->ItemGroup>
 		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
+	</ItemGroup>-->
 
   <ItemGroup>
     <None Remove="Resources\bg.png" />
