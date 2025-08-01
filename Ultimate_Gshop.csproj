@@ -10,6 +10,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\bg.png" />
+    <None Remove="Resources\btn.png" />
+    <None Remove="Resources\btn_close.png" />
+    <None Remove="Resources\category_frame.png" />
+    <None Remove="Resources\cursor.png" />
+    <None Remove="Resources\frame.png" />
+    <None Remove="Resources\gshop_bg_image.png" />
+    <None Remove="Resources\items_bg.png" />
+    <None Remove="Resources\item_slot_frame.png" />
+    <None Remove="Resources\question_mark.png" />
+    <None Remove="Resources\search.png" />
+    <None Remove="Resources\search_bar.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Resources\bg.png" />
+    <AvaloniaResource Include="Resources\btn.png" />
+    <AvaloniaResource Include="Resources\btn_close.png" />
+    <AvaloniaResource Include="Resources\category_frame.png" />
+    <AvaloniaResource Include="Resources\cursor.png" />
+    <AvaloniaResource Include="Resources\frame.png" />
+    <AvaloniaResource Include="Resources\gshop_bg_image.png" />
+    <AvaloniaResource Include="Resources\items_bg.png" />
+    <AvaloniaResource Include="Resources\item_slot_frame.png" />
+    <AvaloniaResource Include="Resources\question_mark.png" />
+    <AvaloniaResource Include="Resources\search.png" />
+    <AvaloniaResource Include="Resources\search_bar.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -22,6 +52,15 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.2" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.2" />
   </ItemGroup>
 
 </Project>
