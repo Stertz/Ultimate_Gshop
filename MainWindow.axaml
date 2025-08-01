@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Ultimate_Gshop"
+		xmlns:itens="clr-namespace:Ultimate_Gshop.Itens"
         x:Class="Ultimate_Gshop.MainWindow"
         Title="Ultimate_Gshop"
         Width="1024" Height="720"
@@ -16,9 +17,8 @@
 		<Image Source="avares://Ultimate_Gshop/Resources/bg.png"
                Stretch="Fill"/>
 
-		<!-- Grid Categorias -->
 		<Grid>
-			<!-- Lista de Categorias 2 -->
+			<!-- Background -->
 			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
 				   HorizontalAlignment="Center"
 				   VerticalAlignment="Top"
@@ -28,67 +28,48 @@
 				   Opacity="0.7"
 				   Stretch="Fill"/>
 
-			<!-- Lista de Categorias 2 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="0,120,450,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
+			<!-- Category Panel -->
+			<ItemsControl x:Name="CategoryList"
+						  HorizontalAlignment="Center"
+						  VerticalAlignment="Top"
+						  Margin="0,120,0,0">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel Orientation="Horizontal"
+									HorizontalAlignment="Center"
+									Spacing="20"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
 
-			<!-- Lista de Categorias 3 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="0,120,225,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid Width="110" Height="110">
+							<!-- Background -->
+							<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
+								   Stretch="Fill"/>
 
-			<!-- Lista de Categorias 4 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="0,120,0,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
+							<!-- Icon -->
+							<Image Source="{Binding Icon}"
+								   Width="50"
+								   Height="50"
+								   VerticalAlignment="Top"
+								   HorizontalAlignment="Center"
+								   Margin="0,5,0,0"/>
 
-			<!-- Lista de Categorias 5 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="225,120,0,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
-
-			<!-- Lista de Categorias 6 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="450,120,0,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
-
-			<!-- Lista de Categorias 7 -->
-			<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="675,120,0,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/>
-
+							<!-- Text -->
+							<TextBlock Text="{Binding Name}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Bottom"
+									   Margin="0,0,0,5"
+									   Foreground="White"
+									   FontSize="14"
+									   TextAlignment="Center"/>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
 		</Grid>
+
 
 		<!-- Grid Pesquisa e Lista de Itens -->
 		<Grid Width="420" Height="470" Margin="70,180,0,0" HorizontalAlignment="Left">
@@ -151,7 +132,7 @@
 					</ItemsControl.ItemsPanel>
 
 					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="local:ItemInfo">
+						<DataTemplate DataType="itens:Item">
 							<Border x:Name="CardBorder"
 									CornerRadius="4"
 									BorderThickness="0"
@@ -164,117 +145,117 @@
 									<Image Source="avares://Ultimate_Gshop/Resources/item_slot_frame.png"
 									   Stretch="Fill"/>
 
-								<Image Source="{Binding Icon}"
-									   Width="25" Height="25"
-									   HorizontalAlignment="Left"
-									   VerticalAlignment="Top"
-									   Margin="12,37,0,0"/>
-
-								<TextBlock Text="{Binding Title}"
-										   HorizontalAlignment="Center"
-										   VerticalAlignment="Top"
-										   Margin="0,7,0,0"
-										   FontSize="11"
-										   Foreground="White"/>
-								
-								<TextBlock Text="{Binding Id, StringFormat=ID: {0}}"
+									<Image Source="{Binding Icon}"
+										   Width="25" Height="25"
 										   HorizontalAlignment="Left"
 										   VerticalAlignment="Top"
-										   Margin="50,32,0,0"
-										   FontSize="10"
-										   FontWeight="Bold"
-										   Foreground="Gray"/>
-								
-								<TextBlock Text="{Binding Temp}"
-										   HorizontalAlignment="Right"
-										   VerticalAlignment="Top"
-										   Margin="0,32,10,0"
-										   FontSize="11"
-										   Foreground="Gray"/>
-								
-								<TextBlock Text="{Binding Price, StringFormat=${0:F2} GOLD}"
-										   HorizontalAlignment="Left"
-										   VerticalAlignment="Top"
-										   Margin="50,45,0,0"
-										   FontSize="8"
-										   Foreground="#ebb935"/>
+										   Margin="12,37,0,0"/>
 
-								<TextBlock Text="{Binding Quantity, StringFormat={}{0} Qtd}"
-										   HorizontalAlignment="Right"
-										   VerticalAlignment="Top"
-										   Margin="0,45,10,2"
-										   FontSize="8"
-										   Foreground="DarkKhaki"/>
+									<TextBlock Text="{Binding Name}"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Top"
+											   Margin="0,7,0,0"
+											   FontSize="11"
+											   Foreground="White"/>
 
-								<!-- Botão Copiar -->
-								<Button Width="55"
-										Height="30"
-										Margin="40,0,0,0"
-										Background="Transparent"
-										BorderBrush="Transparent"
-										HorizontalAlignment="Left"
-										VerticalAlignment="Bottom"
-										Opacity="0.9"
-										Click="CopyButton_Click">
-									<Grid>
-										<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-										<TextBlock Text="Copiar"
-												   Foreground="White"
-												   FontSize="7.5"
-												   FontWeight="Bold"
-												   HorizontalAlignment="Center"
-												   VerticalAlignment="Center"/>
-									</Grid>
-								</Button>
+									<TextBlock Text="{Binding Id, StringFormat=ID: {0}}"
+											   HorizontalAlignment="Left"
+											   VerticalAlignment="Top"
+											   Margin="50,32,0,0"
+											   FontSize="10"
+											   FontWeight="Bold"
+											   Foreground="Gray"/>
 
-								<!-- Botão Editar -->
-								<Button Width="55"
-										Height="30"
-										Margin="82.5,0,0,0"
-										Background="Transparent"
-										BorderBrush="Transparent"
-										HorizontalAlignment="Left"
-										VerticalAlignment="Bottom"
-										Opacity="0.9"
-										Click="EditButton_Click">
-									<Grid>
-										<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-										<TextBlock Text="Editar"
-												   Foreground="White"
-												   FontSize="7.5"
-												   FontWeight="Bold"
-												   HorizontalAlignment="Center"
-												   VerticalAlignment="Center"/>
-									</Grid>
-								</Button>
+									<TextBlock Text="{Binding LimitPeriod}"
+											   HorizontalAlignment="Right"
+											   VerticalAlignment="Top"
+											   Margin="0,32,10,0"
+											   FontSize="11"
+											   Foreground="Gray"/>
 
-								<!-- Botão Excluir -->
-								<Button Width="55"
-										Height="30"
-										Margin="125,0,0,0"
-										Background="Transparent"
-										BorderBrush="Transparent"
-										HorizontalAlignment="Left"
-										VerticalAlignment="Bottom"
-										Opacity="0.9"
-										Click="DeleteButton_Click">
-									<Grid>
-										<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-										<TextBlock Text="Excluir"
-												   Foreground="White"
-												   FontSize="7.5"
-												   FontWeight="Bold"
-												   HorizontalAlignment="Center"
-												   VerticalAlignment="Center"/>
-									</Grid>
-								</Button>
+									<!--
+									<TextBlock Text="{Binding Price, StringFormat=${0:F2} GOLD}"
+											   HorizontalAlignment="Left"
+											   VerticalAlignment="Top"
+											   Margin="50,45,0,0"
+											   FontSize="8"
+											   Foreground="#ebb935"/>-->
 
-							</Grid>
-					</Border>
-				</DataTemplate>
-			</ItemsControl.ItemTemplate>
+									<TextBlock Text="{Binding Amount, StringFormat={}{0} Qtd}"
+											   HorizontalAlignment="Right"
+											   VerticalAlignment="Top"
+											   Margin="0,45,10,2"
+											   FontSize="8"
+											   Foreground="DarkKhaki"/>
+
+									<!-- Botão Copiar -->
+									<Button Width="55"
+											Height="30"
+											Margin="40,0,0,0"
+											Background="Transparent"
+											BorderBrush="Transparent"
+											HorizontalAlignment="Left"
+											VerticalAlignment="Bottom"
+											Opacity="0.9"
+											Click="CopyButton_Click">
+										<Grid>
+											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+											<TextBlock Text="Copiar"
+													   Foreground="White"
+													   FontSize="7.5"
+													   FontWeight="Bold"
+													   HorizontalAlignment="Center"
+													   VerticalAlignment="Center"/>
+										</Grid>
+									</Button>
+
+									<!-- Botão Editar -->
+									<Button Width="55"
+											Height="30"
+											Margin="82.5,0,0,0"
+											Background="Transparent"
+											BorderBrush="Transparent"
+											HorizontalAlignment="Left"
+											VerticalAlignment="Bottom"
+											Opacity="0.9"
+											Click="EditButton_Click">
+										<Grid>
+											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+											<TextBlock Text="Editar"
+													   Foreground="White"
+													   FontSize="7.5"
+													   FontWeight="Bold"
+													   HorizontalAlignment="Center"
+													   VerticalAlignment="Center"/>
+										</Grid>
+									</Button>
+
+									<!-- Botão Excluir -->
+									<Button Width="55"
+											Height="30"
+											Margin="125,0,0,0"
+											Background="Transparent"
+											BorderBrush="Transparent"
+											HorizontalAlignment="Left"
+											VerticalAlignment="Bottom"
+											Opacity="0.9"
+											Click="DeleteButton_Click">
+										<Grid>
+											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+											<TextBlock Text="Excluir"
+													   Foreground="White"
+													   FontSize="7.5"
+													   FontWeight="Bold"
+													   HorizontalAlignment="Center"
+													   VerticalAlignment="Center"/>
+										</Grid>
+									</Button>
+
+								</Grid>
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
 				</ItemsControl>
-
 			</ScrollViewer>
 		</Grid>
 
@@ -290,9 +271,7 @@
 				   Stretch="Fill"/>
 
 			<!-- Painel de detalhes à direita -->
-			<StackPanel x:Name="DetailPanel"
-						x:DataType="local:ItemInfo"
-						HorizontalAlignment="Center"
+			<StackPanel HorizontalAlignment="Center"
 						VerticalAlignment="Top"
 						Margin="0,15,0,0"
 						Width="320"
@@ -310,8 +289,7 @@
 				</Grid>
 
 				<!-- Nome -->
-				<TextBox x:Name="DetailTitle"
-                 Text="{Binding Title}"
+				<TextBox Text="Name"
                  Watermark="Nome"
                  IsReadOnly="True"
                  Width="280"

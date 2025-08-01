@@ -9,6 +9,10 @@
     <UseWPF>True</UseWPF>
   </PropertyGroup>
 
+	<ItemGroup>
+		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
   <ItemGroup>
     <None Remove="Resources\bg.png" />
     <None Remove="Resources\btn.png" />

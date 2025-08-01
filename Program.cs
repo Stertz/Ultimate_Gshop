@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
+using System.Text;
 
 namespace Ultimate_Gshop
 {
@@ -9,8 +10,14 @@ namespace Ultimate_Gshop
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
         [STAThread]
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        public static void Main(string[] args)
+        {
+            // Registra suporte a encodings
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
+        }
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
@@ -20,25 +27,3 @@ namespace Ultimate_Gshop
                 .LogToTrace();
     }
 }
-
-
-/*using System.Text;
-
-namespace Ultimate_Gshop
-{
-    internal static class Program
-    {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Application.Run(new GshopUI());
-        }
-    }
-}*/

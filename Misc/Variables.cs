@@ -8,7 +8,7 @@ namespace Ultimate_Gshop.Misc
 {
     public static class Variables
     {
-        public static string LastGshopPath { get; } = @"C:\Users\Joao\Desktop\pw\gshop2.data";
+        public static string LastGshopPath { get; } = @"C:\gshop\gshopeditado.data";
         public static int BytesPerItem { get; } = 1464;
         public static int MaxSalesPerItem { get; } = 4;
     }
