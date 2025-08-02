@@ -18,21 +18,11 @@
                Stretch="Fill"/>
 
 		<Grid>
-			<!-- Background -->
-			<!--Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Top"
-				   Width="110"
-				   Height="70"
-				   Margin="0,120,675,0"
-				   Opacity="0.7"
-				   Stretch="Fill"/-->
-
 			<!-- Category Panel -->
 			<ItemsControl x:Name="CategoryList"
 						  HorizontalAlignment="Center"
 						  VerticalAlignment="Top"
-						  Margin="0,120,0,0">
+						  Margin="0,115,0,0">
 
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
@@ -44,26 +34,56 @@
 
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Grid Width="90" Height="90">
+						<Grid Width="100" Height="60">
 							<!-- Background -->
 							<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
+								   Opacity="0.60"
 								   Stretch="Fill"/>
-
-							<!-- Icon -->
-							<!--Image Source="{Binding Icon}"
-								   Width="50"
-								   Height="50"
-								   VerticalAlignment="Top"
-								   HorizontalAlignment="Center"
-								   Margin="0,5,0,0"/-->
 
 							<!-- Text -->
 							<TextBlock Text="{Binding Title}"
 									   HorizontalAlignment="Center"
 									   VerticalAlignment="Bottom"
-									   Margin="0,0,0,5"
+									   Margin="0,0,0,7"
 									   Foreground="White"
+									   FontWeight="Bold"
 									   FontSize="14"
+									   TextAlignment="Center"/>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+
+			<!-- SubCategory Panel -->
+			<ItemsControl x:Name="SubCategoryList"
+						  HorizontalAlignment="Center"
+						  VerticalAlignment="Top"
+						  Margin="0,180,0,0">
+
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel Orientation="Horizontal"
+									HorizontalAlignment="Center"
+									Spacing="20"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid Width="70" Height="30">
+							<!-- Background -->
+							<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
+								   Opacity="0.85"
+								   Stretch="Fill"/>
+
+							<!-- Text -->
+							<TextBlock Text="{Binding}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Bottom"
+									   Margin="0,0,0,7"
+									   Foreground="White"
+									   FontWeight="DemiBold"
+									   FontSize="12"
 									   TextAlignment="Center"/>
 						</Grid>
 					</DataTemplate>
@@ -133,7 +153,7 @@
 					</ItemsControl.ItemsPanel>
 
 					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="itens:Item">
+						<DataTemplate>
 							<Border x:Name="CardBorder"
 									CornerRadius="4"
 									BorderThickness="0"
@@ -146,7 +166,7 @@
 									<Image Source="avares://Ultimate_Gshop/Resources/item_slot_frame.png"
 									   Stretch="Fill"/>
 
-									<Image Source="{Binding Icon}"
+									<Image Source="{Binding IconBitmap}"
 										   Width="25" Height="25"
 										   HorizontalAlignment="Left"
 										   VerticalAlignment="Top"
@@ -290,15 +310,15 @@
 				</Grid>
 
 				<!-- Nome -->
-				<TextBox Text="Name"
-                 Watermark="Nome"
-                 IsReadOnly="True"
-                 Width="280"
-                 Background="#344c51"
-                 BorderBrush="#5d5737"
-                 Foreground="White"
-                 CornerRadius="4"
-                 Padding="6,3">
+				<TextBox x:Name="DetailName"
+						 Watermark="Nome"
+						 IsReadOnly="True"
+						 Width="280"
+						 Background="#344c51"
+						 BorderBrush="#5d5737"
+						 Foreground="White"
+						 CornerRadius="4"
+						 Padding="6,3">
 					<TextBox.Styles>
 						<!-- Quando estiver vazio -->
 						<Style Selector="TextBox">
@@ -311,6 +331,7 @@
 						</Style>
 					</TextBox.Styles>
 				</TextBox>
+
 			</StackPanel>
 
 		</Grid>

@@ -17,9 +17,9 @@
     <Page Remove="Resources\surfaces\**" />
   </ItemGroup>
 
-	<!-->ItemGroup>
+	<ItemGroup>
 		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>-->
+	</ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\bg.png" />

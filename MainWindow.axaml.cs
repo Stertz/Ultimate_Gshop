@@ -28,32 +28,28 @@ namespace Ultimate_Gshop
             }
 
             _shop = new Shop();
-            _shop.CategoriesLoaded += OnCategoriesLoaded;
 
             LoadGshop.TryLoadGshop(_shop);
 
-            foreach (var cat in _shop.Categories)
-            {
-                Console.WriteLine($"Carregando categoria: {cat.Title}");
-            }
-
             CategoryList.ItemsSource = _shop.Categories;
 
-            // Carrega os itens na tabela
-            FillTable(_shop.Itens);
-        }
+            SubCategoryList.ItemsSource = _shop.Categories.FirstOrDefault()?.SubCategories;
 
-        private void OnCategoriesLoaded(object? sender, EventArgs e)
-        {
-            //MessageBox.Show("teste");
+
+            // Carrega os itens na tabela
+            FillTable(_shop.Itens.Take(20).ToList());
         }
 
         private void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (sender is Grid grid && grid.DataContext is Item item)
+            if (sender is Grid grid)
             {
-                DetailIcon.Source = LoadImage(item.Icon);
-                //DetailTitle.Text = item.Name;
+                var item = grid.DataContext as dynamic;
+                if (item == null)
+                    return;
+
+                DetailIcon.Source = item.IconBitmap;
+                DetailName.Text = item.Name;
 
                 // aplica destaque no card clicado:
                 if (grid.Parent is Border current)
@@ -89,69 +85,67 @@ namespace Ultimate_Gshop
 
         private void CopyButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is Item item)
+            if (sender is Grid grid)
             {
+                var item = grid.DataContext as dynamic;
+                if (item == null)
+                    return;
+
                 Console.WriteLine($"Copiando item: {item.Name} (ID: {item.Id})");
             }
         }
 
         private void EditButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is Item item)
+            if (sender is Grid grid)
             {
+                var item = grid.DataContext as dynamic;
+                if (item == null)
+                    return;
+
                 Console.WriteLine($"Editando item: {item.Name} (ID: {item.Id})");
             }
         }
 
         private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is Item item)
+            if (sender is Grid grid)
             {
+                var item = grid.DataContext as dynamic;
+                if (item == null)
+                    return;
+
                 Console.WriteLine($"Deletando item: {item.Name} (ID: {item.Id})");
             }
         }
 
         private void FillTable(List<Item> items)
         {
-            var convertedList = new List<Item>();
-
-            foreach (var item in items)
+            var convertedList = items.Select(item => new
             {
-                convertedList.Add(new Item
-                {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Amount = item.Amount,
-                    Icon = item.Icon,
-                   // Price = 997.58 // Falta ajustar
-                });
-            }
+                item.Id,
+                item.Name,
+                item.Amount,
+                LimitPeriod = item.LimitPeriod == 0 ? "Perm." : $"{item.LimitPeriod} dias",
+                IconBitmap = LoadImage(item.Icon)
+            }).ToList();
 
             ItemList.ItemsSource = convertedList;
         }
 
 
-
-        private Bitmap LoadImage(string? path)
+        private static Bitmap LoadImage(string? path)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(path))
                     throw new Exception("Empty image path.");
 
-                /*
-                 * ALERTA GAMBIARRA
-                 * não consegui converter .dds para .png
-                 * então mudei os arquivos por enquanto
-                 * até decidir se vamos ou não usar o 
-                 * surface.pck
-                 */
-                // Troca temporária de .dds para .png
+                // GAMBIARRA -> Troca temporária de .dds para .png
                 if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
                     path = Path.ChangeExtension(path, ".png");
 
-
-                var fullPath = Path.Combine(AppContext.BaseDirectory, "Resources", path.TrimStart('/', '\\'));
+                var fullPath = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
 
                 if (!File.Exists(fullPath))
                     throw new FileNotFoundException($"Image not found: {fullPath}");

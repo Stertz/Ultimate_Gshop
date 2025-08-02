@@ -1,5 +1,6 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using System.Text;
 using Application = Avalonia.Application;
 
 namespace Ultimate_Gshop
@@ -8,6 +9,7 @@ namespace Ultimate_Gshop
     {
         public override void Initialize()
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AvaloniaXamlLoader.Load(this);
         }
 
