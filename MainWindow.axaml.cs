@@ -1,44 +1,41 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform;
 using System.IO;
+using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
-using Ultimate_Gshop.Itens;
 using Bitmap = Avalonia.Media.Imaging.Bitmap;
-using Button = Avalonia.Controls.Button;
+using Item = Ultimate_Gshop.Itens.Item;
+using KeyEventArgs = Avalonia.Input.KeyEventArgs;
+
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
         private Shop? _shop;
         private Border? _lastSelectedBorder;
+        private Border? _lastSelectedCategory;
+        private Border? _lastSelectedSubCategory;
 
         public MainWindow()
         {
             InitializeComponent();
-
-            // Define cursor personalizado
-            using (var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png")))
-            {
-                var bitmap = new Bitmap(stream);
-                this.Cursor = new Avalonia.Input.Cursor(bitmap, new PixelPoint(0, 0));
-            }
-
             _shop = new Shop();
-
             LoadGshop.TryLoadGshop(_shop);
 
             CategoryList.ItemsSource = _shop.Categories;
 
-            SubCategoryList.ItemsSource = _shop.Categories.FirstOrDefault()?.SubCategories;
-
-
-            // Carrega os itens na tabela
-            FillTable(_shop.Itens.Take(20).ToList());
+            // Seleciona a primeira categoria ao abrir a janela
+            this.Opened += (_, __) =>
+            {
+                SelectFirstCategory();
+            };
         }
+
+        #region Item Events
 
         private void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
@@ -51,33 +48,12 @@ namespace Ultimate_Gshop
                 DetailIcon.Source = item.IconBitmap;
                 DetailName.Text = item.Name;
 
-                // aplica destaque no card clicado:
                 if (grid.Parent is Border current)
                 {
-                    // Remove sombra anterior
-                    if (_lastSelectedBorder is not null)
-                    {
-                        _lastSelectedBorder.BoxShadow = new BoxShadows(
-                             new BoxShadow
-                             {
-                                 Color = Colors.Transparent,
-                                 Blur = 10,
-                                 OffsetX = 0,
-                                 OffsetY = 0
-                             }
-                         );
-                    }
+                    if (_lastSelectedBorder != null)
+                        RemoveShadow(_lastSelectedBorder);
 
-                    // Aplica sombra dourada
-                    current.BoxShadow = new BoxShadows(
-                        new BoxShadow
-                        {
-                            Color = Avalonia.Media.Color.Parse("#ebb935"),
-                            Blur = 15,
-                            OffsetX = 0,
-                            OffsetY = 0
-                        }
-                    );
+                    ApplyGoldShadow(current);
                     _lastSelectedBorder = current;
                 }
             }
@@ -119,7 +95,168 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void FillTable(List<Item> items)
+        #endregion
+
+        #region Category Events
+
+        private void OnCategoryClick(object? sender, PointerPressedEventArgs e)
+        {
+            if (sender is Grid grid && grid.DataContext is Category category && grid.Parent is Border current)
+            {
+                int categoryIndex = _shop!.Categories.IndexOf(category);
+                SearchBox.Text = string.Empty;
+
+                if (_lastSelectedCategory == current)
+                {
+                    RemoveShadow(current);
+                    _lastSelectedCategory = null;
+                    SubCategoryList.ItemsSource = null;
+                    FillTable([]);
+                    return;
+                }
+
+                if (_lastSelectedCategory != null)
+                    RemoveShadow(_lastSelectedCategory);
+
+                ApplyGoldShadow(current);
+                _lastSelectedCategory = current;
+
+                SubCategoryList.ItemsSource = category.SubCategories;
+
+                var items = _shop.Itens
+                    .Where(i => i.CategoryIndex == categoryIndex)
+                    .ToList();
+
+                FillTable(items);
+            }
+        }
+
+        private void OnSubCategoryClick(object? sender, PointerPressedEventArgs e)
+        {
+            if (sender is Grid grid && grid.DataContext is string subCategory && grid.Parent is Border current)
+            {
+                SearchBox.Text = string.Empty;
+
+                if (_lastSelectedCategory?.Child is not Grid categoryGrid ||
+                    categoryGrid.DataContext is not Category category)
+                    return;
+
+                int categoryIndex = _shop!.Categories.IndexOf(category);
+                int subCategoryIndex = category.SubCategories.IndexOf(subCategory);
+
+                if (_lastSelectedSubCategory == current)
+                {
+                    RemoveShadow(current);
+                    _lastSelectedSubCategory = null;
+
+                    var items = _shop.Itens
+                        .Where(i => i.CategoryIndex == categoryIndex)
+                        .ToList();
+
+                    FillTable(items);
+                    return;
+                }
+
+                if (_lastSelectedSubCategory != null)
+                    RemoveShadow(_lastSelectedSubCategory);
+
+                ApplyGoldShadow(current);
+                _lastSelectedSubCategory = current;
+
+                var filteredItems = _shop.Itens
+                    .Where(i => i.CategoryIndex == categoryIndex &&
+                                i.SubCategoryIndex == subCategoryIndex)
+                    .ToList();
+
+                FillTable(filteredItems);
+            }
+        }
+
+        #endregion
+
+        #region Search
+
+        private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                ExecuteSearch();
+        }
+
+        private void SearchIcon_Click(object? sender, PointerPressedEventArgs e)
+        {
+            ExecuteSearch();
+        }
+
+        private void ExecuteSearch()
+        {
+            string query = SearchBox.Text?.Trim() ?? string.Empty;
+            IEnumerable<Item> items = _shop!.Itens;
+
+            Category? activeCategory = null;
+            int categoryIndex = -1;
+
+            if (_lastSelectedCategory?.Child is Grid catGrid &&
+                catGrid.DataContext is Category category)
+            {
+                activeCategory = category;
+                categoryIndex = _shop.Categories.IndexOf(category);
+                items = items.Where(i => i.CategoryIndex == categoryIndex);
+            }
+
+            if (activeCategory != null &&
+                _lastSelectedSubCategory?.Child is Grid subGrid &&
+                subGrid.DataContext is string subCategory)
+            {
+                int subCategoryIndex = activeCategory.SubCategories.IndexOf(subCategory);
+
+                if (subCategoryIndex >= 0)
+                {
+                    items = items.Where(i => i.CategoryIndex == categoryIndex &&
+                                             i.SubCategoryIndex == subCategoryIndex);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                FillTable(items);
+                return;
+            }
+
+            items = items.Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+            FillTable(items);
+        }
+
+        #endregion
+
+        #region Shadow Helpers
+
+        private static void ApplyGoldShadow(Border border)
+        {
+            border.BoxShadow = new BoxShadows(new BoxShadow
+            {
+                Color = Avalonia.Media.Color.Parse("#ebb935"),
+                Blur = 15,
+                OffsetX = 0,
+                OffsetY = 0
+            });
+        }
+
+        private static void RemoveShadow(Border border)
+        {
+            border.BoxShadow = new BoxShadows(new BoxShadow
+            {
+                Color = Colors.Transparent,
+                Blur = 10,
+                OffsetX = 0,
+                OffsetY = 0
+            });
+        }
+
+        #endregion
+
+        #region Utils
+
+        private void FillTable(IEnumerable<Item> items)
         {
             var convertedList = items.Select(item => new
             {
@@ -130,9 +267,43 @@ namespace Ultimate_Gshop
                 IconBitmap = LoadImage(item.Icon)
             }).ToList();
 
-            ItemList.ItemsSource = convertedList;
+            var repeater = this.FindControl<ItemsRepeater>("ItemList");
+            if (repeater != null)
+            {
+                repeater.ItemsSource = convertedList;
+            }            
         }
 
+        private void SelectFirstCategory()
+        {
+            if (_shop == null) return;
+            var firstCategory = _shop.Categories.FirstOrDefault();
+            if (firstCategory == null) return;
+
+            SubCategoryList.ItemsSource = firstCategory.SubCategories;
+            int categoryIndex = _shop.Categories.IndexOf(firstCategory);
+
+            var items = _shop.Itens
+                .Where(i => i.CategoryIndex == categoryIndex)
+                .ToList();
+            FillTable(items);
+
+            CategoryList.ApplyTemplate();
+
+            if (CategoryList.ContainerFromIndex(categoryIndex) is ContentPresenter container)
+            {
+                if (container.Child is Border border)
+                {
+                    ApplyGoldShadow(border);
+                    _lastSelectedCategory = border;
+                }
+                else if (container.Child is Grid grid && grid.Parent is Border b)
+                {
+                    ApplyGoldShadow(b);
+                    _lastSelectedCategory = b;
+                }
+            }
+        }
 
         private static Bitmap LoadImage(string? path)
         {
@@ -141,7 +312,6 @@ namespace Ultimate_Gshop
                 if (string.IsNullOrWhiteSpace(path))
                     throw new Exception("Empty image path.");
 
-                // GAMBIARRA -> Troca temporária de .dds para .png
                 if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
                     path = Path.ChangeExtension(path, ".png");
 
@@ -168,9 +338,9 @@ namespace Ultimate_Gshop
         private void TopDrag_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            {
                 BeginMoveDrag(e);
-            }
         }
+
+        #endregion
     }
 }

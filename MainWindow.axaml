@@ -34,58 +34,67 @@
 
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Grid Width="100" Height="60">
-							<!-- Background -->
-							<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
-								   Opacity="0.60"
-								   Stretch="Fill"/>
-
-							<!-- Text -->
-							<TextBlock Text="{Binding Title}"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Bottom"
-									   Margin="0,0,0,7"
-									   Foreground="White"
-									   FontWeight="Bold"
-									   FontSize="14"
-									   TextAlignment="Center"/>
-						</Grid>
+						<Border CornerRadius="4"
+								BorderThickness="0"
+								BorderBrush="Transparent"
+								Margin="2"
+								BoxShadow="0 0 10 0 Transparent">
+							<Grid Width="100" Height="60" PointerPressed="OnCategoryClick">
+								<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
+									   Opacity="0.60"
+									   Stretch="Fill"/>
+								<TextBlock Text="{Binding Title}"
+										   HorizontalAlignment="Center"
+										   VerticalAlignment="Bottom"
+										   Margin="0,0,0,7"
+										   Foreground="White"
+										   FontWeight="Bold"
+										   FontSize="14"
+										   TextAlignment="Center"/>
+							</Grid>
+						</Border>
 					</DataTemplate>
+
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
 
 			<!-- SubCategory Panel -->
 			<ItemsControl x:Name="SubCategoryList"
-						  HorizontalAlignment="Center"
-						  VerticalAlignment="Top"
-						  Margin="0,180,0,0">
+              HorizontalAlignment="Center"
+              VerticalAlignment="Top"
+              Margin="0,175,0,0">
 
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
-						<StackPanel Orientation="Horizontal"
-									HorizontalAlignment="Center"
-									Spacing="20"/>
+						<WrapPanel Orientation="Horizontal"
+								   HorizontalAlignment="Center"
+								   ItemWidth="80"
+								   ItemHeight="40"
+								   Margin="5"/>
 					</ItemsPanelTemplate>
 				</ItemsControl.ItemsPanel>
 
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Grid Width="70" Height="30">
-							<!-- Background -->
-							<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
-								   Opacity="0.85"
-								   Stretch="Fill"/>
-
-							<!-- Text -->
-							<TextBlock Text="{Binding}"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Bottom"
-									   Margin="0,0,0,7"
-									   Foreground="White"
-									   FontWeight="DemiBold"
-									   FontSize="12"
-									   TextAlignment="Center"/>
-						</Grid>
+						<Border CornerRadius="4"
+								BorderThickness="0"
+								BorderBrush="Transparent"
+								Margin="2"
+								BoxShadow="0 0 10 0 Transparent">
+							<Grid Width="70" Height="30" PointerPressed="OnSubCategoryClick">
+								<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
+									   Opacity="0.85"
+									   Stretch="Fill"/>
+								<TextBlock Text="{Binding}"
+										   HorizontalAlignment="Center"
+										   VerticalAlignment="Bottom"
+										   Margin="0,0,0,7"
+										   Foreground="White"
+										   FontWeight="DemiBold"
+										   FontSize="12"
+										   TextAlignment="Center"/>
+							</Grid>
+						</Border>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
@@ -110,13 +119,14 @@
 					   Stretch="Fill"/>
 				<!-- Campo de texto -->
 				<TextBox x:Name="SearchBox"
-         Background="Transparent"
-         BorderThickness="0"
-         Foreground="White"
-         FontSize="14"
-         VerticalContentAlignment="Center"
-         Padding="5,0"
-         Focusable="True">
+						 KeyDown="SearchBox_KeyDown"
+						 Background="Transparent"
+						 BorderThickness="0"
+						 Foreground="White"
+						 FontSize="14"
+						 VerticalContentAlignment="Center"
+						 Padding="5,0"
+						 Focusable="True">
 					<TextBox.Styles>
 						<Style Selector="TextBox:pointerover /template/ Border">
 							<Setter Property="BorderBrush" Value="Transparent"/>
@@ -138,21 +148,21 @@
 				   Width="25"
 				   Height="25"
 				   Stretch="Fill"
-				   Margin="0,30,30,0"/>
+				   Margin="0,30,30,0"
+				   PointerPressed="SearchIcon_Click"/>
 			<!-- ScrollViewer sobre a imagem, relativo ao Grid -->
 			<ScrollViewer Width="390"
-						  Height="390"
-						  Margin="15,60,15,20"
-						  VerticalAlignment="Top"
-						  VerticalScrollBarVisibility="Visible">
-				<ItemsControl x:Name="ItemList">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<WrapPanel Orientation="Horizontal"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-
-					<ItemsControl.ItemTemplate>
+              Height="390"
+              Margin="15,60,15,20"
+              VerticalAlignment="Top"
+              VerticalScrollBarVisibility="Visible">
+				<ItemsRepeater x:Name="ItemList">
+					<ItemsRepeater.Layout>
+						<UniformGridLayout Orientation="Horizontal"
+										   MinRowSpacing="5"
+										   MinColumnSpacing="5"/>
+					</ItemsRepeater.Layout>
+					<ItemsRepeater.ItemTemplate>
 						<DataTemplate>
 							<Border x:Name="CardBorder"
 									CornerRadius="4"
@@ -160,11 +170,11 @@
 									BorderBrush="Transparent"
 									Margin="2"
 									BoxShadow="0 0 10 0 Transparent">
-								<Grid Width="180" Height="80" Margin="5"
+								<Grid Width="177" Height="80" Margin="5"
 									  PointerPressed="OnItemCard_PointerPressed">
 
 									<Image Source="avares://Ultimate_Gshop/Resources/item_slot_frame.png"
-									   Stretch="Fill"/>
+										   Stretch="Fill"/>
 
 									<Image Source="{Binding IconBitmap}"
 										   Width="25" Height="25"
@@ -193,14 +203,6 @@
 											   Margin="0,32,10,0"
 											   FontSize="11"
 											   Foreground="Gray"/>
-
-									<!--
-									<TextBlock Text="{Binding Price, StringFormat=${0:F2} GOLD}"
-											   HorizontalAlignment="Left"
-											   VerticalAlignment="Top"
-											   Margin="50,45,0,0"
-											   FontSize="8"
-											   Foreground="#ebb935"/>-->
 
 									<TextBlock Text="{Binding Amount, StringFormat={}{0} Qtd}"
 											   HorizontalAlignment="Right"
@@ -275,8 +277,8 @@
 								</Grid>
 							</Border>
 						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
+					</ItemsRepeater.ItemTemplate>
+				</ItemsRepeater>
 			</ScrollViewer>
 		</Grid>
 
