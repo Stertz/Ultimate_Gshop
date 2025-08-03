@@ -1,13 +1,18 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Ultimate_Gshop.Gshop;
+using Ultimate_Gshop.Gshop.Services;
+using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop
 {
     public partial class MenuWindow : Window
     {
-        public MenuWindow()
+        private readonly Shop _shop;
+        public MenuWindow(Shop shop)
         {
             InitializeComponent();
+            _shop = shop;
             this.Opacity = 0;
 
             this.KeyDown += MenuWindow_KeyDown;
@@ -27,13 +32,38 @@ namespace Ultimate_Gshop
         {
             if (e.Key == Avalonia.Input.Key.Escape)
             {
-                this.Close();
+                this.Close(_shop);
             }
         }
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
-            this.Close();
+            this.Close(_shop);
         }
+
+        private void OnExportServerClicked(object sender, RoutedEventArgs e)
+        {
+            using var bw = new BinaryWriter(File.Create(Path.Combine(AppContext.BaseDirectory, "gshopsev.data")));
+
+            ExportGshopServer.Handle(bw, _shop);
+
+            bw.Close();
+
+        }
+
+        private void OnExportClientClicked(object sender, RoutedEventArgs e)
+        {
+            using var bw = new BinaryWriter(File.Create(Path.Combine(Variables.GshopClient)));
+            ExportGshopClient.Handle(bw, _shop);
+            bw.Close();
+        }
+
+        private void OnImportGshopClicked(object sender, RoutedEventArgs e)
+        {
+            var gshop = new Shop();
+            LoadGshop.TryLoadGshop(gshop);
+            Close(gshop);
+        }
+
     }
 }

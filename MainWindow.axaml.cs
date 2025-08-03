@@ -5,6 +5,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
+using System;
+using System.Linq;
+using System.Xml;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
@@ -16,10 +19,14 @@ namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
-        private Shop? _shop;
+        private Shop _shop;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
+
+        private IQueryable<Item>? _currentItems;
+        private int _selectedCategory = -1;
+        private int _selectedSubCategory = -1;
 
         public MainWindow()
         {
@@ -112,7 +119,9 @@ namespace Ultimate_Gshop
                     RemoveShadow(current);
                     _lastSelectedCategory = null;
                     SubCategoryList.ItemsSource = null;
-                    FillTable([]);
+                    _selectedCategory = -1;
+                    _selectedSubCategory = -1;
+                    UpdateGrid();
                     return;
                 }
 
@@ -124,11 +133,8 @@ namespace Ultimate_Gshop
 
                 SubCategoryList.ItemsSource = category.SubCategories;
 
-                var items = _shop.Itens
-                    .Where(i => i.CategoryIndex == categoryIndex)
-                    .ToList();
+                CategoryToggled(categoryIndex);
 
-                FillTable(items);
             }
         }
 
@@ -149,12 +155,8 @@ namespace Ultimate_Gshop
                 {
                     RemoveShadow(current);
                     _lastSelectedSubCategory = null;
-
-                    var items = _shop.Itens
-                        .Where(i => i.CategoryIndex == categoryIndex)
-                        .ToList();
-
-                    FillTable(items);
+                    _selectedSubCategory = -1;
+                    UpdateGrid();
                     return;
                 }
 
@@ -164,12 +166,7 @@ namespace Ultimate_Gshop
                 ApplyGoldShadow(current);
                 _lastSelectedSubCategory = current;
 
-                var filteredItems = _shop.Itens
-                    .Where(i => i.CategoryIndex == categoryIndex &&
-                                i.SubCategoryIndex == subCategoryIndex)
-                    .ToList();
-
-                FillTable(filteredItems);
+                SubCategoryToggled(subCategoryIndex);
             }
         }
 
@@ -219,12 +216,12 @@ namespace Ultimate_Gshop
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                FillTable(items);
+                //FillTable(items);
                 return;
             }
 
             items = items.Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
-            FillTable(items);
+            //FillTable(items);
         }
 
         #endregion
@@ -257,9 +254,9 @@ namespace Ultimate_Gshop
 
         #region Utils
 
-        private void FillTable(IEnumerable<Item> items)
+        private void FillTable()
         {
-            var convertedList = items.Select(item => new
+            var convertedList = _currentItems?.Select(item => new
             {
                 item.Id,
                 item.Name,
@@ -284,10 +281,11 @@ namespace Ultimate_Gshop
             SubCategoryList.ItemsSource = firstCategory.SubCategories;
             int categoryIndex = _shop.Categories.IndexOf(firstCategory);
 
-            var items = _shop.Itens
-                .Where(i => i.CategoryIndex == categoryIndex)
-                .ToList();
-            FillTable(items);
+            //var items = _shop.Itens
+            //    .Where(i => i.CategoryIndex == categoryIndex)
+            //    .ToList();
+
+            //FillTable();
 
             CategoryList.ApplyTemplate();
 
@@ -304,6 +302,35 @@ namespace Ultimate_Gshop
                     _lastSelectedCategory = b;
                 }
             }
+
+            CategoryToggled(categoryIndex);
+
+        }
+
+        private void CategoryToggled(int index)
+        {
+            _selectedCategory = index;
+            _selectedSubCategory = -1;
+            UpdateGrid();
+        }
+
+        private void SubCategoryToggled(int subcategoryIndex)
+        { 
+            _selectedSubCategory = subcategoryIndex;
+            UpdateGrid();
+        }
+
+        private void UpdateGrid()
+        {
+            if (_shop == null) return;
+
+            var query = _shop.Itens.AsQueryable();
+            query = query.Where(i => i.CategoryIndex == _selectedCategory);
+            if (_selectedSubCategory > -1) query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
+
+            _currentItems = query;
+            FillTable();
+
         }
 
         private static Bitmap LoadImage(string? path)
@@ -333,7 +360,7 @@ namespace Ultimate_Gshop
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
         {
-            var menuWindow = new MenuWindow
+            var menuWindow = new MenuWindow(_shop)
             {
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
@@ -350,7 +377,7 @@ namespace Ultimate_Gshop
                 (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
             );
 
-            await menuWindow.ShowDialog(this);
+            await menuWindow.ShowDialog<Shop>(this);
         }
 
         private async void ItemEditorButton_Click(object? sender, RoutedEventArgs e)

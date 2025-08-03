@@ -13,7 +13,7 @@ namespace Ultimate_Gshop.Categories.Services
 
             fs.Seek(itemAmount * Variables.BytesPerItem + 8, SeekOrigin.Begin);
 
-            for (byte x = 0; x < 7; x++) {
+            for (byte x = 0; x < 8; x++) {
 
                 var title = GetCategoryTitle.Handle(br);
 
