@@ -2,12 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Ultimate_Gshop.MenuWindow"
         Title="Menu"
-        Width="400" Height="400"
+        Width="375" Height="400"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Grid>
-		<!-- Sua imagem de fundo -->
+		<!-- imagem de fundo -->
 		<Image Source="avares://Ultimate_Gshop/Resources/paper.png"
                Stretch="Fill"/>
 		

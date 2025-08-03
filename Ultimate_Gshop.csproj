@@ -4,9 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>True</UseWPF>
+    <UseWPF>False</UseWPF>
 	<LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -29,7 +28,6 @@
     <None Remove="Resources\category_frame.png" />
     <None Remove="Resources\cursor.png" />
     <None Remove="Resources\frame.png" />
-    <None Remove="Resources\gshop_bg_image.png" />
     <None Remove="Resources\items_bg.png" />
     <None Remove="Resources\item_slot_frame.png" />
     <None Remove="Resources\menu.png" />
@@ -47,7 +45,6 @@
     <AvaloniaResource Include="Resources\category_frame.png" />
     <AvaloniaResource Include="Resources\cursor.png" />
     <AvaloniaResource Include="Resources\frame.png" />
-    <AvaloniaResource Include="Resources\gshop_bg_image.png" />
     <AvaloniaResource Include="Resources\items_bg.png" />
     <AvaloniaResource Include="Resources\item_slot_frame.png" />
     <AvaloniaResource Include="Resources\menu.png" />

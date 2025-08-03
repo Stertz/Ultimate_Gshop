@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultimate_Gshop.ItemEditorWindow"
+        Title="Editor"
+        Width="375" Height="400"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Grid>
+
+		<!-- imagem de fundo -->
+		<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
+               Stretch="Fill"/>
+		
+		<!-- Botão de fechar -->
+		<Button Width="55"
+				Height="55"
+				Margin="0,30,20,0"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Top"
+				Opacity="0.8"
+				Click="CloseButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
+		</Button>
+	</Grid>
+</Window>

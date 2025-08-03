@@ -1,9 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
-using System.IO;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
@@ -182,7 +183,7 @@ namespace Ultimate_Gshop
                 ExecuteSearch();
         }
 
-        private void SearchIcon_Click(object? sender, PointerPressedEventArgs e)
+        private void SearchIcon_Click(object? sender, RoutedEventArgs e)
         {
             ExecuteSearch();
         }
@@ -330,7 +331,51 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void CloseButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void NavButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var menuWindow = new MenuWindow
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                CanResize = false
+            };
+
+            // Pega tamanho do MainWindow e do MenuWindow
+            var mainBounds = this.Bounds;
+            menuWindow.Width = 400;
+            menuWindow.Height = 300;
+
+            menuWindow.Position = new PixelPoint(
+                (int)(Position.X + (mainBounds.Width - menuWindow.Width) / 2),
+                (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
+            );
+
+            await menuWindow.ShowDialog(this);
+        }
+
+        private async void ItemEditorButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var itemEditorWindow = new ItemEditorWindow
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                CanResize = false
+            };
+
+            // Pega tamanho do MainWindow e do MenuWindow
+            var mainBounds = this.Bounds;
+            itemEditorWindow.Width = 400;
+            itemEditorWindow.Height = 300;
+
+            itemEditorWindow.Position = new PixelPoint(
+                (int)(Position.X + (mainBounds.Width - itemEditorWindow.Width) / 2),
+                (int)(Position.Y + (mainBounds.Height - itemEditorWindow.Height) / 2)
+            );
+
+            await itemEditorWindow.ShowDialog(this);
+        }
+
+        private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
             this.Close();
         }
