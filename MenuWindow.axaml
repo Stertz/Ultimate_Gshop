@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultimate_Gshop.MenuWindow"
+        Title="Menu"
+        Width="400" Height="400"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Grid>
+		<!-- Sua imagem de fundo -->
+		<Image Source="avares://Ultimate_Gshop/Resources/paper.png"
+               Stretch="Fill"/>
+		
+		<TextBlock Text="Importar gShop.data"
+				   FontSize="20"
+				   FontWeight="Bold"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,60,0,0"
+				   Opacity="0.85"
+				   Foreground="White"/>
+		
+		<TextBlock Text="Importar Surfaces.pck"
+				   FontSize="20"
+				   FontWeight="Bold"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,95,0,0"
+				   Opacity="0.90"
+				   Foreground="White"/>
+		
+		<TextBlock Text="Exportar Surfaces.pck"
+				   FontSize="20"
+				   FontWeight="Bold"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,130,0,0"
+				   Opacity="0.90"
+				   Foreground="White"/>
+
+		<!-- Botão de fechar -->
+		<Button Width="55"
+				Height="55"
+				Margin="0,30,20,0"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Top"
+				Opacity="0.8"
+				Click="CloseButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
+		</Button>
+	</Grid>
+</Window>
