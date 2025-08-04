@@ -8,7 +8,14 @@ namespace Ultimate_Gshop
 {
     public partial class MenuWindow : Window
     {
-        private readonly Shop _shop;
+        private readonly Shop? _shop;
+
+        public MenuWindow()
+        {
+            InitializeComponent();
+            _shop = null;
+        }
+
         public MenuWindow(Shop shop)
         {
             InitializeComponent();
@@ -45,6 +52,9 @@ namespace Ultimate_Gshop
         {
             using var bw = new BinaryWriter(File.Create(Path.Combine(AppContext.BaseDirectory, "gshopsev.data")));
 
+            if (_shop == null)
+                throw new InvalidOperationException("Shop is not initialized.");
+
             ExportGshopServer.Handle(bw, _shop);
 
             bw.Close();
@@ -54,6 +64,9 @@ namespace Ultimate_Gshop
         private void OnExportClientClicked(object sender, RoutedEventArgs e)
         {
             using var bw = new BinaryWriter(File.Create(Path.Combine(Variables.GshopClient)));
+            if (_shop == null)
+                throw new InvalidOperationException("Shop is not initialized.");
+            
             ExportGshopClient.Handle(bw, _shop);
             bw.Close();
         }

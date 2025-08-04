@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultimate_Gshop.GameMessageBox"
+        Width="400" Height="220"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+	<Grid>
+		<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
+               Stretch="Fill"/>
+
+		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+			<!-- Título -->
+			<TextBlock x:Name="TitleBlock"
+                       Text="Aviso"
+                       Foreground="#ebb935"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+
+			<!-- Mensagem -->
+			<TextBlock x:Name="MessageBlock"
+                       Text="Mensagem genérica"
+                       Foreground="White"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Width="300"/>
+
+			<!-- Botões -->
+			<StackPanel x:Name="ButtonPanel"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="15"/>
+		</StackPanel>
+	</Grid>
+</Window>

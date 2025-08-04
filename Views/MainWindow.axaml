@@ -42,7 +42,7 @@
 					<ItemsPanelTemplate>
 						<StackPanel Orientation="Horizontal"
 									HorizontalAlignment="Center"
-									Spacing="20"/>
+									Spacing="10"/>
 					</ItemsPanelTemplate>
 				</ItemsControl.ItemsPanel>
 
@@ -139,7 +139,7 @@
 						 Foreground="White"
 						 FontSize="14"
 						 VerticalContentAlignment="Center"
-						 Padding="5,0"
+						 Padding="10,0"
 						 Focusable="True">
 					<TextBox.Styles>
 						<Style Selector="TextBox:pointerover /template/ Border">
@@ -191,7 +191,7 @@
 									Margin="2"
 									BoxShadow="0 0 10 0 Transparent">
 								<Grid Width="218" Height="92" Margin="0.8"
-									  PointerPressed="OnItemCard_PointerPressed">
+									  PointerPressed="OnItemCard_PointerPressed" Tag="{Binding Tag}">
 
 									<Image Source="avares://Ultimate_Gshop/Resources/item_slot_frame.png"
 										   Stretch="Fill"/>
@@ -240,7 +240,8 @@
 											HorizontalAlignment="Left"
 											VerticalAlignment="Bottom"
 											Opacity="0.9"
-											Click="CopyButton_Click">
+											Click="CopyButton_Click"
+											Tag="{Binding Tag}">
 										<Grid>
 											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
 											<TextBlock Text="Copiar"
@@ -261,7 +262,8 @@
 											HorizontalAlignment="Left"
 											VerticalAlignment="Bottom"
 											Opacity="0.9"
-											Click="CopyButton_Click">
+											Click="EditButton_Click"
+											Tag="{Binding Tag}">
 										<Grid>
 											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
 											<TextBlock Text="Editar"
@@ -282,7 +284,8 @@
 											HorizontalAlignment="Left"
 											VerticalAlignment="Bottom"
 											Opacity="0.9"
-											Click="CopyButton_Click">
+											Click="DeleteButton_Click"
+											Tag="{Binding Tag}">
 										<Grid>
 											<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
 											<TextBlock Text="Excluir"
@@ -320,8 +323,8 @@
 						Width="320"
 						Spacing="6">
 				<Canvas>
-					<Button Width="40"
-							Height="40"
+					<Button Width="50"
+							Height="50"
 							Background="Transparent"
 							BorderBrush="Transparent"
 							Opacity="0.9"

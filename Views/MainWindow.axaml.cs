@@ -4,22 +4,18 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System;
-using System.Linq;
-using System.Xml;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
-using Bitmap = Avalonia.Media.Imaging.Bitmap;
 using Item = Ultimate_Gshop.Itens.Item;
-using KeyEventArgs = Avalonia.Input.KeyEventArgs;
 
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
-        private Shop _shop;
+        private readonly Shop _shop;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
@@ -31,6 +27,14 @@ namespace Ultimate_Gshop
         public MainWindow()
         {
             InitializeComponent();
+
+            // Define cursor personalizado
+            using (var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png")))
+            {
+                var bitmap = new Bitmap(stream);
+                this.Cursor = new Avalonia.Input.Cursor(bitmap, new PixelPoint(0, 0));
+            }
+
             _shop = new Shop();
             LoadGshop.TryLoadGshop(_shop);
 
@@ -49,17 +53,13 @@ namespace Ultimate_Gshop
         {
             if (sender is Grid grid)
             {
-                var item = grid.DataContext as dynamic;
-                if (item == null)
-                    return;
-
-                DetailIcon.Source = item.IconBitmap;
-                DetailName.Text = item.Name;
+                var item = (grid.Tag as Item);
+                if (item == null) return;
+                FillItemDetails(item);
 
                 if (grid.Parent is Border current)
                 {
-                    if (_lastSelectedBorder != null)
-                        RemoveShadow(_lastSelectedBorder);
+                    RemoveShadow(_lastSelectedBorder);
 
                     ApplyGoldShadow(current);
                     _lastSelectedBorder = current;
@@ -69,37 +69,67 @@ namespace Ultimate_Gshop
 
         private void CopyButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Grid grid)
+            if (sender is Button btn && btn.Tag is Item item)
             {
-                var item = grid.DataContext as dynamic;
-                if (item == null)
-                    return;
+                if (item == null) return;
+                FillItemDetails(item);
 
-                Console.WriteLine($"Copiando item: {item.Name} (ID: {item.Id})");
+                RemoveShadow(_lastSelectedBorder);
+                _lastSelectedBorder = null;
+
+                // habilitar campos para novo item
             }
         }
 
         private void EditButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Grid grid)
+            if (sender is Button btn && btn.Tag is Item item)
             {
-                var item = grid.DataContext as dynamic;
-                if (item == null)
-                    return;
+                if (item == null) return;
+                FillItemDetails(item);
 
-                Console.WriteLine($"Editando item: {item.Name} (ID: {item.Id})");
+                if (btn.Parent is Grid grid && grid.Parent is Border current)
+                {
+                    RemoveShadow(_lastSelectedBorder);
+
+                    ApplyGoldShadow(current);
+                    _lastSelectedBorder = current;
+                }
+
+                // habilitar campos de edição
             }
         }
 
-        private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Grid grid)
+            if (sender is Button btn && btn.Tag is Item item)
             {
-                var item = grid.DataContext as dynamic;
-                if (item == null)
-                    return;
+                if (item == null) return;
 
-                Console.WriteLine($"Deletando item: {item.Name} (ID: {item.Id})");
+                FillItemDetails(null);
+
+                if (btn.Parent is Grid grid && grid.Parent is Border current)
+                {
+                    RemoveShadow(_lastSelectedBorder);
+
+                    ApplyGoldShadow(current);
+                    _lastSelectedBorder = current;
+                }
+
+                var msgBox = new GameMessageBox(
+                            "Confirmação",
+                            $"Deseja realmente excluir o item \"{item.Name}\"?",
+                            "Sim", "Não");
+
+                var result = await msgBox.ShowDialogAsync(this);
+
+                if (result == "Sim")
+                {
+                    // Excluir item aqui
+
+                    RemoveShadow(_lastSelectedBorder);
+                    _lastSelectedBorder = null;
+                }
             }
         }
 
@@ -125,8 +155,7 @@ namespace Ultimate_Gshop
                     return;
                 }
 
-                if (_lastSelectedCategory != null)
-                    RemoveShadow(_lastSelectedCategory);
+                RemoveShadow(_lastSelectedCategory);
 
                 ApplyGoldShadow(current);
                 _lastSelectedCategory = current;
@@ -148,7 +177,6 @@ namespace Ultimate_Gshop
                     categoryGrid.DataContext is not Category category)
                     return;
 
-                int categoryIndex = _shop!.Categories.IndexOf(category);
                 int subCategoryIndex = category.SubCategories.IndexOf(subCategory);
 
                 if (_lastSelectedSubCategory == current)
@@ -160,8 +188,7 @@ namespace Ultimate_Gshop
                     return;
                 }
 
-                if (_lastSelectedSubCategory != null)
-                    RemoveShadow(_lastSelectedSubCategory);
+                RemoveShadow(_lastSelectedSubCategory);
 
                 ApplyGoldShadow(current);
                 _lastSelectedSubCategory = current;
@@ -188,40 +215,27 @@ namespace Ultimate_Gshop
         private void ExecuteSearch()
         {
             string query = SearchBox.Text?.Trim() ?? string.Empty;
-            IEnumerable<Item> items = _shop!.Itens;
-
-            Category? activeCategory = null;
-            int categoryIndex = -1;
-
-            if (_lastSelectedCategory?.Child is Grid catGrid &&
-                catGrid.DataContext is Category category)
-            {
-                activeCategory = category;
-                categoryIndex = _shop.Categories.IndexOf(category);
-                items = items.Where(i => i.CategoryIndex == categoryIndex);
-            }
-
-            if (activeCategory != null &&
-                _lastSelectedSubCategory?.Child is Grid subGrid &&
-                subGrid.DataContext is string subCategory)
-            {
-                int subCategoryIndex = activeCategory.SubCategories.IndexOf(subCategory);
-
-                if (subCategoryIndex >= 0)
-                {
-                    items = items.Where(i => i.CategoryIndex == categoryIndex &&
-                                             i.SubCategoryIndex == subCategoryIndex);
-                }
-            }
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                //FillTable(items);
+                // Se o campo estiver vazio, apenas recarrega a lista normal
+                UpdateGrid();
                 return;
             }
 
-            items = items.Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
-            //FillTable(items);
+            var filtered = _currentItems?
+                .Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (filtered != null)
+            {
+                _currentItems = filtered.AsQueryable();
+                FillTable();
+            }
+
+            RemoveShadow(_lastSelectedBorder);
+            _lastSelectedBorder = null;
+            FillItemDetails(null);
         }
 
         #endregion
@@ -239,8 +253,10 @@ namespace Ultimate_Gshop
             });
         }
 
-        private static void RemoveShadow(Border border)
+        private static void RemoveShadow(Border? border)
         {
+            if (border == null) return;
+
             border.BoxShadow = new BoxShadows(new BoxShadow
             {
                 Color = Colors.Transparent,
@@ -258,6 +274,7 @@ namespace Ultimate_Gshop
         {
             var convertedList = _currentItems?.Select(item => new
             {
+                Tag = item,
                 item.Id,
                 item.Name,
                 item.Amount,
@@ -269,7 +286,20 @@ namespace Ultimate_Gshop
             if (repeater != null)
             {
                 repeater.ItemsSource = convertedList;
-            }            
+            }
+        }
+
+        private void FillItemDetails(Item? item)
+        {
+            if (item == null)
+            {
+                DetailIcon.Source = null;
+                DetailName.Text = string.Empty;
+                return;
+            }
+
+            DetailIcon.Source = LoadImage(item.Icon);
+            DetailName.Text = item.Name;
         }
 
         private void SelectFirstCategory()
@@ -280,12 +310,6 @@ namespace Ultimate_Gshop
 
             SubCategoryList.ItemsSource = firstCategory.SubCategories;
             int categoryIndex = _shop.Categories.IndexOf(firstCategory);
-
-            //var items = _shop.Itens
-            //    .Where(i => i.CategoryIndex == categoryIndex)
-            //    .ToList();
-
-            //FillTable();
 
             CategoryList.ApplyTemplate();
 
@@ -315,7 +339,7 @@ namespace Ultimate_Gshop
         }
 
         private void SubCategoryToggled(int subcategoryIndex)
-        { 
+        {
             _selectedSubCategory = subcategoryIndex;
             UpdateGrid();
         }
@@ -327,6 +351,10 @@ namespace Ultimate_Gshop
             var query = _shop.Itens.AsQueryable();
             query = query.Where(i => i.CategoryIndex == _selectedCategory);
             if (_selectedSubCategory > -1) query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
+
+            RemoveShadow(_lastSelectedBorder);
+            _lastSelectedBorder = null;
+            FillItemDetails(null);
 
             _currentItems = query;
             FillTable();
