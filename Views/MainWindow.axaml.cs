@@ -6,15 +6,20 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System.Globalization;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
-using Item = Ultimate_Gshop.Itens.Item;
+using Ultimate_Gshop.Itens;
 
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
+
+        private enum DetailState { Viewing, Creating, Editing }
+        private DetailState _currentState = DetailState.Viewing;
+
         private readonly Shop _shop;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -32,7 +37,7 @@ namespace Ultimate_Gshop
             using (var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png")))
             {
                 var bitmap = new Bitmap(stream);
-                this.Cursor = new Avalonia.Input.Cursor(bitmap, new PixelPoint(0, 0));
+                this.Cursor = new Cursor(bitmap, new PixelPoint(0, 0));
             }
 
             _shop = new Shop();
@@ -67,7 +72,7 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void CopyButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void ItemCopyButton_Click(object? sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
@@ -81,7 +86,7 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void EditButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void ItemEditButton_Click(object? sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
@@ -100,13 +105,13 @@ namespace Ultimate_Gshop
             }
         }
 
-        private async void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void ItemDeleteButton_Click(object? sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
                 if (item == null) return;
 
-                FillItemDetails(null);
+                FillItemDetails(item);
 
                 if (btn.Parent is Grid grid && grid.Parent is Border current)
                 {
@@ -118,17 +123,62 @@ namespace Ultimate_Gshop
 
                 var msgBox = new GameMessageBox(
                             "Confirmação",
-                            $"Deseja realmente excluir o item \"{item.Name}\"?",
+                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
+                            "Esta ação é permanente e não poderá ser desfeita.",
                             "Sim", "Não");
+
 
                 var result = await msgBox.ShowDialogAsync(this);
 
                 if (result == "Sim")
                 {
-                    // Excluir item aqui
+                    _shop.Itens.Remove(item);
+                    UpdateGrid();
+                }
+            }
+        }
 
-                    RemoveShadow(_lastSelectedBorder);
-                    _lastSelectedBorder = null;
+        private async void DetailNew_Click(object? sender, RoutedEventArgs e)
+        {
+            _currentState = DetailState.Creating;
+
+            var msg = new GameMessageBox(
+                "Estado alterado",
+                "Criando novo item.",
+                "OK");
+            await msg.ShowDialogAsync(this);
+        }
+
+        private async void DetailEdit_Click(object? sender, RoutedEventArgs e)
+        {
+            _currentState = DetailState.Editing;
+
+            var msg = new GameMessageBox(
+                "Estado alterado",
+                "Editando item existente.",
+                "OK");
+            await msg.ShowDialogAsync(this);
+        }
+
+        private async void DetailDelete_Click(object? sender, RoutedEventArgs e)
+        {
+            _currentState = DetailState.Viewing;
+
+            if (DetailPanel.Tag is Item item)
+            {
+                var msgBox = new GameMessageBox(
+                            "Confirmação",
+                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
+                            "Esta ação é permanente e não poderá ser desfeita.",
+                            "Sim", "Não");
+
+
+                var result = await msgBox.ShowDialogAsync(this);
+
+                if (result == "Sim")
+                {
+                    _shop.Itens.Remove(item);
+                    UpdateGrid();
                 }
             }
         }
@@ -246,7 +296,7 @@ namespace Ultimate_Gshop
         {
             border.BoxShadow = new BoxShadows(new BoxShadow
             {
-                Color = Avalonia.Media.Color.Parse("#ebb935"),
+                Color = Color.Parse("#ebb935"),
                 Blur = 15,
                 OffsetX = 0,
                 OffsetY = 0
@@ -279,6 +329,7 @@ namespace Ultimate_Gshop
                 item.Name,
                 item.Amount,
                 LimitPeriod = item.LimitPeriod == 0 ? "Perm." : $"{item.LimitPeriod} dias",
+                Price = GetValidPrice(item.Sales).ToString("F2", CultureInfo.InvariantCulture),
                 IconBitmap = LoadImage(item.Icon)
             }).ToList();
 
@@ -293,11 +344,13 @@ namespace Ultimate_Gshop
         {
             if (item == null)
             {
+                DetailPanel.Tag = null;
                 DetailIcon.Source = null;
                 DetailName.Text = string.Empty;
                 return;
             }
 
+            DetailPanel.Tag = item;
             DetailIcon.Source = LoadImage(item.Icon);
             DetailName.Text = item.Name;
         }
@@ -384,6 +437,41 @@ namespace Ultimate_Gshop
                 using var fallback = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
                 return new Bitmap(fallback);
             }
+        }
+
+        /// <summary>
+        /// Retorna o preço válido de um item (convertido para decimal),
+        /// baseado em regras de status e disponibilidade.
+        /// - Prioriza Sales com Status ativo.
+        /// - Verifica SellingEndTime (ignora vendas expiradas).
+        /// - Considera Day como dia fixo de disponibilidade (se configurado).
+        /// - Divide por 100 para retornar o valor monetário real.
+        /// </summary>
+        /// <param name="sales">Lista de opções de venda (Sales).</param>
+        /// <returns>Preço válido como decimal ou 0 se nenhum for encontrado.</returns>
+        public static decimal GetValidPrice(List<Sale> sales)
+        {
+            if (sales == null || sales.Count == 0)
+                return 0m;
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            int today = (int)DateTime.UtcNow.DayOfWeek; // Caso 'Day' represente dia da semana
+
+            // Filtra vendas válidas com base em status e tempo
+            var validSales = sales.Where(s =>
+                (s.SellingEndTime == 0 || s.SellingEndTime > now) && // Ainda disponível
+                (s.Day == 0 || s.Day == today)                       // Se Day for usado, confere
+            ).ToList();
+
+            if (validSales.Count == 0)
+                return 0m;
+
+            // Prioriza vendas com status ativo > 0
+            var activeSale = validSales.FirstOrDefault(s => s.Status > 0);
+            var price = (activeSale ?? validSales.First()).Price;
+
+            // Converte para decimal e divide por 100
+            return price / 100m;
         }
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
