@@ -152,7 +152,6 @@
 						</Style>
 					</TextBox.Styles>
 				</TextBox>
-
 			</Grid>
 
 			<!-- Icone de pesquisa -->
@@ -381,6 +380,22 @@
 						</Style>
 					</TextBox.Styles>
 				</TextBox>
+
+				<!-- Descrição -->
+				<ScrollViewer Width="280"
+							  MaxHeight="200"
+							  Background="#344c51"
+							  BorderBrush="#5d5737"
+							  BorderThickness="1"
+							  CornerRadius="4"
+							  Padding="0">
+					<TextBlock x:Name="DetailExplanation"
+							   TextWrapping="Wrap"
+							   Background="#344c51"
+							   Foreground="White"
+							   Padding="6,3"
+							   Opacity="0.6"/>
+				</ScrollViewer>
 
 				<!-- Container para botões na parte inferior -->
 				<StackPanel Orientation="Horizontal"

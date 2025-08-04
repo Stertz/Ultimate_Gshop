@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -7,10 +8,12 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Ultimate_Gshop
 {
@@ -347,12 +350,45 @@ namespace Ultimate_Gshop
                 DetailPanel.Tag = null;
                 DetailIcon.Source = null;
                 DetailName.Text = string.Empty;
+                SetExplanationFormatted(string.Empty);
                 return;
             }
 
             DetailPanel.Tag = item;
             DetailIcon.Source = LoadImage(item.Icon);
             DetailName.Text = item.Name;
+            SetExplanationFormatted(item.Explanation);
+        }
+
+        private void SetExplanationFormatted(string text)
+        {
+            if (DetailExplanation.Inlines == null)
+                return;
+
+            DetailExplanation.Inlines.Clear();
+
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            // Expressão regular: captura ^ seguido de 6 hex + texto até próxima cor ou fim
+            var regex = new Regex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline);
+
+            foreach (Match match in regex.Matches(text))
+            {
+                string hex = match.Groups["color"].Value;
+                string content = match.Groups["content"].Value;
+
+                // Substituir \r por quebra de linha
+                content = content.Replace(@"\r", "\n");
+
+                var run = new Run
+                {
+                    Text = content,
+                    Foreground = new SolidColorBrush(Color.Parse("#" + hex))
+                };
+
+                DetailExplanation.Inlines.Add(run);
+            }
         }
 
         private void SelectFirstCategory()
