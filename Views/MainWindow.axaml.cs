@@ -10,19 +10,15 @@ using Avalonia.Platform;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Ultimate_Gshop.Categories;
+using Ultimate_Gshop.Views.UserControls;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
-
-        private enum DetailState { Viewing, Creating, Editing }
-        private DetailState _currentState = DetailState.Viewing;
-
         private readonly Shop _shop;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -31,6 +27,13 @@ namespace Ultimate_Gshop
         private IQueryable<Item>? _currentItems;
         private int _selectedCategory = -1;
         private int _selectedSubCategory = -1;
+
+        /* Campos para Detail Items*/
+        private enum DetailState { Viewing, Creating, Editing }
+        private DetailState _currentState = DetailState.Viewing;
+
+        [GeneratedRegex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline)]
+        private static partial Regex ColorTagRegex();
 
         public MainWindow()
         {
@@ -345,18 +348,43 @@ namespace Ultimate_Gshop
 
         private void FillItemDetails(Item? item)
         {
+            DetailStatus.ItemsSource = new[]
+            {
+                "Default", "New", "Popular","Often selling",
+                "Sale 10%", "Sale 20%", "Sale 30%", "Sale 40%", "Sale 50%", "Sale 60%", "Sale 70%", "Sale 80%", "Sale 90%",
+                "Vip0", "Vip1", "Vip2", "Vip3", "Vip4", "Vip5", "Vip6"
+            };
+
+            DetailClass.ItemsSource = new[]
+            {
+                "All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian",
+                "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"
+            };
+
             if (item == null)
             {
                 DetailPanel.Tag = null;
                 DetailIcon.Source = null;
+                DetailID.Text = string.Empty;
+                DetailStatus.SelectedIndex = 0;
                 DetailName.Text = string.Empty;
+                DetailLimitPeriod.Text = string.Empty;
+                DetailAvailFrequency.Text = string.Empty;
+                DetailAmount.Text = string.Empty;
+                DetailClass.SelectedIndex = 0;
                 SetExplanationFormatted(string.Empty);
                 return;
             }
 
             DetailPanel.Tag = item;
             DetailIcon.Source = LoadImage(item.Icon);
+            DetailID.Text = item.Id.ToString();
+            DetailStatus.SelectedIndex = item.Status;
             DetailName.Text = item.Name;
+            DetailLimitPeriod.Text = item.LimitPeriod.ToString();
+            DetailAvailFrequency.Text = item.AvailFrequency.ToString();
+            DetailAmount.Text = item.Amount.ToString();
+            DetailClass.SelectedIndex = item.Class;
             SetExplanationFormatted(item.Explanation);
         }
 
@@ -370,10 +398,7 @@ namespace Ultimate_Gshop
             if (string.IsNullOrWhiteSpace(text))
                 return;
 
-            // Expressão regular: captura ^ seguido de 6 hex + texto até próxima cor ou fim
-            var regex = new Regex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline);
-
-            foreach (Match match in regex.Matches(text))
+            foreach (Match match in ColorTagRegex().Matches(text))
             {
                 string hex = match.Groups["color"].Value;
                 string content = match.Groups["content"].Value;
@@ -530,28 +555,6 @@ namespace Ultimate_Gshop
             );
 
             await menuWindow.ShowDialog<Shop>(this);
-        }
-
-        private async void ItemEditorButton_Click(object? sender, RoutedEventArgs e)
-        {
-            var itemEditorWindow = new ItemEditorWindow
-            {
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
-                CanResize = false
-            };
-
-            // Pega tamanho do MainWindow e do MenuWindow
-            var mainBounds = this.Bounds;
-            itemEditorWindow.Width = 400;
-            itemEditorWindow.Height = 300;
-
-            itemEditorWindow.Position = new PixelPoint(
-                (int)(Position.X + (mainBounds.Width - itemEditorWindow.Width) / 2),
-                (int)(Position.Y + (mainBounds.Height - itemEditorWindow.Height) / 2)
-            );
-
-            await itemEditorWindow.ShowDialog(this);
         }
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)

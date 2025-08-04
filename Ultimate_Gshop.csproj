@@ -26,6 +26,7 @@
     <None Remove="Resources\btn.png" />
     <None Remove="Resources\btn_close.png" />
     <None Remove="Resources\category_frame.png" />
+    <None Remove="Resources\color_palette.png" />
     <None Remove="Resources\cursor.png" />
     <None Remove="Resources\frame.png" />
     <None Remove="Resources\items_bg.png" />
@@ -43,6 +44,7 @@
     <AvaloniaResource Include="Resources\btn.png" />
     <AvaloniaResource Include="Resources\btn_close.png" />
     <AvaloniaResource Include="Resources\category_frame.png" />
+    <AvaloniaResource Include="Resources\color_palette.png" />
     <AvaloniaResource Include="Resources\cursor.png" />
     <AvaloniaResource Include="Resources\frame.png" />
     <AvaloniaResource Include="Resources\items_bg.png" />
@@ -78,6 +80,10 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.2" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.2" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Windows\" />
   </ItemGroup>
 
 </Project>

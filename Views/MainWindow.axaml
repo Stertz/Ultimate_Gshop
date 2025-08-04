@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Ultimate_Gshop"
 		xmlns:itens="clr-namespace:Ultimate_Gshop.Itens"
+		xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         x:Class="Ultimate_Gshop.MainWindow"
         Title="Ultimate_Gshop"
         Width="1024" Height="760"
@@ -17,19 +18,19 @@
 		<Image Source="avares://Ultimate_Gshop/Resources/bg.png"
                Stretch="Fill"/>
 
-			<!-- Nav Button -->
-			<Button Width="60"
-					Height="60"
-					Background="Transparent"
-					BorderBrush="Transparent"
-					HorizontalAlignment="Left"
-					Opacity="0.95"
-					VerticalAlignment="Top"
-					Margin="75,85,0,0"
-					Click="NavButton_Click">
-				<Image Source="avares://Ultimate_Gshop/Resources/menu.png"
-					   Stretch="Uniform"/>
-			</Button>
+		<!-- Nav Button -->
+		<Button Width="60"
+				Height="60"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Left"
+				Opacity="0.95"
+				VerticalAlignment="Top"
+				Margin="75,85,0,0"
+				Click="NavButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/menu.png"
+				   Stretch="Uniform"/>
+		</Button>
 
 		<!-- Category Panel -->
 		<Grid>
@@ -114,7 +115,6 @@
 			</ItemsControl>
 		</Grid>
 
-
 		<!-- Grid Pesquisa e Lista de Itens -->
 		<Grid Width="540" Height="470" Margin="70,230,0,0" HorizontalAlignment="Left">
 			<!-- Background -->
@@ -139,8 +139,7 @@
 						 Foreground="White"
 						 FontSize="14"
 						 VerticalContentAlignment="Center"
-						 Padding="10,0"
-						 Focusable="True">
+						 Padding="10,0">
 					<TextBox.Styles>
 						<Style Selector="TextBox:pointerover /template/ Border">
 							<Setter Property="BorderBrush" Value="Transparent"/>
@@ -161,7 +160,7 @@
 					VerticalAlignment="Top"
 					Margin="0,30,40,0"
 					Background="Transparent"
-					BorderBrush="Transparent"					
+					BorderBrush="Transparent"
 					Click="SearchIcon_Click">
 				<Image Source="avares://Ultimate_Gshop/Resources/search.png"
 					   Stretch="Fill"
@@ -216,7 +215,7 @@
 											   FontSize="11"
 											   FontWeight="DemiBold"
 											   Foreground="White"/>
-									
+
 									<TextBlock Text="{Binding Price, StringFormat={}{0} GOLD}"
 											   HorizontalAlignment="Left"
 											   VerticalAlignment="Top"
@@ -325,85 +324,173 @@
 			<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
 				   Stretch="Fill"/>
 
+			<!-- Container geral com conteúdo e botões -->
+			<Grid>
+				<Grid.RowDefinitions>
+					<!-- Conteúdo com scroll -->
+					<RowDefinition Height="*" />
+					<!-- Área fixa para os botões -->
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
 
-			<!-- Painel de detalhes à esquerda -->
-			<StackPanel x:Name="DetailPanel"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Top"
-						Margin="0,25,0,0"
-						Width="320"
-						Spacing="6">
-				<Canvas>
-					<Button Width="50"
-							Height="50"
-							Background="Transparent"
-							BorderBrush="Transparent"
-							Opacity="0.9"
-							Canvas.Right="10"
-							Canvas.Top="10"
-							Click="ItemEditorButton_Click">
-						<Image Source="avares://Ultimate_Gshop/Resources/settings.png"
-							   Stretch="Uniform"/>
-					</Button>
-				</Canvas>
+				<!-- Scroll com conteúdo -->
+				<ScrollViewer Grid.Row="0"
+							  Margin="0,25,0,0"
+							  HorizontalAlignment="Center"
+							  Width="320">
+					<StackPanel x:Name="DetailPanel"
+								Spacing="6">
 
-				<!-- Icone com moldura -->
-				<Grid HorizontalAlignment="Center" Margin="0,15,0,15">
-					<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
-						   Width="100" Height="100"
-						   Stretch="Fill"/>
-					<Image x:Name="DetailIcon"
-						   Width="60" Height="60"
-						   HorizontalAlignment="Center"
-						   VerticalAlignment="Center"/>
-				</Grid>
+						<!-- Ícone com moldura -->
+						<Grid HorizontalAlignment="Center" Margin="0,15,0,15">
+							<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
+								   Width="100" Height="100"
+								   Stretch="Fill"/>
+							<Image x:Name="DetailIcon"
+								   Width="60" Height="60"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+						</Grid>
 
-				<!-- Nome -->
-				<TextBox x:Name="DetailName"
-						 Watermark="Nome"
-						 IsReadOnly="True"
-						 Width="280"
-						 Background="#344c51"
-						 BorderBrush="#5d5737"
-						 Foreground="White"
-						 CornerRadius="4"
-						 Padding="6,3">
-					<TextBox.Styles>
-						<!-- Quando estiver vazio -->
-						<Style Selector="TextBox">
-							<Setter Property="Opacity" Value="0.6"/>
-						</Style>
-						<!-- Quando tem texto -->
-						<Style Selector="TextBox:notempty">
-							<Setter Property="Opacity" Value="1"/>
-							<Setter Property="Foreground" Value="White"/>
-						</Style>
-					</TextBox.Styles>
-				</TextBox>
+						<!-- ID + Status -->
+						<Grid Width="280" ColumnDefinitions="*,Auto" ColumnSpacing="4">
+							<!-- ID (somente números) -->
+							<controls:FloatingLabelTextBox
+								x:Name="DetailID"
+								Label="ID"
+								IsEnabled="True"
+								ContentType="Number"/>
 
-				<!-- Descrição -->
-				<ScrollViewer Width="280"
-							  MaxHeight="200"
-							  Background="#344c51"
-							  BorderBrush="#5d5737"
-							  BorderThickness="1"
-							  CornerRadius="4"
-							  Padding="0">
-					<TextBlock x:Name="DetailExplanation"
-							   TextWrapping="Wrap"
-							   Background="#344c51"
-							   Foreground="White"
-							   Padding="6,3"
-							   Opacity="0.6"/>
+							<!-- Status (ComboBox) -->
+							<controls:StyledComboBox
+								x:Name="DetailStatus"
+								Grid.Column="1" />
+						</Grid>
+
+						<!-- Nome -->
+						<controls:FloatingLabelTextBox
+								x:Name="DetailName"
+								Width="280"
+								Label="Name"
+								IsEnabled="True"/>
+
+						<!-- Time Limit + Avail Frequency -->
+						<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
+							<!-- Time Limit -->
+							<controls:FloatingLabelTextBox
+								x:Name="DetailLimitPeriod"
+								Label="Limit Period"
+								IsEnabled="True"
+								ContentType="Number"/>
+
+							<!-- Avail Frequency -->
+							<controls:FloatingLabelTextBox
+								Grid.Column="1"
+								x:Name="DetailAvailFrequency"
+								Label="Avail Frequency"
+								IsEnabled="True"
+								ContentType="Number"/>
+						</Grid>
+
+						<!-- Amount + Status -->
+						<Grid Width="280" ColumnDefinitions="*,Auto" ColumnSpacing="4">
+							<!-- Amount -->
+							<controls:FloatingLabelTextBox
+								x:Name="DetailAmount"
+								Label="Amount"
+								IsEnabled="True"
+								ContentType="Number"/>
+
+							<!-- Class (ComboBox) -->
+							<controls:StyledComboBox
+								x:Name="DetailClass"
+								Grid.Column="1" />
+						</Grid>
+
+						<!-- Descrição com alternância e botão engrenagem embutido -->
+						<Border Background="#344c51"
+								BorderBrush="#5d5737"
+								BorderThickness="1"
+								CornerRadius="4"
+								Width="280"
+								Height="200"
+								Padding="0">
+							<Grid>
+								<!-- Editor (TextBox com texto bruto, usado para editar) -->
+								<TextBox x:Name="DetailExplanationEditor"
+										 IsReadOnly="True"
+										 Background="Transparent"
+										 BorderBrush="Transparent"
+										 Foreground="White"
+										 CornerRadius="4"
+										 Padding="6,3"
+										 TextWrapping="Wrap"
+										 AcceptsReturn="True"
+										 Watermark="Descrição">
+									<TextBox.Styles>
+										<Style Selector="TextBox">
+											<Setter Property="Foreground" Value="White"/>
+										</Style>
+										<!-- Hover -->
+										<Style Selector="TextBox:pointerover /template/ Border">
+											<Setter Property="Background" Value="#3A5055"/>
+											<Setter Property="BorderBrush" Value="#5d5737"/>
+										</Style>
+										<!-- Focus -->
+										<Style Selector="TextBox:focus /template/ Border">
+											<Setter Property="Background" Value="#415b60"/>
+											<Setter Property="BorderBrush" Value="#a59a69"/>
+										</Style>
+									</TextBox.Styles>
+								</TextBox>
+
+								<!-- Visual (TextBlock com cores, usado só para visualizar) -->
+								<ScrollViewer x:Name="DetailExplanationPreview"
+											  Background="Transparent"
+											  IsVisible="False">
+									<TextBlock x:Name="DetailExplanation"
+											   TextWrapping="Wrap"
+											   Padding="6,3"
+											   Background="Transparent"
+											   Foreground="White"/>
+								</ScrollViewer>
+
+								<!-- Botão engrenagem sobreposto no canto superior direito -->
+								<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
+										Width="50" Height="50"
+										Margin="0,0,-9,0">
+									<Button Width="42"
+											Height="42"
+											Background="Transparent"
+											BorderBrush="Transparent">
+										<Image Source="avares://Ultimate_Gshop/Resources/settings.png"
+											   Stretch="Uniform"/>
+									</Button>
+								</Canvas>
+
+								<!-- Botão engrenagem sobreposto no canto superior direito -->
+								<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
+										Width="50" Height="50"
+										Margin="0,27,-10,0">
+									<Button Width="40"
+											Height="40"
+											Background="Transparent"
+											BorderBrush="Transparent">
+										<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
+											   Stretch="Uniform"/>
+									</Button>
+								</Canvas>
+							</Grid>
+						</Border>
+					</StackPanel>
 				</ScrollViewer>
 
-				<!-- Container para botões na parte inferior -->
-				<StackPanel Orientation="Horizontal"
+				<!-- Botões fixos -->
+				<StackPanel Grid.Row="1"
+							Orientation="Horizontal"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Bottom"
-							Margin="0,0,0,10"
+							Margin="0,10,0,10"
 							Spacing="1">
-
 					<!-- Botão Novo -->
 					<Button Width="100"
 							Height="60"
@@ -457,10 +544,8 @@
 									   VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
-
 				</StackPanel>
-			</StackPanel>
-
+			</Grid>
 		</Grid>
 
 		<!-- Botão de fechar -->
