@@ -3,23 +3,26 @@ using Avalonia.Interactivity;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Misc;
-
+using Avalonia.Platform.Storage;
 namespace Ultimate_Gshop
 {
     public partial class MenuWindow : Window
     {
         private readonly Shop? _shop;
+        private readonly GshopSettings? _settings;
 
         public MenuWindow()
         {
             InitializeComponent();
             _shop = null;
+            _settings = null;
         }
 
-        public MenuWindow(Shop shop)
+        public MenuWindow(Shop shop, GshopSettings settings)
         {
             InitializeComponent();
             _shop = shop;
+            _settings = settings;
             this.Opacity = 0;
 
             this.KeyDown += MenuWindow_KeyDown;
@@ -71,10 +74,21 @@ namespace Ultimate_Gshop
             bw.Close();
         }
 
-        private void OnImportGshopClicked(object sender, RoutedEventArgs e)
+        private async void OnImportGshopClicked(object sender, RoutedEventArgs e)
         {
-            var gshop = new Shop();
-            LoadGshop.TryLoadGshop(gshop);
+
+            if (_settings is null) return;
+
+            IStorageFile? file = await GetFileFromOS.ShowOpenFileDialog(this);
+
+            if (file is null) return;
+
+            var filepath = file.TryGetLocalPath();
+
+            if (filepath is null) return;
+
+            var gshop = ImportGshop.Handle(filepath, _settings);
+
             Close(gshop);
         }
 

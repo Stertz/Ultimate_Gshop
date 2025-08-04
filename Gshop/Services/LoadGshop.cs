@@ -7,10 +7,12 @@ namespace Ultimate_Gshop.Gshop.Services
 {
     internal static class LoadGshop
     {
-        public static void TryLoadGshop(Shop gshop)
+        public static void TryLoadGshop(Shop gshop, GshopSettings gshopSettings)
         {
 
-            if (!File.Exists(Variables.LastGshopPath)) throw new InvalidOperationException("Gshop não encontrado");
+            var path = gshopSettings.TemporaryGshop;
+
+            if (!File.Exists(path)) throw new InvalidOperationException("Gshop não encontrado");
 
             using var fs = File.Open(Variables.LastGshopPath, FileMode.Open, FileAccess.Read);
             using var br = new BinaryReader(fs);

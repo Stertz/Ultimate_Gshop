@@ -14,12 +14,17 @@ using Ultimate_Gshop.Views.UserControls;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
+using Ultimate_Gshop.Misc;
+using static System.Net.Mime.MediaTypeNames;
+using Avalonia.Platform.Storage;
+using System.Runtime.CompilerServices;
 
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
         private readonly Shop _shop;
+        private readonly GshopSettings _settings;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
@@ -38,24 +43,48 @@ namespace Ultimate_Gshop
         public MainWindow()
         {
             InitializeComponent();
+            InitializeCustomCursor();
+            _shop = new Shop();
+            _settings = ProductionSettings.Load();
+        }
 
-            // Define cursor personalizado
-            using (var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png")))
+        /// <summary>
+        /// Define cursor personalizado
+        /// </summary>
+        private void InitializeCustomCursor()
+        {
+
+            using var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png"));
+            var bitmap = new Bitmap(stream);
+            Cursor = new Cursor(bitmap, new PixelPoint(0, 0));
+        }
+        /// <summary>
+        /// Disparado ao abrir a janela
+        /// </summary>
+        /// <param name="e"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        protected override async void OnOpened(EventArgs e)
+        {
+            base.OnOpened(e);
+            if (string.IsNullOrWhiteSpace(_settings.TemporaryGshop) || !File.Exists(_settings.TemporaryGshop))
             {
-                var bitmap = new Bitmap(stream);
-                this.Cursor = new Cursor(bitmap, new PixelPoint(0, 0));
+                var file = await GetFileFromOS.ShowOpenFileDialog(this) ?? throw new InvalidOperationException("Invalid file");
+                _settings.TemporaryGshop = file.TryGetLocalPath() ?? throw new FileNotFoundException("Invalid path");
+                ProductionSettings.Save(_settings);
             }
 
-            _shop = new Shop();
-            LoadGshop.TryLoadGshop(_shop);
-
+            LoadGshop.TryLoadGshop(_shop, _settings);
             CategoryList.ItemsSource = _shop.Categories;
-
-            // Seleciona a primeira categoria ao abrir a janela
-            this.Opened += (_, __) =>
-            {
-                SelectFirstCategory();
-            };
+        }
+        /// <summary>
+        /// Disparado ao terminar de carregar todos eventos iniciais da janela
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+            SelectFirstCategory();
         }
 
         #region Item Events
@@ -537,7 +566,7 @@ namespace Ultimate_Gshop
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
         {
-            var menuWindow = new MenuWindow(_shop)
+            var menuWindow = new MenuWindow(_shop, _settings)
             {
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
