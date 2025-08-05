@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Ultimate_Gshop.Views;
 namespace Ultimate_Gshop.Misc
 {
     public static class GetGshopFileFromOS
@@ -23,8 +24,8 @@ namespace Ultimate_Gshop.Misc
 
             if (file is null)
             {
-                var result = await new GameMessageBox("No valid file provided", "Try again?", "Yes", "No").ShowDialogAsync(window);
-                if (result == "Sim")
+                var result = await new CustomMessageBox("No valid file provided", "Try again?", "Yes", "No").ShowDialogAsync(window);
+                if (result == "Yes")
                 {
                    return await Handle(window);
                 }
