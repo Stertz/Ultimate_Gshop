@@ -18,7 +18,7 @@ namespace Ultimate_Gshop.Gshop.Services
                 bw.Write(itens[i].CategoryIndex);
                 bw.Write(itens[i].SubCategoryIndex);
                 bw.Write(BytesHelper.GetBytes(itens[i].Icon, 128, Encoding.GetEncoding(936)));
-                bw.Write(itens[i].Id);
+                bw.Write(itens[i].ID);
                 bw.Write(itens[i].Amount);
                 for (int f = 0; f < 4; f++)
                 {

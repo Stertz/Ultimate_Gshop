@@ -95,6 +95,13 @@ namespace Ultimate_Gshop
         {
             if (sender is Grid grid)
             {
+
+                //if (_currentState != DetailState.Viewing)
+                //{
+                //    var result = new GameMessageBox("Cancel current operation?", $"Ok")
+                //}
+
+
                 var item = (grid.Tag as Item);
                 if (item == null) return;
                 FillItemDetails(item);
@@ -160,7 +167,7 @@ namespace Ultimate_Gshop
 
                 var msgBox = new GameMessageBox(
                             "Confirmação",
-                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
+                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
                             "Esta ação é permanente e não poderá ser desfeita.",
                             "Sim", "Não");
 
@@ -205,7 +212,7 @@ namespace Ultimate_Gshop
             {
                 var msgBox = new GameMessageBox(
                             "Confirmação",
-                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
+                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
                             "Esta ação é permanente e não poderá ser desfeita.",
                             "Sim", "Não");
 
@@ -362,7 +369,7 @@ namespace Ultimate_Gshop
             var convertedList = _currentItems?.Select(item => new
             {
                 Tag = item,
-                item.Id,
+                item.ID,
                 item.Name,
                 item.Amount,
                 LimitPeriod = item.LimitPeriod == 0 ? "Perm." : $"{item.LimitPeriod} dias",
@@ -409,8 +416,7 @@ namespace Ultimate_Gshop
 
             DetailPanel.Tag = item;
             DetailIcon.Source = LoadImage(item.Icon);
-            DetailID.Text = item.Id.ToString();
-            DetailStatus.SelectedIndex = item.Status;
+            DetailID.Text = item.ID.ToString();
             DetailName.Text = item.Name;
             DetailLimitPeriod.Text = item.LimitPeriod.ToString();
             DetailAvailFrequency.Text = item.AvailFrequency.ToString();

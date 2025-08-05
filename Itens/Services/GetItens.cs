@@ -22,7 +22,7 @@ namespace Ultimate_Gshop.Itens.Services
                 item.CategoryIndex = br.ReadInt32();
                 item.SubCategoryIndex = br.ReadInt32();
                 item.Icon = Encoding.GetEncoding(936).GetString(br.ReadBytes(128)).Split('\0')[0];
-                item.Id = br.ReadInt32();
+                item.ID = br.ReadInt32();
                 item.Amount = br.ReadInt32();
                 item.Sales = new List<Sale>(Variables.MaxSalesPerItem);
 

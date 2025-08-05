@@ -21,14 +21,14 @@ namespace Ultimate_Gshop.Gshop.Services
                                 new Category() { Title = "CategoryH", SubCategories = [ "SubCategory"] }
             ];
 
-            shop.Itens = [ new Item() { Id = 1, Name = "Item1",  Amount = 1, CategoryIndex = 0},
-                           new Item() { Id = 2, Name = "Item2",  Amount = 1, CategoryIndex = 1},
-                           new Item() { Id = 3, Name = "Item3",  Amount = 1, CategoryIndex = 2},
-                           new Item() { Id = 4, Name = "Item4",  Amount = 1, CategoryIndex = 3},
-                           new Item() { Id = 5, Name = "Item5",  Amount = 1, CategoryIndex = 4},
-                           new Item() { Id = 6, Name = "Item6",  Amount = 1, CategoryIndex = 5},
-                           new Item() { Id = 7, Name = "Item7",  Amount = 1, CategoryIndex = 6},
-                           new Item() { Id = 8, Name = "Item8",  Amount = 1, CategoryIndex = 7}
+            shop.Itens = [ new Item() { ID = 1, Name = "Item1",  Amount = 1, CategoryIndex = 0},
+                           new Item() { ID = 2, Name = "Item2",  Amount = 1, CategoryIndex = 1},
+                           new Item() { ID = 3, Name = "Item3",  Amount = 1, CategoryIndex = 2},
+                           new Item() { ID = 4, Name = "Item4",  Amount = 1, CategoryIndex = 3},
+                           new Item() { ID = 5, Name = "Item5",  Amount = 1, CategoryIndex = 4},
+                           new Item() { ID = 6, Name = "Item6",  Amount = 1, CategoryIndex = 5},
+                           new Item() { ID = 7, Name = "Item7",  Amount = 1, CategoryIndex = 6},
+                           new Item() { ID = 8, Name = "Item8",  Amount = 1, CategoryIndex = 7}
             ];
 
             return shop;
