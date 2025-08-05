@@ -20,7 +20,7 @@ namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
-        private Shop? _shop;
+        private Shop _shop;
         private readonly GshopSettings _settings;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -42,6 +42,7 @@ namespace Ultimate_Gshop
             InitializeComponent();
             InitializeCustomCursor();
             _settings = ApplicationSettings.Load();
+            _shop = new Shop();
         }
 
         /// <summary>
@@ -69,8 +70,21 @@ namespace Ultimate_Gshop
             }
             else
             {
-                _shop = await new MenuWindow().ShowDialog<Shop>(this); 
+                var menuWindow = new MenuWindow()
+                {
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                    SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                    CanResize = false
+                };
+                _shop = await menuWindow.ShowDialog<Shop>(this); 
             }
+
+            if (_shop is null)
+            {
+                Close();
+                return;
+            }
+
             CategoryList.ItemsSource = _shop.Categories;
             SelectFirstCategory();
         }

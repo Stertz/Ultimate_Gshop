@@ -18,6 +18,20 @@ namespace Ultimate_Gshop
             btnExportServer.IsEnabled = false;
             btnExportClient.IsEnabled = false;
             btnContinue.IsEnabled = ApplicationSettings.GshopExists;
+
+            this.Opacity = 0;
+
+            this.KeyDown += MenuWindow_KeyDown;
+
+            this.Opened += async (_, __) =>
+            {
+                for (double i = 0; i <= 1; i += 0.05)
+                {
+                    this.Opacity = i;
+                    await Task.Delay(7);
+                }
+                this.Opacity = 1;
+            };
         }
 
         public MenuWindow(Shop shop, GshopSettings settings)
