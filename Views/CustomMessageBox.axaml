@@ -1,18 +1,24 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Ultimate_Gshop.Views.CustomMessageBox"
-        Width="400" Height="220"
+        Width="420"
+		SizeToContent="Height"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
-	<Grid>
-		<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
-               Stretch="Fill"/>
-
-		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+	<Grid >
+		<Grid.Background>
+			<ImageBrush
+                Source="avares://Ultimate_Gshop/Resources/items_bg.png"
+                Stretch="Fill"/>
+		</Grid.Background>
+		<StackPanel VerticalAlignment="Center"
+					HorizontalAlignment="Center"
+					Margin="0,25"
+					Spacing="12">
 
 			<!-- Ícone -->
 			<Image x:Name="IconImage"

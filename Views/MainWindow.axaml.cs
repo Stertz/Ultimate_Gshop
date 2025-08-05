@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
@@ -33,7 +34,7 @@ namespace Ultimate_Gshop
         /* Campos para Detail Items*/
         private enum DetailState { Viewing, Creating, Editing }
         private DetailState _currentState = DetailState.Viewing;
-
+        private bool _isInEditMode = false;
         [GeneratedRegex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline)]
         private static partial Regex ColorTagRegex();
 
@@ -91,17 +92,11 @@ namespace Ultimate_Gshop
 
         #region Item Events
 
-        private void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
+        private async void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Grid grid)
             {
-
-                //if (_currentState != DetailState.Viewing)
-                //{
-                //    var result = new GameMessageBox("Cancel current operation?", $"Ok")
-                //}
-
-
+                if (!await ConfirmDiscardChanges()) return;
                 var item = (grid.Tag as Item);
                 if (item == null) return;
                 FillItemDetails(item);
@@ -116,10 +111,11 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void ItemCopyButton_Click(object? sender, RoutedEventArgs e)
+        private async void ItemCopyButton_Click(object? sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
+                if (!await ConfirmDiscardChanges()) return;
                 if (item == null) return;
                 FillItemDetails(item);
 
@@ -130,10 +126,11 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void ItemEditButton_Click(object? sender, RoutedEventArgs e)
+        private async void ItemEditButton_Click(object? sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
+                if (!await ConfirmDiscardChanges()) return;
                 if (item == null) return;
                 FillItemDetails(item);
 
@@ -153,6 +150,7 @@ namespace Ultimate_Gshop
         {
             if (sender is Button btn && btn.Tag is Item item)
             {
+                if (!await ConfirmDiscardChanges()) return;
                 if (item == null) return;
 
                 FillItemDetails(item);
@@ -169,6 +167,7 @@ namespace Ultimate_Gshop
                             "Confirmação",
                             $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
                             "Esta ação é permanente e não poderá ser desfeita.",
+                            CustomMessageBox.MessageBoxIcon.Question,
                             "Sim", "Não");
 
 
@@ -176,7 +175,7 @@ namespace Ultimate_Gshop
 
                 if (result == "Sim")
                 {
-                    _shop.Itens.Remove(item);
+                    //_shop.Itens.Remove(item);
                     UpdateGrid();
                 }
             }
@@ -207,13 +206,14 @@ namespace Ultimate_Gshop
 
         private async void DetailDelete_Click(object? sender, RoutedEventArgs e)
         {
-            _currentState = DetailState.Viewing;
+            if (!await ConfirmDiscardChanges()) return;
 
             if (DetailPanel.Tag is Item item)
             {
                 var msgBox = new CustomMessageBox(
                             "Confirmação",
                             $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
+                            CustomMessageBox.MessageBoxIcon.Question,
                             "Esta ação é permanente e não poderá ser desfeita.",
                             "Sim", "Não");
 
@@ -222,8 +222,9 @@ namespace Ultimate_Gshop
 
                 if (result == "Sim")
                 {
-                    _shop.Itens.Remove(item);
+                    //_shop.Itens.Remove(item);
                     UpdateGrid();
+                    _currentState = DetailState.Viewing;
                 }
             }
         }
@@ -232,10 +233,12 @@ namespace Ultimate_Gshop
 
         #region Category Events
 
-        private void OnCategoryClick(object? sender, PointerPressedEventArgs e)
+        private async void OnCategoryClick(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Grid grid && grid.DataContext is Category category && grid.Parent is Border current)
             {
+                if (!await ConfirmDiscardChanges()) return;
+
                 int categoryIndex = _shop!.Categories.IndexOf(category);
                 SearchBox.Text = string.Empty;
 
@@ -262,10 +265,11 @@ namespace Ultimate_Gshop
             }
         }
 
-        private void OnSubCategoryClick(object? sender, PointerPressedEventArgs e)
+        private async void OnSubCategoryClick(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Grid grid && grid.DataContext is string subCategory && grid.Parent is Border current)
             {
+                if (!await ConfirmDiscardChanges()) return;
                 SearchBox.Text = string.Empty;
 
                 if (_lastSelectedCategory?.Child is not Grid categoryGrid ||
@@ -385,32 +389,83 @@ namespace Ultimate_Gshop
             }
         }
 
+        private async Task<bool> ConfirmDiscardChanges()
+        {
+            if (_currentState == DetailState.Viewing) return true;
+
+            var msgBox = new CustomMessageBox(
+                "Descartar Alterações?",
+                "Você tem alterações não salvas. Deseja descartá-las?",
+                CustomMessageBox.MessageBoxIcon.Information,
+                "Sim", "Cancelar");
+            var result = await msgBox.ShowDialogAsync(this);
+            return result == "Sim";
+        }
+
+        private void ToggleExplanationMode()
+        {
+            _isInEditMode = !_isInEditMode;
+
+            if (_isInEditMode && DetailExplanation.Inlines != null)
+            {
+                var formattedText = new StringBuilder();
+
+                foreach (var inline in DetailExplanation.Inlines)
+                {
+                    if (inline is Run run)
+                    {
+                        // Pega a cor no formato "#RRGGBB"
+                        var hex = run.Foreground is ISolidColorBrush brush
+                            ? brush.Color.ToUInt32().ToString("x8")[2..]  // Remove alpha e deixa minúsculo
+                            : "ffffff"; // cor padrão
+
+                        // Texto com \n convertido para \r
+                        var text = run.Text?.Replace("\n", @"\r") ?? string.Empty;
+
+                        // Adiciona a tag de cor com o texto
+                        formattedText.Append($"^{hex}{text}");
+                    }
+                }
+
+                DetailExplanationEditor.Text = formattedText.ToString();
+            }
+            else
+            {
+                SetExplanationFormatted(DetailExplanationEditor.Text);
+            }
+
+            DetailExplanationPreview.IsVisible = !_isInEditMode;
+            DetailExplanationEditor.IsVisible = _isInEditMode;
+            PaletteButton.IsVisible = _isInEditMode;
+
+            var previewIcon = _isInEditMode
+                ? new Uri("avares://Ultimate_Gshop/Resources/unpreview.png")
+                : new Uri("avares://Ultimate_Gshop/Resources/preview.png");
+
+            PreviewButtonIcon.Source = new Bitmap(AssetLoader.Open(previewIcon));
+        }
+
+        private void PreviewToggle_Click(object? sender, RoutedEventArgs e)
+        {
+            ToggleExplanationMode();
+        }
+
+
         private void FillItemDetails(Item? item)
         {
-            DetailStatus.ItemsSource = new[]
-            {
-                "Default", "New", "Popular","Often selling",
-                "Sale 10%", "Sale 20%", "Sale 30%", "Sale 40%", "Sale 50%", "Sale 60%", "Sale 70%", "Sale 80%", "Sale 90%",
-                "Vip0", "Vip1", "Vip2", "Vip3", "Vip4", "Vip5", "Vip6"
-            };
-
-            DetailClass.ItemsSource = new[]
-            {
-                "All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian",
-                "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"
-            };
+            // Ao preencher detalhes, sempre em modo de visualização
+            _isInEditMode = true;
+            ToggleExplanationMode();
 
             if (item == null)
             {
                 DetailPanel.Tag = null;
                 DetailIcon.Source = null;
                 DetailID.Text = string.Empty;
-                DetailStatus.SelectedIndex = 0;
                 DetailName.Text = string.Empty;
                 DetailLimitPeriod.Text = string.Empty;
                 DetailAvailFrequency.Text = string.Empty;
                 DetailAmount.Text = string.Empty;
-                DetailClass.SelectedIndex = 0;
                 SetExplanationFormatted(string.Empty);
                 return;
             }
@@ -422,20 +477,20 @@ namespace Ultimate_Gshop
             DetailLimitPeriod.Text = item.LimitPeriod.ToString();
             DetailAvailFrequency.Text = item.AvailFrequency.ToString();
             DetailAmount.Text = item.Amount.ToString();
-            DetailClass.SelectedIndex = item.Class;
             SetExplanationFormatted(item.Explanation);
         }
 
-        private void SetExplanationFormatted(string text)
+        private void SetExplanationFormatted(string? text)
         {
-            if (DetailExplanation.Inlines == null)
+            if (DetailExplanation.Inlines == null) return;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                DetailExplanation.Inlines.Clear();
                 return;
+            }
 
             DetailExplanation.Inlines.Clear();
-
-            if (string.IsNullOrWhiteSpace(text))
-                return;
-
+         
             foreach (Match match in ColorTagRegex().Matches(text))
             {
                 string hex = match.Groups["color"].Value;
@@ -584,8 +639,6 @@ namespace Ultimate_Gshop
 
             // Pega tamanho do MainWindow e do MenuWindow
             var mainBounds = this.Bounds;
-            menuWindow.Width = 400;
-            menuWindow.Height = 300;
 
             menuWindow.Position = new PixelPoint(
                 (int)(Position.X + (mainBounds.Width - menuWindow.Width) / 2),
