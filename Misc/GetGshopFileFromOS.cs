@@ -2,9 +2,9 @@
 using Avalonia.Platform.Storage;
 namespace Ultimate_Gshop.Misc
 {
-    public static class GetFileFromOS
+    public static class GetGshopFileFromOS
     {
-        public static async Task<IStorageFile?> ShowOpenFileDialog(Window window)
+        public static async Task<IStorageFile?> Handle(Window window)
         {
             var options = new FilePickerOpenOptions
             {
@@ -19,7 +19,18 @@ namespace Ultimate_Gshop.Misc
 
             var files = await window.StorageProvider.OpenFilePickerAsync(options);
 
-            return files.ToList().FirstOrDefault();
+            var file = files.ToList().FirstOrDefault();
+
+            if (file is null)
+            {
+                var result = await new GameMessageBox("No valid file provided", "Try again?", "Yes", "No").ShowDialogAsync(window);
+                if (result == "Sim")
+                {
+                   return await Handle(window);
+                }
+            }
+
+            return file;
 
         }
     }

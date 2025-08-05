@@ -8,13 +8,15 @@ using Ultimate_Gshop.Gshop;
 
 namespace Ultimate_Gshop.Misc
 {
-    public static class ProductionSettings
+    public static class ApplicationSettings
     {
         private static readonly string _folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ultimate_gshop");
 
         private static readonly string _settings = Path.Combine(_folder, "settings.json");
+
+        private static readonly string _gshop = Path.Combine(_folder, "gshop_temp.data");
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
@@ -33,6 +35,9 @@ namespace Ultimate_Gshop.Misc
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(_settings, json);
         }
+
+        public static bool GshopExists => File.Exists(_gshop);
+        public static string GshopLocation { get; } = _gshop;
 
     }
 }

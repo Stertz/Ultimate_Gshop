@@ -15,15 +15,12 @@ using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Misc;
-using static System.Net.Mime.MediaTypeNames;
-using Avalonia.Platform.Storage;
-using System.Runtime.CompilerServices;
 
 namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
-        private readonly Shop _shop;
+        private Shop? _shop;
         private readonly GshopSettings _settings;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -44,8 +41,7 @@ namespace Ultimate_Gshop
         {
             InitializeComponent();
             InitializeCustomCursor();
-            _shop = new Shop();
-            _settings = ProductionSettings.Load();
+            _settings = ApplicationSettings.Load();
         }
 
         /// <summary>
@@ -67,23 +63,15 @@ namespace Ultimate_Gshop
         protected override async void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-            if (string.IsNullOrWhiteSpace(_settings.TemporaryGshop) || !File.Exists(_settings.TemporaryGshop))
+            if (_settings.AlwaysFetchLastGshop) 
             {
-                var file = await GetFileFromOS.ShowOpenFileDialog(this) ?? throw new InvalidOperationException("Invalid file");
-                _settings.TemporaryGshop = file.TryGetLocalPath() ?? throw new FileNotFoundException("Invalid path");
-                ProductionSettings.Save(_settings);
+                _shop = await ContinueGshop.Handle(this);
             }
-
-            LoadGshop.TryLoadGshop(_shop, _settings);
+            else
+            {
+                _shop = await new MenuWindow().ShowDialog<Shop>(this); 
+            }
             CategoryList.ItemsSource = _shop.Categories;
-        }
-        /// <summary>
-        /// Disparado ao terminar de carregar todos eventos iniciais da janela
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnLoaded(RoutedEventArgs e)
-        {
-            base.OnLoaded(e);
             SelectFirstCategory();
         }
 

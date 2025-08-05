@@ -7,14 +7,14 @@ namespace Ultimate_Gshop.Gshop.Services
 {
     internal static class LoadGshop
     {
-        public static void TryLoadGshop(Shop gshop, GshopSettings gshopSettings)
+        public static Shop Handle(string path)
         {
-
-            var path = gshopSettings.TemporaryGshop;
 
             if (!File.Exists(path)) throw new InvalidOperationException("Gshop não encontrado");
 
-            using var fs = File.Open(Variables.LastGshopPath, FileMode.Open, FileAccess.Read);
+            var gshop = new Shop();
+
+            using var fs = File.Open(path, FileMode.Open, FileAccess.Read);
             using var br = new BinaryReader(fs);
 
             (gshop.Timestamp, gshop.ItemAmount) = GetHeader.Handle(br);
@@ -26,6 +26,8 @@ namespace Ultimate_Gshop.Gshop.Services
             gshop.Itens = [.. GetItens.Handle(gshop.ItemAmount, br, fs)];
 
             gshop.ItensLoaded?.Invoke(null, new EventArgs());
+
+            return gshop;
 
         }
     }

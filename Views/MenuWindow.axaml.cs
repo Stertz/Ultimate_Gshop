@@ -3,7 +3,6 @@ using Avalonia.Interactivity;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Misc;
-using Avalonia.Platform.Storage;
 namespace Ultimate_Gshop
 {
     public partial class MenuWindow : Window
@@ -16,6 +15,9 @@ namespace Ultimate_Gshop
             InitializeComponent();
             _shop = null;
             _settings = null;
+            btnExportServer.IsEnabled = false;
+            btnExportClient.IsEnabled = false;
+            btnContinue.IsEnabled = ApplicationSettings.GshopExists;
         }
 
         public MenuWindow(Shop shop, GshopSettings settings)
@@ -76,20 +78,25 @@ namespace Ultimate_Gshop
 
         private async void OnImportGshopClicked(object sender, RoutedEventArgs e)
         {
-
-            if (_settings is null) return;
-
-            IStorageFile? file = await GetFileFromOS.ShowOpenFileDialog(this);
-
-            if (file is null) return;
-
-            var filepath = file.TryGetLocalPath();
-
-            if (filepath is null) return;
-
-            var gshop = ImportGshop.Handle(filepath, _settings);
-
+            var gshop = await ImportGshop.Handle(this);
             Close(gshop);
+        }
+
+        private async void OnContinueGshopClicked(object sender, RoutedEventArgs e)
+        {
+            var gshop = await ContinueGshop.Handle(this);
+            Close(gshop);
+        }
+
+        private void OnNewGshopClicked(object sender, RoutedEventArgs e)
+        {
+            var gshop = NewEmptyGshop.Handle();
+            Close(gshop);
+        }
+
+        private void OnOptionsClicked(object sender, RoutedEventArgs e)
+        {
+
         }
 
     }
