@@ -11,5 +11,22 @@
         public int Status { get; set; }
         public int Flags { get; set; }
         public int VipLevelRequired { get; set; }
+
+        public Sale Clone()
+        {
+            return new()
+            {
+                Price = Price,
+                SellingEndTime = SellingEndTime,
+                During = During,
+                SellingStartTime = SellingStartTime,
+                Control = Control,
+                Day = Day,
+                Status = Status,
+                Flags = Flags,
+                VipLevelRequired = VipLevelRequired
+            };
+        }
+
     }
 }
