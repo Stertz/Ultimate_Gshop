@@ -20,6 +20,10 @@
 	<ItemGroup>
 		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Resources\error.png" />
+		<AvaloniaResource Include="Resources\icon_gshop.ico" />
+	</ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\bg.png" />
@@ -28,11 +32,15 @@
     <None Remove="Resources\category_frame.png" />
     <None Remove="Resources\color_palette.png" />
     <None Remove="Resources\cursor.png" />
+    <None Remove="Resources\error.png" />
     <None Remove="Resources\frame.png" />
+    <None Remove="Resources\icon_gshop.ico" />
+    <None Remove="Resources\information.png" />
     <None Remove="Resources\items_bg.png" />
     <None Remove="Resources\item_slot_frame.png" />
     <None Remove="Resources\menu.png" />
     <None Remove="Resources\paper.png" />
+    <None Remove="Resources\question.png" />
     <None Remove="Resources\question_mark.png" />
     <None Remove="Resources\search.png" />
     <None Remove="Resources\search_bar.png" />
@@ -47,10 +55,13 @@
     <AvaloniaResource Include="Resources\color_palette.png" />
     <AvaloniaResource Include="Resources\cursor.png" />
     <AvaloniaResource Include="Resources\frame.png" />
+    <AvaloniaResource Include="Resources\icon_gshop.ico" />
+    <AvaloniaResource Include="Resources\information.png" />
     <AvaloniaResource Include="Resources\items_bg.png" />
     <AvaloniaResource Include="Resources\item_slot_frame.png" />
     <AvaloniaResource Include="Resources\menu.png" />
     <AvaloniaResource Include="Resources\paper.png" />
+    <AvaloniaResource Include="Resources\question.png" />
     <AvaloniaResource Include="Resources\question_mark.png" />
     <AvaloniaResource Include="Resources\search.png" />
     <AvaloniaResource Include="Resources\search_bar.png" />
@@ -83,6 +94,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Resources\categories\" />
     <Folder Include="Views\Windows\" />
   </ItemGroup>
 
