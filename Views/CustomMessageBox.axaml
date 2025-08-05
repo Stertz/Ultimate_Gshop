@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="Ultimate_Gshop.GameMessageBox"
+        x:Class="Ultimate_Gshop.Views.CustomMessageBox"
         Width="400" Height="220"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
@@ -13,29 +13,37 @@
                Stretch="Fill"/>
 
 		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+
+			<!-- Ícone -->
+			<Image x:Name="IconImage"
+				   Width="70" Height="70"
+				   IsVisible="False"
+				   HorizontalAlignment="Center"/>
+
 			<!-- Título -->
 			<TextBlock x:Name="TitleBlock"
-                       Text="Aviso"
-                       Foreground="#ebb935"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"/>
+					   Text="Aviso"
+					   Foreground="#ebb935"
+					   FontSize="18"
+					   FontWeight="Bold"
+					   HorizontalAlignment="Center"/>
 
 			<!-- Mensagem -->
 			<TextBlock x:Name="MessageBlock"
-                       Text="Mensagem genérica"
-                       Foreground="White"
-                       FontSize="14"
-                       TextWrapping="Wrap"
-                       TextAlignment="Center"
-                       Width="300"/>
+					   Text="Mensagem genérica"
+					   Foreground="White"
+					   FontSize="14"
+					   TextWrapping="Wrap"
+					   TextAlignment="Center"
+					   Width="300"/>
 
 			<!-- Botões -->
 			<StackPanel x:Name="ButtonPanel"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="15"/>
+						Orientation="Horizontal"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Spacing="15"/>
 		</StackPanel>
+
 	</Grid>
 </Window>

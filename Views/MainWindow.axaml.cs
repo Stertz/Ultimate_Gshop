@@ -10,11 +10,11 @@ using Avalonia.Platform;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Ultimate_Gshop.Categories;
-using Ultimate_Gshop.Views.UserControls;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Misc;
+using Ultimate_Gshop.Views;
 
 namespace Ultimate_Gshop
 {
@@ -158,7 +158,7 @@ namespace Ultimate_Gshop
                     _lastSelectedBorder = current;
                 }
 
-                var msgBox = new GameMessageBox(
+                var msgBox = new CustomMessageBox(
                             "Confirmação",
                             $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
                             "Esta ação é permanente e não poderá ser desfeita.",
@@ -179,9 +179,10 @@ namespace Ultimate_Gshop
         {
             _currentState = DetailState.Creating;
 
-            var msg = new GameMessageBox(
+            var msg = new CustomMessageBox(
                 "Estado alterado",
                 "Criando novo item.",
+                CustomMessageBox.MessageBoxIcon.Information,
                 "OK");
             await msg.ShowDialogAsync(this);
         }
@@ -190,7 +191,7 @@ namespace Ultimate_Gshop
         {
             _currentState = DetailState.Editing;
 
-            var msg = new GameMessageBox(
+            var msg = new CustomMessageBox(
                 "Estado alterado",
                 "Editando item existente.",
                 "OK");
@@ -203,7 +204,7 @@ namespace Ultimate_Gshop
 
             if (DetailPanel.Tag is Item item)
             {
-                var msgBox = new GameMessageBox(
+                var msgBox = new CustomMessageBox(
                             "Confirmação",
                             $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.Id})?\n\n" +
                             "Esta ação é permanente e não poderá ser desfeita.",

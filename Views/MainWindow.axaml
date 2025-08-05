@@ -10,6 +10,7 @@
         Width="1024" Height="760"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
+		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico"
         Background="Transparent">
 
 
@@ -58,14 +59,25 @@
 								<Image Source="avares://Ultimate_Gshop/Resources/category_frame.png"
 									   Opacity="0.60"
 									   Stretch="Fill"/>
-								<TextBlock Text="{Binding Title}"
-										   HorizontalAlignment="Center"
-										   VerticalAlignment="Bottom"
-										   Margin="0,0,0,7"
-										   Foreground="White"
-										   FontWeight="Bold"
-										   FontSize="14"
-										   TextAlignment="Center"/>
+
+								<!-- Conteúdo do botão -->
+								<StackPanel VerticalAlignment="Center"
+											HorizontalAlignment="Center"
+											Spacing="2">
+									<!-- Ícone -->
+									<Image Source="avares://Ultimate_Gshop/Resources/question_mark.png"
+										   Width="24"
+										   Height="24"
+										   Stretch="Uniform"/>
+
+									<!-- Texto -->
+									<TextBlock Text="{Binding Title}"
+											   HorizontalAlignment="Center"
+											   Foreground="White"
+											   FontWeight="Bold"
+											   FontSize="14"
+											   TextAlignment="Center"/>
+								</StackPanel>
 							</Grid>
 						</Border>
 					</DataTemplate>
@@ -567,10 +579,10 @@
 				VerticalAlignment="Top"
 				Width="250"
 				Height="50"
-				Margin="0,33,0,0"
+				Margin="0,35,0,0"
 				PointerPressed="TopDrag_PointerPressed">
 
-			<TextBlock Text="Ultimate_Gshop"
+			<TextBlock Text="Ultimate Gshop"
            HorizontalAlignment="Center"
            VerticalAlignment="Center"
            FontSize="24"

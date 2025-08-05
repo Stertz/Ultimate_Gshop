@@ -2,23 +2,36 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
-namespace Ultimate_Gshop
+namespace Ultimate_Gshop.Views
 {
-    public partial class GameMessageBox : Window
+    public partial class CustomMessageBox : Window
     {
         private readonly TaskCompletionSource<string> _tcs = new();
+        public enum MessageBoxIcon
+        {
+            None,
+            Information,
+            Question,
+            Error
+        }
 
-        public GameMessageBox()
+        public CustomMessageBox()
         {
             InitializeComponent();
         }
 
-        public GameMessageBox(string title, string message, params string[] buttons)
+        public CustomMessageBox(string title, string message, params string[] buttons)
+        : this(title, message, MessageBoxIcon.None, buttons)
+        {
+        }
+        public CustomMessageBox(string title, string message, MessageBoxIcon icon, params string[] buttons)
         {
             InitializeComponent();
 
             TitleBlock.Text = title;
             MessageBlock.Text = message;
+
+            SetIcon(icon);
 
             foreach (var btnText in buttons)
             {
@@ -64,6 +77,28 @@ namespace Ultimate_Gshop
                 ButtonPanel.Children.Add(button);
             }
         }
+
+        private void SetIcon(MessageBoxIcon icon)
+        {
+            string? path = icon switch
+            {
+                MessageBoxIcon.Information => "avares://Ultimate_Gshop/Resources/information.png",
+                MessageBoxIcon.Question => "avares://Ultimate_Gshop/Resources/question.png",
+                MessageBoxIcon.Error => "avares://Ultimate_Gshop/Resources/error.png",
+                _ => null
+            };
+
+            if (path is not null)
+            {
+                IconImage.Source = new Bitmap(AssetLoader.Open(new Uri(path)));
+                IconImage.IsVisible = true;
+            }
+            else
+            {
+                IconImage.IsVisible = false;
+            }
+        }
+
 
         public Task<string> ShowDialogAsync(Window owner)
         {
