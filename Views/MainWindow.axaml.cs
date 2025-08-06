@@ -44,21 +44,11 @@ namespace Ultimate_Gshop
         public MainWindow()
         {
             InitializeComponent();
-            InitializeCustomCursor();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             _settings = ApplicationSettings.Load();
             _shop = new Shop();
         }
 
-        /// <summary>
-        /// Define cursor personalizado
-        /// </summary>
-        private void InitializeCustomCursor()
-        {
-
-            using var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png"));
-            var bitmap = new Bitmap(stream);
-            Cursor = new Cursor(bitmap, new PixelPoint(0, 0));
-        }
         /// <summary>
         /// Disparado ao abrir a janela
         /// </summary>
@@ -105,6 +95,9 @@ namespace Ultimate_Gshop
                 if (!await ConfirmDiscardChanges()) return;
                 var item = (grid.Tag as Item);
                 if (item == null) return;
+
+                _currentState = DetailState.Viewing;
+                SetItemDetailsEnabled();
                 FillItemDetails(item);
 
                 if (grid.Parent is Border current)
@@ -123,12 +116,13 @@ namespace Ultimate_Gshop
             {
                 if (!await ConfirmDiscardChanges()) return;
                 if (item == null) return;
+
+                _currentState = DetailState.Creating;
+                SetItemDetailsEnabled();
                 FillItemDetails(item);
 
                 RemoveShadow(_lastSelectedBorder);
                 _lastSelectedBorder = null;
-
-                // habilitar campos para novo item
             }
         }
 
@@ -138,6 +132,9 @@ namespace Ultimate_Gshop
             {
                 if (!await ConfirmDiscardChanges()) return;
                 if (item == null) return;
+
+                _currentState = DetailState.Editing;
+                SetItemDetailsEnabled();
                 FillItemDetails(item);
 
                 if (btn.Parent is Grid grid && grid.Parent is Border current)
@@ -147,8 +144,6 @@ namespace Ultimate_Gshop
                     ApplyGoldShadow(current);
                     _lastSelectedBorder = current;
                 }
-
-                // habilitar campos de edição
             }
         }
 
@@ -173,6 +168,7 @@ namespace Ultimate_Gshop
                 {
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
+                    SetItemDetailsEnabled();
                 }
             }
         }
@@ -181,6 +177,13 @@ namespace Ultimate_Gshop
         {
             if (DetailPanel.Tag is Item item)
             {
+                if (_currentState == DetailState.Editing)
+                {
+                    if (!await ConfirmDiscardChanges()) return;
+                }
+                _currentState = DetailState.Editing;
+                SetItemDetailsEnabled();
+
                 var editorWindow = new ItemEditorWindow(item)
                 {
                     WindowStartupLocation = WindowStartupLocation.Manual,
@@ -194,31 +197,44 @@ namespace Ultimate_Gshop
                     (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
                 );
 
-                await editorWindow.ShowDialog<Item>(this);
+                var editedItem = await editorWindow.ShowDialog<Item>(this);
+                FillItemDetails(editedItem);
             }
         }
 
         private async void DetailNew_Click(object? sender, RoutedEventArgs e)
         {
+            if (!await ConfirmDiscardChanges()) return;
             _currentState = DetailState.Creating;
 
-            var msg = new CustomMessageBox(
-                "Estado alterado",
-                "Criando novo item.",
-                CustomMessageBox.MessageBoxIcon.Information,
-                "OK");
-            await msg.ShowDialogAsync(this);
+            var editorWindow = new ItemEditorWindow(new Item())
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                SystemDecorations = SystemDecorations.None,
+                CanResize = false
+            };
+
+            var mainBounds = this.Bounds;
+            editorWindow.Position = new PixelPoint(
+                (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
+                (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
+            );
+
+            var newItem = await editorWindow.ShowDialog<Item>(this);
+
+            FillItemDetails(newItem);
+            SetItemDetailsEnabled();
         }
 
         private async void DetailEdit_Click(object? sender, RoutedEventArgs e)
         {
-            _currentState = DetailState.Editing;
-
-            var msg = new CustomMessageBox(
-                "Estado alterado",
-                "Editando item existente.",
-                "OK");
-            await msg.ShowDialogAsync(this);
+            if (DetailPanel.Tag is Item item)
+            {
+                if (!await ConfirmDiscardChanges()) return;
+                _currentState = DetailState.Editing;
+                FillItemDetails(item);
+                SetItemDetailsEnabled();
+            }
         }
 
         private async void DetailDelete_Click(object? sender, RoutedEventArgs e)
@@ -231,6 +247,7 @@ namespace Ultimate_Gshop
                 {
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
+                    SetItemDetailsEnabled();
                 }
             }
         }
@@ -444,7 +461,7 @@ namespace Ultimate_Gshop
 
             DetailExplanationPreview.IsVisible = !_isInEditMode;
             DetailExplanationEditor.IsVisible = _isInEditMode;
-            PaletteButton.IsVisible = _isInEditMode;
+            DetailPaletteButton.IsVisible = _isInEditMode;
 
             var previewIcon = _isInEditMode
                 ? new Uri("avares://Ultimate_Gshop/Resources/unpreview.png")
@@ -456,6 +473,72 @@ namespace Ultimate_Gshop
         private void PreviewToggle_Click(object? sender, RoutedEventArgs e)
         {
             ToggleExplanationMode();
+        }
+
+        private async void DetailSave_Click(object? sender, RoutedEventArgs e)
+        {
+            var msgBox = new CustomMessageBox(
+                (_currentState == DetailState.Creating) ? "Criar Novo Item?" : "Editar Item?",
+                "Confirme apenas se voce tiver certeza!",
+                CustomMessageBox.MessageBoxIcon.Question,
+                "Sim", "Cancelar");
+            var result = await msgBox.ShowDialogAsync(this);
+
+            if (result == "Sim")
+            {
+                if (_currentState == DetailState.Creating)
+                {
+                    // criar novo item
+                    // var item = save...
+                }
+                else
+                {
+                    // editar novo item
+                    // var item = edit...
+                }
+
+                _currentState = DetailState.Viewing;
+                SetItemDetailsEnabled();
+                FillItemDetails(null); // passar item
+            }
+        }
+
+        private async void DetailUndo_Click(object? sender, RoutedEventArgs e)
+        {
+            if (!await ConfirmDiscardChanges()) return;
+
+
+            if (DetailPanel.Tag is Item item && _currentState != DetailState.Creating)
+            {
+                FillItemDetails(item);
+            }
+            else
+            {
+                FillItemDetails(null);
+            }
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+        }
+
+        private void SetItemDetailsEnabled()
+        {
+            bool isViewing = _currentState == DetailState.Viewing;
+
+            DetailID.IsEnabled = !isViewing;
+            DetailName.IsEnabled = !isViewing;
+            DetailLimitPeriod.IsEnabled = !isViewing;
+            DetailAvailFrequency.IsEnabled = !isViewing;
+            DetailAmount.IsEnabled = !isViewing;
+            DetailExplanationEditor.IsEnabled = !isViewing;
+
+            DetailPaletteButton.IsEnabled = !isViewing;
+
+            DetailNewButton.IsVisible = isViewing;
+            DetailEditButton.IsVisible = isViewing;
+            DetailDeleteButton.IsVisible = isViewing;
+
+            DetailSaveButton.IsVisible = !isViewing;
+            DetailUndoButton.IsVisible = !isViewing;
         }
 
 
@@ -517,7 +600,7 @@ namespace Ultimate_Gshop
             }
         }
 
-        private async void PaletteButton_Click(object? sender, RoutedEventArgs e)
+        private async void DetailPaletteButton_Click(object? sender, RoutedEventArgs e)
         {
             var color = await ColorPickerWindow.ShowAsync(this);
             if (!color.HasValue)

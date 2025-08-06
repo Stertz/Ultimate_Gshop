@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Ultimate_Gshop.Gshop;
+using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Views
 {
@@ -27,6 +28,7 @@ namespace Ultimate_Gshop.Views
         public ColorPickerWindow()
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             BuildGrid();
 
             this.KeyDown += ColorPickerWindow_KeyDown;

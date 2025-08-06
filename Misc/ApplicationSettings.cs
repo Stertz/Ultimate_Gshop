@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Avalonia;
+using Avalonia.Input;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,5 +43,15 @@ namespace Ultimate_Gshop.Misc
         public static bool GshopExists => File.Exists(_gshop);
         public static string GshopLocation { get; } = _gshop;
 
+        /// <summary>
+        /// Define cursor personalizado
+        /// </summary>
+        public static Cursor InitializeCustomCursor()
+        {
+
+            using var stream = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/cursor.png"));
+            var bitmap = new Bitmap(stream);
+            return new Cursor(bitmap, new PixelPoint(0, 0));
+        }
     }
 }

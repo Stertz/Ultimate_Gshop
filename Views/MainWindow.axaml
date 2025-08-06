@@ -407,7 +407,7 @@
 						<controls:FloatingLabelTextBox
 							x:Name="DetailID"
 							Label="ID"
-							IsEnabled="True"
+							IsEnabled="False"
 							ContentType="Number"/>
 
 						<!-- Amount -->
@@ -416,7 +416,7 @@
 							Grid.Column="1"
 							Label="Amount"
 							Width="140"
-							IsEnabled="True"
+							IsEnabled="False"
 							ContentType="Number"/>
 					</Grid>
 
@@ -425,7 +425,7 @@
 							x:Name="DetailName"
 							Width="280"
 							Label="Name"
-							IsEnabled="True"/>
+							IsEnabled="False"/>
 
 					<!-- Time Limit + Avail Frequency -->
 					<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
@@ -433,7 +433,7 @@
 						<controls:FloatingLabelTextBox
 							x:Name="DetailLimitPeriod"
 							Label="Limit Period"
-							IsEnabled="True"
+							IsEnabled="False"
 							ContentType="Number"/>
 
 						<!-- Avail Frequency -->
@@ -441,7 +441,7 @@
 							Grid.Column="1"
 							x:Name="DetailAvailFrequency"
 							Label="Avail Frequency"
-							IsEnabled="True"
+							IsEnabled="False"
 							ContentType="Number"/>
 					</Grid>
 
@@ -465,7 +465,7 @@
 									 AcceptsReturn="True"
 									 Watermark="Descrição"
 									 IsVisible="False"
-									 LostFocus="DetailExplanationEditor_LostFocus">
+									 IsEnabled="False">
 								<TextBox.Styles>
 									<Style Selector="TextBox">
 										<Setter Property="Foreground" Value="White"/>
@@ -513,12 +513,13 @@
 							<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
 									Width="50" Height="50"
 									Margin="0,27,-10,0">
-								<Button x:Name="PaletteButton"
+								<Button x:Name="DetailPaletteButton"
 										Width="40" Height="40"
 										IsVisible="False"
 										Background="Transparent"
 										BorderBrush="Transparent"
-										Click="PaletteButton_Click">
+										IsEnabled="False"
+										Click="DetailPaletteButton_Click">
 									<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
 										   Stretch="Uniform"/>
 								</Button>
@@ -528,63 +529,81 @@
 					</Border>
 				</StackPanel>
 
-				<!-- Botões fixos -->
 				<StackPanel Grid.Row="1"
-							Orientation="Horizontal"
-							HorizontalAlignment="Center"
-							Margin="0,-7,0,10"
-							Spacing="1">
+			Orientation="Horizontal"
+			HorizontalAlignment="Center"
+			Margin="0,-7,0,10"
+			Spacing="1">
+
 					<!-- Botão Novo -->
-					<Button Width="100"
-							Height="60"
+					<Button x:Name="DetailNewButton"
+							Width="100" Height="60"
 							Background="Transparent"
 							BorderBrush="Transparent"
 							Opacity="0.9"
 							Click="DetailNew_Click">
 						<Grid>
 							<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-							<TextBlock Text="Novo"
-									   Foreground="White"
-									   FontSize="12"
-									   FontWeight="Bold"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Center"/>
+							<TextBlock Text="Novo" Foreground="White" FontSize="12" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 
 					<!-- Botão Editar -->
-					<Button Width="100"
-							Height="60"
+					<Button x:Name="DetailEditButton"
+							Width="100" Height="60"
 							Background="Transparent"
 							BorderBrush="Transparent"
 							Opacity="0.9"
 							Click="DetailEdit_Click">
 						<Grid>
 							<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-							<TextBlock Text="Editar"
-									   Foreground="White"
-									   FontSize="12"
-									   FontWeight="Bold"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Center"/>
+							<TextBlock Text="Editar" Foreground="White" FontSize="12" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 
 					<!-- Botão Excluir -->
-					<Button Width="100"
-							Height="60"
+					<Button x:Name="DetailDeleteButton"
+							Width="100" Height="60"
 							Background="Transparent"
 							BorderBrush="Transparent"
 							Opacity="0.9"
 							Click="DetailDelete_Click">
 						<Grid>
 							<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
-							<TextBlock Text="Excluir"
-									   Foreground="White"
-									   FontSize="12"
-									   FontWeight="Bold"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Center"/>
+							<TextBlock Text="Excluir" Foreground="White" FontSize="12" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Grid>
+					</Button>
+
+					<!-- Botão Salvar -->
+					<Button x:Name="DetailSaveButton"
+							Width="100" Height="60"
+							Background="Transparent"
+							BorderBrush="Transparent"
+							Opacity="0.9"
+							Click="DetailSave_Click"
+							IsVisible="False">
+						<Grid>
+							<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+							<TextBlock Text="Salvar" Foreground="White" FontSize="12" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Grid>
+					</Button>
+
+					<!-- Botão Desfazer -->
+					<Button x:Name="DetailUndoButton"
+							Width="100" Height="60"
+							Background="Transparent"
+							BorderBrush="Transparent"
+							Opacity="0.9"
+							Click="DetailUndo_Click"
+							IsVisible="False">
+						<Grid>
+							<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+							<TextBlock Text="Desfazer" Foreground="White" FontSize="12" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 				</StackPanel>

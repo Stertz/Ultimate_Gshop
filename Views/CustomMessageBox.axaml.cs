@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Views
 {
@@ -18,6 +19,7 @@ namespace Ultimate_Gshop.Views
         public CustomMessageBox()
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
         }
 
         public CustomMessageBox(string title, string message, params string[] buttons)
@@ -27,6 +29,7 @@ namespace Ultimate_Gshop.Views
         public CustomMessageBox(string title, string message, MessageBoxIcon icon, params string[] buttons)
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
 
             TitleBlock.Text = title;
             MessageBlock.Text = message;

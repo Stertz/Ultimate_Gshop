@@ -13,6 +13,7 @@ namespace Ultimate_Gshop
         public MenuWindow()
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             _shop = null;
             _settings = null;
             btnExportServer.IsEnabled = false;
@@ -37,6 +38,7 @@ namespace Ultimate_Gshop
         public MenuWindow(Shop shop, GshopSettings settings)
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             _shop = shop;
             _settings = settings;
             this.Opacity = 0;

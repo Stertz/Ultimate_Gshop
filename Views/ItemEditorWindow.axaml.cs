@@ -1,7 +1,8 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Ultimate_Gshop.Itens;
+using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop
 {
     public partial class ItemEditorWindow : Window
@@ -11,6 +12,7 @@ namespace Ultimate_Gshop
         public ItemEditorWindow()
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             _item = null;
 
             this.Opacity = 0;
@@ -31,6 +33,7 @@ namespace Ultimate_Gshop
         public ItemEditorWindow(Item item)
         {
             InitializeComponent();
+            Cursor = ApplicationSettings.InitializeCustomCursor();
             _item = item;
             this.Opacity = 0;
 
@@ -51,13 +54,13 @@ namespace Ultimate_Gshop
         {
             if (e.Key == Key.Escape)
             {
-                this.Close();
+                this.Close(_item);
             }
         }
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
-            this.Close();
+            this.Close(_item);
         }
     }
 }
