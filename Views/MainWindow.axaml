@@ -383,7 +383,8 @@
 						<Button Width="55"
 								Height="55"
 								Background="Transparent"
-								BorderBrush="Transparent">
+								BorderBrush="Transparent"
+								Click="DetailItemEditor_Click">
 							<Image Source="avares://Ultimate_Gshop/Resources/settings.png"
 								   Stretch="Uniform"/>
 						</Button>
@@ -463,7 +464,8 @@
 									 TextWrapping="Wrap"
 									 AcceptsReturn="True"
 									 Watermark="Descrição"
-									 IsVisible="False">
+									 IsVisible="False"
+									 LostFocus="DetailExplanationEditor_LostFocus">
 								<TextBox.Styles>
 									<Style Selector="TextBox">
 										<Setter Property="Foreground" Value="White"/>

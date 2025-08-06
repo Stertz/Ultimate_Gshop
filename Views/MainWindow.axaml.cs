@@ -68,7 +68,7 @@ namespace Ultimate_Gshop
         protected override async void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-            if (_settings.AlwaysFetchLastGshop) 
+            if (_settings.AlwaysFetchLastGshop)
             {
                 _shop = await ContinueGshop.Handle(this);
             }
@@ -80,7 +80,7 @@ namespace Ultimate_Gshop
                     SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
                     CanResize = false
                 };
-                _shop = await menuWindow.ShowDialog<Shop>(this); 
+                _shop = await menuWindow.ShowDialog<Shop>(this);
             }
 
             if (_shop is null)
@@ -174,6 +174,27 @@ namespace Ultimate_Gshop
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
                 }
+            }
+        }
+
+        private async void DetailItemEditor_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DetailPanel.Tag is Item item)
+            {
+                var editorWindow = new ItemEditorWindow(item)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual,
+                    SystemDecorations = SystemDecorations.None,
+                    CanResize = false
+                };
+
+                var mainBounds = this.Bounds;
+                editorWindow.Position = new PixelPoint(
+                    (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
+                    (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
+                );
+
+                await editorWindow.ShowDialog<Item>(this);
             }
         }
 
@@ -477,7 +498,7 @@ namespace Ultimate_Gshop
             }
 
             DetailExplanation.Inlines.Clear();
-         
+
             foreach (Match match in ColorTagRegex().Matches(text))
             {
                 string hex = match.Groups["color"].Value;
