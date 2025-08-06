@@ -14,13 +14,14 @@
 
 		<StackPanel VerticalAlignment="Center"
             HorizontalAlignment="Center"
-            Spacing="15">
+            Spacing="3">
 
 			<Button Background="Transparent"
 					BorderThickness="0"
 					Click="OnNewGshopClicked">
 				<TextBlock Text="New Gshop"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Opacity="0.85"
 						   Foreground="White"/>
@@ -31,7 +32,8 @@
 					BorderThickness="0"
 					Click="OnContinueGshopClicked">
 				<TextBlock Text="Continue Gshop"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Opacity="0.85"
 						   Foreground="White"/>
@@ -42,7 +44,8 @@
 					BorderThickness="0"
 					Click="OnImportGshopClicked">
 				<TextBlock Text="Import Gshop"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Opacity="0.85"
 						   Foreground="White"/>
@@ -53,7 +56,8 @@
 					BorderThickness="0"
 					Click="OnExportServerClicked">
 				<TextBlock Text="Export Gshop Server"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Foreground="White"
 						   Opacity="0.90" />
@@ -64,7 +68,8 @@
 					BorderThickness="0"
 					Click="OnExportClientClicked">
 				<TextBlock Text="Export Gshop Client"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Foreground="White"
 						   Opacity="0.90" />
@@ -74,7 +79,8 @@
 					BorderThickness="0"
 					Click="OnOptionsClicked">
 				<TextBlock Text="Options"
-						   FontSize="20"
+						   FontFamily="Segoe Script"
+						   FontSize="22"
 						   FontWeight="Bold"
 						   Foreground="White"
 						   Opacity="0.90" />
