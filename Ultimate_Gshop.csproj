@@ -43,9 +43,11 @@
     <None Remove="Resources\preview.png" />
     <None Remove="Resources\question.png" />
     <None Remove="Resources\question_mark.png" />
+    <None Remove="Resources\redo_arrow.png" />
     <None Remove="Resources\search.png" />
     <None Remove="Resources\search_bar.png" />
     <None Remove="Resources\settings.png" />
+    <None Remove="Resources\undo_arrow.png" />
     <None Remove="Resources\unpreview.png" />
   </ItemGroup>
 
@@ -66,9 +68,11 @@
     <AvaloniaResource Include="Resources\preview.png" />
     <AvaloniaResource Include="Resources\question.png" />
     <AvaloniaResource Include="Resources\question_mark.png" />
+    <AvaloniaResource Include="Resources\redo_arrow.png" />
     <AvaloniaResource Include="Resources\search.png" />
     <AvaloniaResource Include="Resources\search_bar.png" />
     <AvaloniaResource Include="Resources\settings.png" />
+    <AvaloniaResource Include="Resources\undo_arrow.png" />
     <AvaloniaResource Include="Resources\unpreview.png" />
   </ItemGroup>
 
