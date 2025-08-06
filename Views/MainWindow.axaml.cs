@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +15,7 @@ using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
+using Ultimate_Gshop.Itens.Services;
 using Ultimate_Gshop.Misc;
 using Ultimate_Gshop.Views;
 
@@ -22,6 +24,7 @@ namespace Ultimate_Gshop
     public partial class MainWindow : Window
     {
         private Shop _shop;
+        private ShopTracking _tracking = new();
         private readonly GshopSettings _settings;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -86,6 +89,9 @@ namespace Ultimate_Gshop
                 return;
             }
 
+            RedoButton.IsEnabled = false;
+            UndoButton.IsEnabled = false;
+            _tracking.PropertyChanged += OnTrackingChange;
             CategoryList.ItemsSource = _shop.Categories;
             SelectFirstCategory();
         }
@@ -163,21 +169,8 @@ namespace Ultimate_Gshop
                     _lastSelectedBorder = current;
                 }
 
-                var msgBox = new CustomMessageBox(
-                            "Confirmação",
-                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
-                            "Esta ação é permanente e não poderá ser desfeita.",
-                            CustomMessageBox.MessageBoxIcon.Question,
-                            "Sim", "Não");
+                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this)) UpdateGrid();
 
-
-                var result = await msgBox.ShowDialogAsync(this);
-
-                if (result == "Sim")
-                {
-                    //_shop.Itens.Remove(item);
-                    UpdateGrid();
-                }
             }
         }
 
@@ -295,6 +288,8 @@ namespace Ultimate_Gshop
                 SubCategoryToggled(subCategoryIndex);
             }
         }
+
+
 
         #endregion
 
@@ -684,6 +679,23 @@ namespace Ultimate_Gshop
 
             await menuWindow.ShowDialog<Shop>(this);
         }
+
+        private void Undo_Click(object? sender, RoutedEventArgs e)
+        {
+            _tracking.Undo(_shop);
+            UpdateGrid();
+        }
+        private void Redo_Click(object? sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnTrackingChange(object? sender, PropertyChangedEventArgs e)
+        {
+            UndoButton.IsEnabled = _tracking.CanUndo;
+            RedoButton.IsEnabled = _tracking.CanRedo;
+        }
+
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {

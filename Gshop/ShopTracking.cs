@@ -1,11 +1,16 @@
-﻿using Ultimate_Gshop.Itens;
-
+﻿using System.ComponentModel;
+using Ultimate_Gshop.Itens;
 namespace Ultimate_Gshop.Gshop
 {
-    public class ShopTracking
+    public class ShopTracking : INotifyPropertyChanged
     {
         public Stack<ShopChange> UndoChanges { get; } = new();
         public Stack<ShopChange> RedoChanges { get; } = new();
+
+        public bool CanUndo => UndoChanges.Count > 0;
+        public bool CanRedo => RedoChanges.Count > 0;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public void ItemDeleted(int index, Item item)
         {
@@ -16,6 +21,8 @@ namespace Ultimate_Gshop.Gshop
                 ItemBackup = item.Clone()
             });
             RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
 
         public void ItemUpdated(int index, Item oldItem)
@@ -27,6 +34,8 @@ namespace Ultimate_Gshop.Gshop
                 ItemBackup = oldItem.Clone()
             });
             RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
 
         public void ItemCreated(int index, Item newItem)
@@ -38,6 +47,8 @@ namespace Ultimate_Gshop.Gshop
                 ItemBackup = newItem.Clone()
             });
             RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
 
         public void Undo(Shop shop)
@@ -50,8 +61,7 @@ namespace Ultimate_Gshop.Gshop
             switch (op.Action)
             {
                 case EChangeAction.Delete:
-                    if (op.ItemBackup is null) throw new InvalidOperationException("Can't undo empty object");
-                    shop.Itens.Insert(op.Index, op.ItemBackup.Clone());
+                    shop.Itens.Insert(op.Index, op.ItemBackup!.Clone());
                     RedoChanges.Push(new ShopChange
                     {
                         Index = op.Index,
@@ -67,7 +77,7 @@ namespace Ultimate_Gshop.Gshop
                         Action = EChangeAction.Update,
                         ItemBackup = currentItem.Clone()
                     });
-                    shop.Itens[op.Index] = op.ItemBackup?.Clone() ?? new Item();
+                    shop.Itens[op.Index] = op.ItemBackup!.Clone();
                     break;
 
                 case EChangeAction.Insert:
@@ -81,6 +91,10 @@ namespace Ultimate_Gshop.Gshop
                     shop.Itens.RemoveAt(op.Index);
                     break;
             }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
+
         }
 
         public void Redo(Shop shop)
@@ -124,6 +138,8 @@ namespace Ultimate_Gshop.Gshop
                     });
                     break;
             }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
     }
 }

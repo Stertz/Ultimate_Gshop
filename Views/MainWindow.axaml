@@ -34,27 +34,31 @@
 		</Button>
 
 		<!-- Undo Arrow -->
-		<Button Width="55"
+		<Button x:Name="UndoButton"
+				Width="55"
 				Height="55"
 				Background="Transparent"
 				BorderBrush="Transparent"
 				HorizontalAlignment="Left"
 				Opacity="0.95"
 				VerticalAlignment="Top"
-				Margin="120,87.5,0,0">
+				Margin="120,87.5,0,0"
+				Click="Undo_Click">
 			<Image Source="avares://Ultimate_Gshop/Resources/undo_arrow.png"
 				   Stretch="Uniform"/>
 		</Button>
 
-		<!-- Undo Arrow -->
-		<Button Width="55"
+		<!-- Redo Arrow -->
+		<Button x:Name="RedoButton"
+				Width="55"
 				Height="55"
 				Background="Transparent"
 				BorderBrush="Transparent"
 				HorizontalAlignment="Left"
 				Opacity="0.95"
 				VerticalAlignment="Top"
-				Margin="160,87.5,0,0">
+				Margin="160,87.5,0,0"
+				Click="Redo_Click">
 			<Image Source="avares://Ultimate_Gshop/Resources/redo_arrow.png"
 				   Stretch="Uniform"/>
 		</Button>
@@ -246,7 +250,7 @@
 											   FontWeight="Bold"
 											   Foreground="White"/>
 
-									<TextBlock Text="{Binding Id, StringFormat=ID: {0}}"
+									<TextBlock Text="{Binding ID, StringFormat=ID: {0}}"
 											   HorizontalAlignment="Left"
 											   VerticalAlignment="Top"
 											   Margin="60,34,0,0"
