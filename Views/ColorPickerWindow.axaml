@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultimate_Gshop.Views.ColorPickerWindow"
+        Title="Selecionar Cor"
+        Width="400"
+        SizeToContent="Height"
+        Background="Transparent"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="False"
+		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
+
+	<Grid>
+		<Grid.Background>
+			<ImageBrush Source="avares://Ultimate_Gshop/Resources/items_bg.png" Stretch="Fill"/>
+		</Grid.Background>
+
+		<UniformGrid x:Name="ColorGrid"
+                     Columns="10"
+                     Margin="20,55,20,20"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     />
+		
+		<!-- Botão de fechar -->
+		<Button Width="55"
+				Height="55"
+				Margin="0,7,20,0"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Top"
+				Opacity="0.7"
+				Click="CloseButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
+		</Button>
+	</Grid>
+</Window>

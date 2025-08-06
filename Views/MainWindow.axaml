@@ -424,12 +424,12 @@
 						<Grid>
 							<!-- Editor (TextBox com texto bruto, usado para editar) -->
 							<TextBox x:Name="DetailExplanationEditor"
-									 IsReadOnly="True"
 									 Background="Transparent"
 									 BorderBrush="Transparent"
 									 Foreground="White"
 									 CornerRadius="4"
 									 Padding="6,3"
+									 FontSize="12"
 									 TextWrapping="Wrap"
 									 AcceptsReturn="True"
 									 Watermark="Descrição"
@@ -454,7 +454,7 @@
 							<!-- Visual (TextBlock com cores, usado só para visualizar) -->
 							<ScrollViewer x:Name="DetailExplanationPreview"
 										  Background="Transparent"
-										  IsVisible="False">
+										  FontSize="12">
 								<TextBlock x:Name="DetailExplanation"
 										   TextWrapping="Wrap"
 										   Padding="6,3"
@@ -482,11 +482,11 @@
 									Width="50" Height="50"
 									Margin="0,27,-10,0">
 								<Button x:Name="PaletteButton"
-										Width="40"
-										Height="40"
+										Width="40" Height="40"
 										IsVisible="False"
 										Background="Transparent"
-										BorderBrush="Transparent">
+										BorderBrush="Transparent"
+										Click="PaletteButton_Click">
 									<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
 										   Stretch="Uniform"/>
 								</Button>

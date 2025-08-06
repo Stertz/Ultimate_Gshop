@@ -509,6 +509,43 @@ namespace Ultimate_Gshop
             }
         }
 
+        private async void PaletteButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var color = await ColorPickerWindow.ShowAsync(this);
+            if (!color.HasValue)
+                return;
+
+            if (!DetailExplanationEditor.IsVisible)
+                return;
+
+            if (DetailExplanationEditor.Text == null)
+                return;
+
+            var editor = DetailExplanationEditor;
+            var caretIndex = editor.CaretIndex;
+            var selectedText = editor.SelectedText;
+            var selectionStart = editor.SelectionStart;
+            var selectionEnd = editor.SelectionEnd;
+
+            var hex = color.Value.ToUInt32().ToString("x8")[2..];
+
+            if (string.IsNullOrEmpty(selectedText))
+            {
+                // Nenhuma seleção: apenas insere a cor
+                editor.Text = editor.Text.Insert(caretIndex, $"^{hex}");
+                editor.CaretIndex = caretIndex + hex.Length + 1; // posiciona depois do ^
+            }
+            else
+            {
+                // Com seleção: aplica a cor no texto selecionado
+                editor.Text = editor.Text.Remove(selectionStart, selectionEnd - selectionStart)
+                                         .Insert(selectionStart, $"^{hex}{selectedText}");
+
+                editor.CaretIndex = selectionStart + hex.Length + 1 + selectedText.Length;
+            }
+        }
+
+
         private void SelectFirstCategory()
         {
             if (_shop == null) return;

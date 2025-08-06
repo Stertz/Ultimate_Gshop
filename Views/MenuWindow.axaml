@@ -5,7 +5,8 @@
         Width="375" Height="420"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
-        Background="Transparent">
+        Background="Transparent"
+		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 	<Grid>
 		<!-- imagem de fundo -->
 		<Image Source="avares://Ultimate_Gshop/Resources/paper.png"

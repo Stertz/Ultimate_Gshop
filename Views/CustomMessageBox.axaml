@@ -7,7 +7,8 @@
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         CanResize="False"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 
 	<Grid >
 		<Grid.Background>
