@@ -169,8 +169,11 @@ namespace Ultimate_Gshop
                     _lastSelectedBorder = current;
                 }
 
-                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this)) UpdateGrid();
-
+                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
+                {
+                    UpdateGrid();
+                    _currentState = DetailState.Viewing;
+                }
             }
         }
 
@@ -203,19 +206,8 @@ namespace Ultimate_Gshop
 
             if (DetailPanel.Tag is Item item)
             {
-                var msgBox = new CustomMessageBox(
-                            "Confirmação",
-                            $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n" +
-                            CustomMessageBox.MessageBoxIcon.Question,
-                            "Esta ação é permanente e não poderá ser desfeita.",
-                            "Sim", "Não");
-
-
-                var result = await msgBox.ShowDialogAsync(this);
-
-                if (result == "Sim")
+                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
                 {
-                    //_shop.Itens.Remove(item);
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
                 }
@@ -694,6 +686,9 @@ namespace Ultimate_Gshop
         {
             UndoButton.IsEnabled = _tracking.CanUndo;
             RedoButton.IsEnabled = _tracking.CanRedo;
+
+            UndoButton.Opacity = _tracking.CanUndo ? 0.95 : 0.25;
+            RedoButton.Opacity = _tracking.CanRedo ? 0.95 : 0.25;
         }
 
 

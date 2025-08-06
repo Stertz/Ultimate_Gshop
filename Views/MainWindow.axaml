@@ -40,7 +40,7 @@
 				Background="Transparent"
 				BorderBrush="Transparent"
 				HorizontalAlignment="Left"
-				Opacity="0.95"
+				Opacity="0.25"
 				VerticalAlignment="Top"
 				Margin="120,87.5,0,0"
 				Click="Undo_Click">
@@ -55,7 +55,7 @@
 				Background="Transparent"
 				BorderBrush="Transparent"
 				HorizontalAlignment="Left"
-				Opacity="0.95"
+				Opacity="0.25"
 				VerticalAlignment="Top"
 				Margin="160,87.5,0,0"
 				Click="Redo_Click">

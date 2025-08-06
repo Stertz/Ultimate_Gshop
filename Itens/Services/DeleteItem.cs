@@ -1,10 +1,4 @@
 ﻿using Avalonia.Controls;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Views;
 
@@ -16,7 +10,7 @@ namespace Ultimate_Gshop.Itens.Services
         {
 
             var msgBox = new CustomMessageBox(
-            "Confirmação",
+            "Exclusão de Item",
             $"Deseja realmente excluir o item \"{item.Name}\" (ID: {item.ID})?\n\n",
             CustomMessageBox.MessageBoxIcon.Question,
             "Sim", "Não");
