@@ -9,11 +9,20 @@ namespace Ultimate_Gshop.Itens.Services
 {
     public static class UpdateItem
     {
-        public static void Handle(List<Item> itens, Item item)
+        public static Item Handle(List<Item> itens, Item item, Item old_item, ShopTracking tracking)
         {
-            var currentItem = itens.Find(i => i.ID == item.ID) 
-                ?? throw new InvalidOperationException("The item being edited was not found");
-            currentItem = item;
+            var index = itens.FindIndex(i => i.ID == item.ID);
+
+            if (index == -1) throw new InvalidOperationException("Couldn't find the item being edited on the Shop");
+
+            if (ItemComparer.Handle(item, old_item)) return old_item;
+
+            itens[index] = item;
+
+            tracking.ItemUpdated(index, old_item);
+
+            return item;
+
         }
     }
 }

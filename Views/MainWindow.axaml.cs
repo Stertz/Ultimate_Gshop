@@ -9,6 +9,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.ComponentModel;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using Ultimate_Gshop.Categories;
@@ -31,6 +32,7 @@ namespace Ultimate_Gshop
         private Border? _lastSelectedSubCategory;
 
         private IQueryable<Item>? _currentItems;
+        private Item? _currentSelectedItem;
         private int _selectedCategory = -1;
         private int _selectedSubCategory = -1;
 
@@ -95,15 +97,10 @@ namespace Ultimate_Gshop
                 if (!await ConfirmDiscardChanges()) return;
                 var item = (grid.Tag as Item);
                 if (item == null) return;
-
-                _currentState = DetailState.Viewing;
-                SetItemDetailsEnabled();
-                FillItemDetails(item);
-
+                SelectItem(item);
                 if (grid.Parent is Border current)
                 {
                     RemoveShadow(_lastSelectedBorder);
-
                     ApplyGoldShadow(current);
                     _lastSelectedBorder = current;
                 }
@@ -205,6 +202,21 @@ namespace Ultimate_Gshop
         private async void DetailNew_Click(object? sender, RoutedEventArgs e)
         {
             if (!await ConfirmDiscardChanges()) return;
+
+            if (_selectedCategory < 0)
+            {
+                await new CustomMessageBox("Criar item", "Selecione uma categoria", CustomMessageBox.MessageBoxIcon.Information, "OK")
+                    .ShowDialogAsync(this);
+                return;
+            }
+
+            if (_selectedSubCategory < 0)
+            {
+                await new CustomMessageBox("Criar item", "Selecione uma sub-categoria", CustomMessageBox.MessageBoxIcon.Information, "OK")
+                    .ShowDialogAsync(this);
+                return;
+            }
+
             _currentState = DetailState.Creating;
 
             var editorWindow = new ItemEditorWindow(new Item())
@@ -486,20 +498,49 @@ namespace Ultimate_Gshop
 
             if (result == "Sim")
             {
+
+                var item = new Item()
+                {
+                    ID = Convert.ToInt32(DetailID.Text),
+                    Name = DetailName.Text,
+                    Amount = Convert.ToInt32(DetailAmount.Text),
+                    Explanation = DetailExplanation.Text ?? string.Empty,
+                    Place = _shop.Itens.FindIndex(i => i.ID == Convert.ToInt32(DetailID.Text)),
+                    CategoryIndex = _selectedCategory,
+                    SubCategoryIndex = _selectedSubCategory,
+                    Icon = "",
+                    Sales = [new Sale()],
+                    GiftID = 0,
+                    GiftAmount = 0,
+                    GiftTime = 0,
+                    ILogPrice = 0,
+                    OwnerNpcs = [],
+                    LimitPeriod = 0,
+                    AvailFrequency = 0,
+                    Class = 0,
+                    Reserve1 = 0,
+                    Reserve2 = 0,
+                    Reserve3 = 0,
+                    Reserve4 = 0,
+                    Reserve5 = 0,
+                    Reserve6 = 0
+                };
+
                 if (_currentState == DetailState.Creating)
                 {
-                    // criar novo item
-                    // var item = save...
+                    InsertItem.Handle(_shop.Itens, item, _tracking);
                 }
                 else
                 {
-                    // editar novo item
-                    // var item = edit...
+                    UpdateItem.Handle(_shop.Itens, item, _currentSelectedItem!, _tracking);
                 }
 
                 _currentState = DetailState.Viewing;
                 SetItemDetailsEnabled();
-                FillItemDetails(null); // passar item
+                FillItemDetails(item);
+                UpdateGrid();
+
+
             }
         }
 
@@ -665,6 +706,24 @@ namespace Ultimate_Gshop
             CategoryToggled(categoryIndex);
 
         }
+
+        private void SelectFirstItem()
+        {
+            var item = _currentItems!.FirstOrDefault();
+            if (item == null) return;
+            SelectItem(item);
+        }
+
+        private void SelectItem(Item item)
+        {
+            if (item == null) return;
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+            FillItemDetails(item);
+            _currentSelectedItem = item;
+        }
+
+
 
         private void CategoryToggled(int index)
         {
