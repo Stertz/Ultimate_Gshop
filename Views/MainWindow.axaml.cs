@@ -24,6 +24,8 @@ namespace Ultimate_Gshop
 {
     public partial class MainWindow : Window
     {
+        private bool _isClosingHandled = false;
+
         private Shop _shop;
         private ShopTracking _tracking = new();
         private readonly GshopSettings _settings;
@@ -49,6 +51,15 @@ namespace Ultimate_Gshop
             Cursor = ApplicationSettings.InitializeCustomCursor();
             _settings = ApplicationSettings.Load();
             _shop = new Shop();
+            this.Closing += (_, e) =>
+            {
+                if (!_isClosingHandled)
+                {
+                    e.Cancel = true;
+                    _ = HandleClosingAsync();
+                }
+            };
+
         }
 
         /// <summary>
@@ -85,7 +96,20 @@ namespace Ultimate_Gshop
             UndoButton.IsEnabled = false;
             _tracking.PropertyChanged += OnTrackingChange;
             CategoryList.ItemsSource = _shop.Categories;
+            DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
             SelectFirstCategory();
+        }
+
+        private async Task HandleClosingAsync()
+        {
+            if (_isClosingHandled)
+                return;
+
+            if (await ConfirmDiscardChanges())
+            {
+                _isClosingHandled = true;
+                this.Close();
+            }
         }
 
         #region Item Events
@@ -170,71 +194,15 @@ namespace Ultimate_Gshop
             }
         }
 
-        private async void DetailItemEditor_Click(object? sender, RoutedEventArgs e)
-        {
-            if (DetailPanel.Tag is Item item)
-            {
-                if (_currentState == DetailState.Editing)
-                {
-                    if (!await ConfirmDiscardChanges()) return;
-                }
-                _currentState = DetailState.Editing;
-                SetItemDetailsEnabled();
-
-                var editorWindow = new ItemEditorWindow(item)
-                {
-                    WindowStartupLocation = WindowStartupLocation.Manual,
-                    SystemDecorations = SystemDecorations.None,
-                    CanResize = false
-                };
-
-                var mainBounds = this.Bounds;
-                editorWindow.Position = new PixelPoint(
-                    (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
-                    (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
-                );
-
-                var editedItem = await editorWindow.ShowDialog<Item>(this);
-                FillItemDetails(editedItem);
-            }
-        }
-
         private async void DetailNew_Click(object? sender, RoutedEventArgs e)
         {
             if (!await ConfirmDiscardChanges()) return;
 
-            if (_selectedCategory < 0)
-            {
-                await new CustomMessageBox("Criar item", "Selecione uma categoria", CustomMessageBox.MessageBoxIcon.Information, "OK")
-                    .ShowDialogAsync(this);
-                return;
-            }
-
-            if (_selectedSubCategory < 0)
-            {
-                await new CustomMessageBox("Criar item", "Selecione uma sub-categoria", CustomMessageBox.MessageBoxIcon.Information, "OK")
-                    .ShowDialogAsync(this);
-                return;
-            }
-
             _currentState = DetailState.Creating;
 
-            var editorWindow = new ItemEditorWindow(new Item())
-            {
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                SystemDecorations = SystemDecorations.None,
-                CanResize = false
-            };
-
-            var mainBounds = this.Bounds;
-            editorWindow.Position = new PixelPoint(
-                (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
-                (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
-            );
-
-            var newItem = await editorWindow.ShowDialog<Item>(this);
-
-            FillItemDetails(newItem);
+            FillItemDetails(new Item());
+            DetailCategoryComboBox.SelectedIndex = _selectedCategory == -1 ? 0 : _selectedCategory;
+            DetailSubCategoryComboBox.SelectedIndex = _selectedSubCategory == -1 ? 0 : _selectedSubCategory;
             SetItemDetailsEnabled();
         }
 
@@ -282,6 +250,7 @@ namespace Ultimate_Gshop
                     RemoveShadow(current);
                     _lastSelectedCategory = null;
                     SubCategoryList.ItemsSource = null;
+                    DetailSubCategoryComboBox.ItemsSource = null;
                     _selectedCategory = -1;
                     _selectedSubCategory = -1;
                     UpdateGrid();
@@ -294,6 +263,7 @@ namespace Ultimate_Gshop
                 _lastSelectedCategory = current;
 
                 SubCategoryList.ItemsSource = category.SubCategories;
+                DetailSubCategoryComboBox.ItemsSource = category.SubCategories;
 
                 CategoryToggled(categoryIndex);
 
@@ -415,8 +385,8 @@ namespace Ultimate_Gshop
                 item.Name,
                 item.Amount,
                 LimitPeriod = item.LimitPeriod == 0 ? "Perm." : $"{item.LimitPeriod} dias",
-                Price = GetValidPrice(item.Sales).ToString("F2", CultureInfo.InvariantCulture),
-                IconBitmap = LoadImage(item.Icon)
+                Price = item.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture),
+                IconBitmap = item.LoadImage()
             }).ToList();
 
             var repeater = this.FindControl<ItemsRepeater>("ItemList");
@@ -571,9 +541,24 @@ namespace Ultimate_Gshop
             DetailAvailFrequency.IsEnabled = !isViewing;
             DetailAmount.IsEnabled = !isViewing;
             DetailExplanationEditor.IsEnabled = !isViewing;
-
             DetailPaletteButton.IsEnabled = !isViewing;
 
+            DetailCategoryComboBox.IsEnabled = !isViewing;
+            DetailSubCategoryComboBox.IsEnabled = !isViewing;
+            // Gift
+            DetailGiftID.IsEnabled = !isViewing;
+            DetailGiftAmount.IsEnabled = !isViewing;
+            DetailGiftPrice.IsEnabled = !isViewing;
+            DetailGiftTime.IsEnabled = !isViewing;
+
+            DetailReserve1.IsEnabled = !isViewing;
+            DetailReserve2.IsEnabled = !isViewing;
+            DetailReserve3.IsEnabled = !isViewing;
+            DetailReserve4.IsEnabled = !isViewing;
+            DetailReserve5.IsEnabled = !isViewing;
+            DetailReserve6.IsEnabled = !isViewing;
+
+            // Buttons
             DetailNewButton.IsVisible = isViewing;
             DetailEditButton.IsVisible = isViewing;
             DetailDeleteButton.IsVisible = isViewing;
@@ -599,17 +584,52 @@ namespace Ultimate_Gshop
                 DetailAvailFrequency.Text = string.Empty;
                 DetailAmount.Text = string.Empty;
                 SetExplanationFormatted(string.Empty);
+                DetailCategoryComboBox.SelectedIndex = -1;
+                DetailSubCategoryComboBox.SelectedIndex = -1;
+                // Gift
+                DetailGiftIcon.Source = null;
+                DetailGiftName.Text = string.Empty;
+                DetailGiftID.Text = string.Empty;
+                DetailGiftAmount.Text = string.Empty;
+                DetailGiftPrice.Text = string.Empty;
+                DetailGiftTime.Text = string.Empty;
+
+                DetailReserve1.Text = string.Empty;
+                DetailReserve2.Text = string.Empty;
+                DetailReserve3.Text = string.Empty;
+                DetailReserve4.Text = string.Empty;
+                DetailReserve5.Text = string.Empty;
+                DetailReserve6.Text = string.Empty;
                 return;
             }
 
             DetailPanel.Tag = item;
-            DetailIcon.Source = LoadImage(item.Icon);
+            DetailIcon.Source = item.LoadImage();
             DetailID.Text = item.ID.ToString();
             DetailName.Text = item.Name;
             DetailLimitPeriod.Text = item.LimitPeriod.ToString();
             DetailAvailFrequency.Text = item.AvailFrequency.ToString();
             DetailAmount.Text = item.Amount.ToString();
             SetExplanationFormatted(item.Explanation);
+            DetailCategoryComboBox.SelectedIndex = item.CategoryIndex;
+            DetailSubCategoryComboBox.SelectedIndex = item.SubCategoryIndex;
+            // Gift
+            DetailGiftIcon.Source = _shop.Itens
+                .FirstOrDefault(i => i.ID == item.GiftID)?.LoadImage() ?? null;
+            DetailGiftName.Text = _shop.Itens
+                .FirstOrDefault(i => i.ID == item.GiftID)?.Name ?? "";
+            DetailGiftID.Text = item.GiftID.ToString();
+            DetailGiftAmount.Text = item.GiftAmount.ToString();
+            DetailGiftPrice.Text = (item.ILogPrice / 100m).ToString("F2", CultureInfo.InvariantCulture);
+
+            DetailGiftTime.Text = item.GiftTime.ToString();
+
+            DetailReserve1.Text = item.Reserve1.ToString();
+            DetailReserve2.Text = item.Reserve2.ToString();
+            DetailReserve3.Text = item.Reserve3.ToString();
+            DetailReserve4.Text = item.Reserve4.ToString();
+            DetailReserve5.Text = item.Reserve5.ToString();
+            DetailReserve6.Text = item.Reserve6.ToString();
         }
 
         private void SetExplanationFormatted(string? text)
@@ -685,6 +705,7 @@ namespace Ultimate_Gshop
             if (firstCategory == null) return;
 
             SubCategoryList.ItemsSource = firstCategory.SubCategories;
+            DetailSubCategoryComboBox.ItemsSource = firstCategory.SubCategories;
             int categoryIndex = _shop.Categories.IndexOf(firstCategory);
 
             CategoryList.ApplyTemplate();
@@ -705,13 +726,6 @@ namespace Ultimate_Gshop
 
             CategoryToggled(categoryIndex);
 
-        }
-
-        private void SelectFirstItem()
-        {
-            var item = _currentItems!.FirstOrDefault();
-            if (item == null) return;
-            SelectItem(item);
         }
 
         private void SelectItem(Item item)
@@ -753,66 +767,6 @@ namespace Ultimate_Gshop
             _currentItems = query;
             FillTable();
 
-        }
-
-        private static Bitmap LoadImage(string? path)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(path))
-                    throw new Exception("Empty image path.");
-
-                if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
-                    path = Path.ChangeExtension(path, ".png");
-
-                var fullPath = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
-
-                if (!File.Exists(fullPath))
-                    throw new FileNotFoundException($"Image not found: {fullPath}");
-
-                using var fileStream = File.OpenRead(fullPath);
-                return new Bitmap(fileStream);
-            }
-            catch
-            {
-                using var fallback = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
-                return new Bitmap(fallback);
-            }
-        }
-
-        /// <summary>
-        /// Retorna o preço válido de um item (convertido para decimal),
-        /// baseado em regras de status e disponibilidade.
-        /// - Prioriza Sales com Status ativo.
-        /// - Verifica SellingEndTime (ignora vendas expiradas).
-        /// - Considera Day como dia fixo de disponibilidade (se configurado).
-        /// - Divide por 100 para retornar o valor monetário real.
-        /// </summary>
-        /// <param name="sales">Lista de opções de venda (Sales).</param>
-        /// <returns>Preço válido como decimal ou 0 se nenhum for encontrado.</returns>
-        public static decimal GetValidPrice(List<Sale> sales)
-        {
-            if (sales == null || sales.Count == 0)
-                return 0m;
-
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            int today = (int)DateTime.UtcNow.DayOfWeek; // Caso 'Day' represente dia da semana
-
-            // Filtra vendas válidas com base em status e tempo
-            var validSales = sales.Where(s =>
-                (s.SellingEndTime == 0 || s.SellingEndTime > now) && // Ainda disponível
-                (s.Day == 0 || s.Day == today)                       // Se Day for usado, confere
-            ).ToList();
-
-            if (validSales.Count == 0)
-                return 0m;
-
-            // Prioriza vendas com status ativo > 0
-            var activeSale = validSales.FirstOrDefault(s => s.Status > 0);
-            var price = (activeSale ?? validSales.First()).Price;
-
-            // Converte para decimal e divide por 100
-            return price / 100m;
         }
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)

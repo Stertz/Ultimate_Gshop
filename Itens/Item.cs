@@ -1,4 +1,7 @@
-﻿namespace Ultimate_Gshop.Itens
+﻿using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+
+namespace Ultimate_Gshop.Itens
 {
     public class Item
     {
@@ -74,5 +77,66 @@
             return ID.GetHashCode();
         }
 
+        public Bitmap LoadImage()
+        {
+            try
+            {
+                var path = this.Icon;
+                if (string.IsNullOrWhiteSpace(path))
+                    throw new Exception("Empty image path.");
+
+                if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+                    path = Path.ChangeExtension(path, ".png");
+
+                var fullPath = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
+
+                if (!File.Exists(fullPath))
+                    throw new FileNotFoundException($"Image not found: {fullPath}");
+
+                using var fileStream = File.OpenRead(fullPath);
+                return new Bitmap(fileStream);
+            }
+            catch
+            {
+                using var fallback = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
+                return new Bitmap(fallback);
+            }
+        }
+
+        /// <summary>
+        /// Retorna o preço válido de um item (convertido para decimal),
+        /// baseado em regras de status e disponibilidade.
+        /// - Prioriza Sales com Status ativo.
+        /// - Verifica SellingEndTime (ignora vendas expiradas).
+        /// - Considera Day como dia fixo de disponibilidade (se configurado).
+        /// - Divide por 100 para retornar o valor monetário real.
+        /// </summary>
+        /// <param name="sales">Lista de opções de venda (Sales).</param>
+        /// <returns>Preço válido como decimal ou 0 se nenhum for encontrado.</returns>
+        public decimal GetValidPrice()
+        {
+            var sales = this.Sales;
+            if (sales == null || sales.Count == 0)
+                return 0m;
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            int today = (int)DateTime.UtcNow.DayOfWeek; // Caso 'Day' represente dia da semana
+
+            // Filtra vendas válidas com base em status e tempo
+            var validSales = sales.Where(s =>
+                (s.SellingEndTime == 0 || s.SellingEndTime > now) && // Ainda disponível
+                (s.Day == 0 || s.Day == today)                       // Se Day for usado, confere
+            ).ToList();
+
+            if (validSales.Count == 0)
+                return 0m;
+
+            // Prioriza vendas com status ativo > 0
+            var activeSale = validSales.FirstOrDefault(s => s.Status > 0);
+            var price = (activeSale ?? validSales.First()).Price;
+
+            // Converte para decimal e divide por 100
+            return price / 100m;
+        }
     }
 }
