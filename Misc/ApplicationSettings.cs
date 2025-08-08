@@ -14,15 +14,15 @@ namespace Ultimate_Gshop.Misc
 {
     public static class ApplicationSettings
     {
-        private static readonly string _folder = Path.Combine(
+        public static string AppFolder { get; } = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ultimate_gshop");
 
-        private static readonly string _settings = Path.Combine(_folder, "settings.json");
+        private static readonly string _settings = Path.Combine(AppFolder, "settings.json");
 
-        private static readonly string _gshop = Path.Combine(_folder, "gshop_temp.data");
+        public static string GshopTemp { get; } = Path.Combine(AppFolder, "gshop_temp.data");
 
-        private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+        public static JsonSerializerOptions IdentedJson { get; } = new() { WriteIndented = true };
 
         public static GshopSettings Load()
         {
@@ -35,13 +35,13 @@ namespace Ultimate_Gshop.Misc
 
         public static void Save(GshopSettings settings)
         {
-            Directory.CreateDirectory(_folder);
-            var json = JsonSerializer.Serialize(settings, _jsonOptions);
+            Directory.CreateDirectory(AppFolder);
+            var json = JsonSerializer.Serialize(settings, IdentedJson);
             File.WriteAllText(_settings, json);
         }
 
-        public static bool GshopExists => File.Exists(_gshop);
-        public static string GshopLocation { get; } = _gshop;
+        public static bool GshopExists => File.Exists(GshopTemp);
+        public static string GshopLocation { get; } = GshopTemp;
 
         /// <summary>
         /// Define cursor personalizado
