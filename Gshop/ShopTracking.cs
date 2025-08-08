@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Text.Json;
 using Ultimate_Gshop.Itens;
+using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Gshop
 {
     public class ShopTracking : INotifyPropertyChanged
@@ -141,5 +143,24 @@ namespace Ultimate_Gshop.Gshop
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
+
+        private static readonly string _tracking = Path.Combine(ApplicationSettings.AppFolder, "tracking.json");
+
+        public static ShopTracking Load()
+        {
+            if (!File.Exists(_tracking))
+                return new ShopTracking();
+
+            var json = File.ReadAllText(_tracking);
+            return JsonSerializer.Deserialize<ShopTracking>(json) ?? new ShopTracking();
+        }
+
+        public static void Save(ShopTracking tracking)
+        {
+            Directory.CreateDirectory(ApplicationSettings.AppFolder);
+            var json = JsonSerializer.Serialize(tracking, ApplicationSettings.IdentedJson);
+            File.WriteAllText(_tracking, json);
+        }
+
     }
 }
