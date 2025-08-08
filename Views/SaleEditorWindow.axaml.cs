@@ -1,5 +1,5 @@
+// ... outras usings
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using System.Globalization;
 using Ultimate_Gshop.Itens;
@@ -35,10 +35,11 @@ namespace Ultimate_Gshop
         public SaleEditorWindow()
         {
             InitializeComponent();
-            SetComboBoxes();
-            Cursor = ApplicationSettings.InitializeCustomCursor();
             _item = null;
+            Cursor = ApplicationSettings.InitializeCustomCursor();
+            SetComboBoxes();
             FillSales();
+
             this.Opacity = 0;
             this.Opened += async (_, __) =>
             {
@@ -54,12 +55,12 @@ namespace Ultimate_Gshop
         public SaleEditorWindow(Item item)
         {
             InitializeComponent();
+            _item = item;
             SetComboBoxes();
             Cursor = ApplicationSettings.InitializeCustomCursor();
-            _item = item;
             FillSales();
-            this.Opacity = 0;
 
+            this.Opacity = 0;
             this.Opened += async (_, __) =>
             {
                 for (double i = 0; i <= 1; i += 0.05)
@@ -75,15 +76,15 @@ namespace Ultimate_Gshop
         {
             if (_item == null || _item.Sales.Count == 0)
             {
-                SalesList.ItemsSource = new List<Sale> { new() };
-                SaleValidPrice.Text = (0).ToString("F2", CultureInfo.InvariantCulture);
+                SalesList.ItemsSource = new List<object>();
+                SaleValidPrice.Text = "0.00";
                 return;
             }
 
             SaleValidPrice.Text = _item.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture);
 
             var rows = _item.Sales
-                .Select(s =>
+                .Select((s, index) =>
                 {
                     var match = _timeUnits.FirstOrDefault(pair => s.During % pair.Value == 0);
                     var time = match.Value > 0 ? s.During / match.Value : 0;
@@ -91,6 +92,7 @@ namespace Ultimate_Gshop
 
                     return new
                     {
+                        SalesIndex = index,
                         Price = (s.Price / 100.0).ToString("F2", CultureInfo.InvariantCulture),
                         Days = s.Day,
                         Time = time,
@@ -110,27 +112,44 @@ namespace Ultimate_Gshop
 
         private async void RemoveSales_Click(object? sender, RoutedEventArgs e)
         {
-            var msgBox = new CustomMessageBox(
+            if (_item == null || sender is not Button btn || btn.Tag is not int index || index < 0 || index >= _item.Sales.Count)
+                return;
+
+            var result = await new CustomMessageBox(
                 "Remover?",
-                $"ID: {_item?.Sales.Count}\nName: Unknown",
+                $"Deseja remover a sale #{index}?",
                 CustomMessageBox.MessageBoxIcon.Question,
-                "Sim", "Não");
-            var result = await msgBox.ShowDialogAsync(this);
+                "Sim", "Não").ShowDialogAsync(this);
 
             if (result == "Sim")
             {
-                // lógica para remover
+                _item.Sales.RemoveAt(index);
+                FillSales();
             }
         }
 
         private void AddSales_Click(object? sender, RoutedEventArgs e)
         {
-            FillSales();
-        }
+            if (_item == null) return;
 
-        private void CloseButton_Click(object? sender, RoutedEventArgs e)
-        {
-            this.Close(_item?.Sales);
+            var start = SalesStartPicker.DateAsInt ?? 0;
+            var end = SalesEndPicker.DateAsInt ?? 0;
+
+
+            _item.Sales.Add(new Sale
+            {
+                Price = 1000,
+                Day = 7,
+                During = 86400,
+                SellingStartTime = start,
+                SellingEndTime = end,
+                Flags = 0,
+                VipLevelRequired = 0,
+                Status = 0,
+                Control = 0
+            });
+
+            FillSales();
         }
 
         private void SetComboBoxes()
@@ -138,9 +157,15 @@ namespace Ultimate_Gshop
             StatusComboBox.ItemsSource = _statusOptions;
             ControlComboBox.ItemsSource = _controlOptions;
             SetTimeComboBox.ItemsSource = _timeUnits.Keys.ToList();
+
             StatusComboBox.SelectedItem = "Default";
             ControlComboBox.SelectedItem = "Client";
             SetTimeComboBox.SelectedItem = "Minute";
+        }
+
+        private void CloseButton_Click(object? sender, RoutedEventArgs e)
+        {
+            this.Close(_item?.Sales);
         }
     }
 }

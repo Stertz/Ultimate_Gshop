@@ -3,7 +3,7 @@
         xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         x:Class="Ultimate_Gshop.SaleEditorWindow"
         Title="Item Editor"
-        Width="600" Height="420"
+        Width="640" Height="420"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
@@ -84,22 +84,32 @@
 						<StackPanel>
 
 							<!-- Cabeçalho da tabela -->
-							<Grid ColumnDefinitions="60,60,60,60,60,*,*,*,*,59"
+							<Grid ColumnDefinitions="59,Auto,23,Auto,22,Auto,38,Auto,22.5,Auto,15,Auto,43,Auto,32,Auto,45,Auto,45,Auto,29"
 								  Margin="0,0,0,4"
-								  ColumnSpacing="4">
-								<TextBlock Text="Price" FontSize="11" FontWeight="DemiBold" Foreground="White"/>
-								<TextBlock Text="Days" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="1"/>
-								<TextBlock Text="Time" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="2"/>
-								<TextBlock Text="Flags" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="3"/>
-								<TextBlock Text="Vip" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="4"/>
-								<TextBlock Text="Status" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="5"/>
-								<TextBlock Text="Control" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="6"/>
-								<TextBlock Text="Set Time" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="7"/>
-								<TextBlock Text="Start" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="8"/>
-								<TextBlock Text="Actions" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="9" HorizontalAlignment="Center"/>
+								  ColumnSpacing="5">
+								<TextBlock Text="Price" FontSize="10" FontWeight="DemiBold" Foreground="White" Margin="5,0,0,0"/>
+								<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="0" Padding="0" HorizontalAlignment="Center"/>
+								<TextBlock Text="Days" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="2" Margin="0" Padding="0"/>
+								<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="0" Padding="0" HorizontalAlignment="Center"/>
+								<TextBlock Text="Time" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="4"/>
+								<Border Grid.Column="5" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Set Time" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="6"/>
+								<Border Grid.Column="7" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Flags" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="8" HorizontalAlignment="Center"/>
+								<Border Grid.Column="9" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Vip" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="10" HorizontalAlignment="Center"/>
+								<Border Grid.Column="11" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Status" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="12"/>
+								<Border Grid.Column="13" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Control" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="14"/>
+								<Border Grid.Column="15" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Start" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="16"/>
+								<Border Grid.Column="17" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="End" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="18"/>
+								<Border Grid.Column="19" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+								<TextBlock Text="Actions" FontSize="10" FontWeight="DemiBold" Foreground="White" Grid.Column="20" HorizontalAlignment="Center"/>
 							</Grid>
 
-							<!-- Lista com Scroll -->
 							<!-- Lista com Scroll -->
 							<Border Background="#2b3d41"
 									BorderBrush="#5d5737"
@@ -119,31 +129,40 @@
 												<Border BorderBrush="#5d5737"
 														BorderThickness="0,1,0,0"
 														Padding="2,6">
-													<Grid ColumnDefinitions="60,60,60,60,60,*,*,*,*,59"
+													<Grid ColumnDefinitions="50,Auto,22,Auto,22,Auto,38,Auto,22.5,Auto,15,Auto,43,Auto,32,Auto,45,Auto,45,Auto,29"
 														  VerticalAlignment="Center"
-														  ColumnSpacing="4">
+														  ColumnSpacing="5">
 
 														<TextBlock Text="{Binding Price}" Grid.Column="0" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding Days}" Grid.Column="1" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding Time}" Grid.Column="2" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding SetTime}" Grid.Column="3" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding Flags}" Grid.Column="4" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding VipLevel}" Grid.Column="5" Foreground="White" FontSize="11"/>
-
-														<TextBlock Text="{Binding Status}" Grid.Column="6" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding Control}" Grid.Column="7" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding SellingStart, StringFormat=dd/MM/yy}" Grid.Column="8" Foreground="White" FontSize="11"/>
-														<TextBlock Text="{Binding SellingEnd, StringFormat=dd/MM/yy}" Grid.Column="9" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding Days}" Grid.Column="2" Foreground="White" FontSize="11" HorizontalAlignment="Center"/>
+														<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding Time}" Grid.Column="4" Foreground="White" FontSize="11" HorizontalAlignment="Center"/>
+														<Border Grid.Column="5" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding SetTime}" Grid.Column="6" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="7" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding Flags}" Grid.Column="8" Foreground="White" FontSize="11" HorizontalAlignment="Center"/>
+														<Border Grid.Column="9" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding VipLevel}" Grid.Column="10" Foreground="White" FontSize="11" HorizontalAlignment="Center"/>
+														<Border Grid.Column="11" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding Status}" Grid.Column="12" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="13" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding Control}" Grid.Column="14" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="15" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding SellingStartTime}" Grid.Column="16" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="17" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
+														<TextBlock Text="{Binding SellingEndTime}" Grid.Column="18" Foreground="White" FontSize="11"/>
+														<Border Grid.Column="19" Width="1" Background="#5d5737" Margin="0" Padding="0"/>
 
 														<!-- Botão de remover -->
-														<Button Grid.Column="10"
+														<Button Grid.Column="20"
 																Width="25" Height="25"
 																Margin="0" Padding="0"
 																Background="Transparent"
 																BorderBrush="Transparent"
 																Opacity="0.8"
 																Click="RemoveSales_Click"
-																Tag="{Binding SalesID}"
+																Tag="{Binding SalesIndex}"
 																HorizontalAlignment="Center"
 																VerticalAlignment="Center">
 															<Image Source="avares://Ultimate_Gshop/Resources/btn_remove.png"/>
@@ -169,7 +188,7 @@
                 BorderBrush="Transparent"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Opacity="0.7"
+                Opacity="0.9"
                 Click="CloseButton_Click">
 			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
 		</Button>
