@@ -1,30 +1,176 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         x:Class="Ultimate_Gshop.SaleEditorWindow"
         Title="Item Editor"
-        Width="375" Height="420"
+        Width="600" Height="420"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
-		CanResize="False"
-		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
+        CanResize="False"
+        Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
+
 	<Grid>
-		<!-- imagem de fundo -->
+		<!-- Imagem de fundo da janela -->
 		<Image Source="avares://Ultimate_Gshop/Resources/items_bg.png"
-               Stretch="Fill"/>
+               Stretch="Fill" />
 
-		
+		<Grid Margin="20">
+			<!-- Contêiner principal da seção de Sales -->
+			<Border Background="#344c51"
+                    BorderBrush="#5d5737"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="15,15"
+                    Padding="20">
 
-		<!-- Botão de fechar -->
-		<Button Width="55"
-				Height="55"
-				Margin="0,20,15,0"
-				Background="Transparent"
-				BorderBrush="Transparent"
-				HorizontalAlignment="Right"
-				VerticalAlignment="Top"
-				Opacity="0.7"
-				Click="CloseButton_Click">
+				<StackPanel Spacing="10">
+
+					<!-- Cabeçalho: Título e valor Padrão -->
+					<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+						<StackPanel Grid.Column="0" Spacing="4">
+							<TextBlock Text="Sales"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       FontSize="13"/>
+							<TextBlock x:Name="SaleValidPrice"
+                                       FontWeight="Bold"
+                                       Foreground="#ebb935"
+                                       FontSize="18"
+                                       Margin="0,-7,0,0"/>
+						</StackPanel>
+
+						<!-- Botão para Sale -->
+						<Button Grid.Column="1"
+                                Width="35" Height="35"
+                                Margin="0" Padding="0"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                HorizontalAlignment="Right"
+                                Opacity="0.8"
+                                Click="AddSales_Click">
+							<Image Source="avares://Ultimate_Gshop/Resources/btn_add.png"/>
+						</Button>
+					</Grid>
+
+					<!-- Formulário com campos de entrada -->
+					<StackPanel Grid.Column="0" Spacing="4">
+
+						<!-- Linha 1: Campos numéricos -->
+						<Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="4">
+							<controls:FloatingLabelTextBox Label="Price" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="1" Label="Days" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="2" Label="Time" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="3" Label="Flags" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="4" Label="Vip Level" ContentType="Number"/>
+						</Grid>
+
+						<!-- Linha 2: Campos de seleção -->
+						<Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="4">
+							<controls:StyledComboBox x:Name="StatusComboBox" LabelText="Status"/>
+							<controls:StyledComboBox Grid.Column="1" x:Name="ControlComboBox" LabelText="Control"/>
+							<controls:StyledComboBox Grid.Column="2" x:Name="SetTimeComboBox" LabelText="Set Time"/>
+							<controls:StyledDatePicker Grid.Column="3" LabelText="Selling Start" x:Name="SalesStartPicker"/>
+							<controls:StyledDatePicker Grid.Column="4" LabelText="Selling End" x:Name="SalesEndPicker"/>
+						</Grid>
+					</StackPanel>
+
+					<!-- Lista de Sales -->
+					<Border Background="#2b3d41"
+							BorderBrush="#5d5737"
+							BorderThickness="1"
+							CornerRadius="4"
+							Padding="6">
+						<StackPanel>
+
+							<!-- Cabeçalho da tabela -->
+							<Grid ColumnDefinitions="60,60,60,60,60,*,*,*,*,59"
+								  Margin="0,0,0,4"
+								  ColumnSpacing="4">
+								<TextBlock Text="Price" FontSize="11" FontWeight="DemiBold" Foreground="White"/>
+								<TextBlock Text="Days" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="1"/>
+								<TextBlock Text="Time" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="2"/>
+								<TextBlock Text="Flags" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="3"/>
+								<TextBlock Text="Vip" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="4"/>
+								<TextBlock Text="Status" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="5"/>
+								<TextBlock Text="Control" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="6"/>
+								<TextBlock Text="Set Time" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="7"/>
+								<TextBlock Text="Start" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="8"/>
+								<TextBlock Text="Actions" FontSize="11" FontWeight="DemiBold" Foreground="White" Grid.Column="9" HorizontalAlignment="Center"/>
+							</Grid>
+
+							<!-- Lista com Scroll -->
+							<!-- Lista com Scroll -->
+							<Border Background="#2b3d41"
+									BorderBrush="#5d5737"
+									BorderThickness="1"
+									CornerRadius="4"
+									Padding="6">
+								<ScrollViewer Height="120" VerticalScrollBarVisibility="Auto">
+									<ItemsControl x:Name="SalesList">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<StackPanel/>
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+
+										<ItemsControl.ItemTemplate>
+											<DataTemplate>
+												<Border BorderBrush="#5d5737"
+														BorderThickness="0,1,0,0"
+														Padding="2,6">
+													<Grid ColumnDefinitions="60,60,60,60,60,*,*,*,*,59"
+														  VerticalAlignment="Center"
+														  ColumnSpacing="4">
+
+														<TextBlock Text="{Binding Price}" Grid.Column="0" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding Days}" Grid.Column="1" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding Time}" Grid.Column="2" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding SetTime}" Grid.Column="3" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding Flags}" Grid.Column="4" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding VipLevel}" Grid.Column="5" Foreground="White" FontSize="11"/>
+
+														<TextBlock Text="{Binding Status}" Grid.Column="6" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding Control}" Grid.Column="7" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding SellingStart, StringFormat=dd/MM/yy}" Grid.Column="8" Foreground="White" FontSize="11"/>
+														<TextBlock Text="{Binding SellingEnd, StringFormat=dd/MM/yy}" Grid.Column="9" Foreground="White" FontSize="11"/>
+
+														<!-- Botão de remover -->
+														<Button Grid.Column="10"
+																Width="25" Height="25"
+																Margin="0" Padding="0"
+																Background="Transparent"
+																BorderBrush="Transparent"
+																Opacity="0.8"
+																Click="RemoveSales_Click"
+																Tag="{Binding SalesID}"
+																HorizontalAlignment="Center"
+																VerticalAlignment="Center">
+															<Image Source="avares://Ultimate_Gshop/Resources/btn_remove.png"/>
+														</Button>
+													</Grid>
+												</Border>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</ScrollViewer>
+							</Border>
+						</StackPanel>
+					</Border>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<!-- Botão de fechar janela -->
+		<Button Width="30" Height="30"
+                Margin="0,25,25,0"
+                Padding="0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Opacity="0.7"
+                Click="CloseButton_Click">
 			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
 		</Button>
 	</Grid>

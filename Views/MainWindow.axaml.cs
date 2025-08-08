@@ -305,7 +305,7 @@ namespace Ultimate_Gshop
                     (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
                 );
 
-                item = await editorWindow.ShowDialog<Item>(this);
+                item.Sales = await editorWindow.ShowDialog<List<Sale>>(this);
             }
         }
         #endregion
@@ -555,7 +555,7 @@ namespace Ultimate_Gshop
                 var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
                     ? (int)(parsed * 100)
                     : 0;
-                int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
+                static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
 
                 var item = new Item()
                 {
