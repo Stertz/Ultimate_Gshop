@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using System;
 
 namespace Ultimate_Gshop.Views.UserControls
 {
@@ -15,6 +15,15 @@ namespace Ultimate_Gshop.Views.UserControls
 
         public static readonly StyledProperty<object?> SelectedItemProperty =
             AvaloniaProperty.Register<StyledComboBox, object?>(nameof(SelectedItem));
+
+        public static readonly StyledProperty<string> LabelTextProperty =
+            AvaloniaProperty.Register<StyledComboBox, string>(nameof(LabelText));
+
+        public string LabelText
+        {
+            get => GetValue(LabelTextProperty);
+            set => SetValue(LabelTextProperty, value);
+        }
 
         public object? ItemsSource
         {
@@ -34,9 +43,24 @@ namespace Ultimate_Gshop.Views.UserControls
             set => SetValue(SelectedItemProperty, value);
         }
 
+        private TextBlock? _label;
+
         public StyledComboBox()
         {
             AvaloniaXamlLoader.Load(this);
+
+            _label = this.FindControl<TextBlock>("Label");
+
+            this.GetObservable(LabelTextProperty).Subscribe(OnLabelTextChanged);
+        }
+
+        private void OnLabelTextChanged(string? newValue)
+        {
+            if (_label != null && !string.IsNullOrWhiteSpace(newValue))
+            {
+                _label.Text = newValue;
+                _label.IsVisible = true;
+            }
         }
     }
 }

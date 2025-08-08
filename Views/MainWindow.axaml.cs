@@ -7,6 +7,8 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
+using DynamicData;
 using System.ComponentModel;
 using System.Globalization;
 using System.Security.Claims;
@@ -26,8 +28,10 @@ namespace Ultimate_Gshop
     {
         private bool _isClosingHandled = false;
 
+        private static readonly List<string> ItemClass = ["All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian", "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"];
+
         private Shop _shop;
-        private ShopTracking _tracking = new();
+        private readonly ShopTracking _tracking = new();
         private readonly GshopSettings _settings;
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -59,7 +63,6 @@ namespace Ultimate_Gshop
                     _ = HandleClosingAsync();
                 }
             };
-
         }
 
         /// <summary>
@@ -96,6 +99,7 @@ namespace Ultimate_Gshop
             UndoButton.IsEnabled = false;
             _tracking.PropertyChanged += OnTrackingChange;
             CategoryList.ItemsSource = _shop.Categories;
+            DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
             SelectFirstCategory();
         }
@@ -232,6 +236,63 @@ namespace Ultimate_Gshop
             }
         }
 
+        private void AddOwner_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DetailPanel.Tag is Item item)
+            {
+                if (string.IsNullOrWhiteSpace(DetailOwnerAdd.Text)) return;
+
+                if (int.TryParse(DetailOwnerAdd.Text, out int newNpcId))
+                {
+                    var list = item.OwnerNpcs.ToList();
+
+                    if (!list.Contains(newNpcId))
+                    {
+                        list.Add(newNpcId);
+                        item.OwnerNpcs = [.. list];
+
+                        DetailOwnerAdd.Text = string.Empty;
+                        FillOwnerList(item.OwnerNpcs);
+                    }
+                }
+            }
+        }
+
+        private void DetailOwnerAdd_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddOwner_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
+        private async void RemoveOwner_Click(object? sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is int ownerId && DetailPanel.Tag is Item item)
+            {
+                var msgBox = new CustomMessageBox(
+                "Remover Owner?",
+                $"ID: {ownerId}\nName: Unknown", // Fazer pesquisa pelo nome do NPC
+                CustomMessageBox.MessageBoxIcon.Question,
+                "Sim", "Não");
+                var result = await msgBox.ShowDialogAsync(this);
+
+                if (result == "Sim")
+                {
+                    item.OwnerNpcs = [.. item.OwnerNpcs.Where(id => id != ownerId)];
+                    FillOwnerList(item.OwnerNpcs);
+                }
+            }
+        }
+
+        private async void SaleEditor_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DetailPanel.Tag is Item item)
+            {
+                
+            }
+        }
         #endregion
 
         #region Category Events
@@ -241,6 +302,8 @@ namespace Ultimate_Gshop
             if (sender is Grid grid && grid.DataContext is Category category && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
+                _currentState = DetailState.Viewing;
+                SetItemDetailsEnabled();
 
                 int categoryIndex = _shop!.Categories.IndexOf(category);
                 SearchBox.Text = string.Empty;
@@ -275,6 +338,8 @@ namespace Ultimate_Gshop
             if (sender is Grid grid && grid.DataContext is string subCategory && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
+                _currentState = DetailState.Viewing;
+                SetItemDetailsEnabled();
                 SearchBox.Text = string.Empty;
 
                 if (_lastSelectedCategory?.Child is not Grid categoryGrid ||
@@ -468,33 +533,42 @@ namespace Ultimate_Gshop
 
             if (result == "Sim")
             {
+                // Permite vírgula ou ponto como separador decimal
+                var giftPriceText = DetailGiftPrice.Text?.Replace(',', '.') ?? "0";
+
+                // Tenta converter para decimal e depois multiplica por 100
+                var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+                    ? (int)(parsed * 100)
+                    : 0;
+                int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
 
                 var item = new Item()
                 {
-                    ID = Convert.ToInt32(DetailID.Text),
-                    Name = DetailName.Text,
-                    Amount = Convert.ToInt32(DetailAmount.Text),
-                    Explanation = DetailExplanation.Text ?? string.Empty,
-                    Place = _shop.Itens.FindIndex(i => i.ID == Convert.ToInt32(DetailID.Text)),
-                    CategoryIndex = _selectedCategory,
-                    SubCategoryIndex = _selectedSubCategory,
-                    Icon = "",
+                    ID = ParseInt(DetailID.Text),
+                    Name = DetailName.Text ?? string.Empty,
+                    Amount = ParseInt(DetailAmount.Text),
+                    Explanation = DetailExplanationEditor.Text ?? string.Empty,
+                    Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
+                    CategoryIndex = DetailCategoryComboBox.SelectedIndex,
+                    SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
+                    Icon = DetailIcon.Tag as string ?? string.Empty,
                     Sales = [new Sale()],
-                    GiftID = 0,
-                    GiftAmount = 0,
-                    GiftTime = 0,
-                    ILogPrice = 0,
+                    GiftID = ParseInt(DetailGiftID.Text),
+                    GiftAmount = ParseInt(DetailGiftAmount.Text),
+                    GiftTime = ParseInt(DetailGiftTime.Text),
+                    ILogPrice = Convert.ToInt32(giftPrice),
                     OwnerNpcs = [],
-                    LimitPeriod = 0,
-                    AvailFrequency = 0,
-                    Class = 0,
-                    Reserve1 = 0,
-                    Reserve2 = 0,
-                    Reserve3 = 0,
-                    Reserve4 = 0,
-                    Reserve5 = 0,
-                    Reserve6 = 0
+                    LimitPeriod = ParseInt(DetailLimitPeriod.Text),
+                    AvailFrequency = ParseInt(DetailAvailFrequency.Text),
+                    Class = DetailClassComboBox.SelectedIndex - 1,
+                    Reserve1 = ParseInt(DetailReserve1.Text),
+                    Reserve2 = ParseInt(DetailReserve2.Text),
+                    Reserve3 = ParseInt(DetailReserve3.Text),
+                    Reserve4 = ParseInt(DetailReserve4.Text),
+                    Reserve5 = ParseInt(DetailReserve5.Text),
+                    Reserve6 = ParseInt(DetailReserve6.Text)
                 };
+
 
                 if (_currentState == DetailState.Creating)
                 {
@@ -507,10 +581,10 @@ namespace Ultimate_Gshop
 
                 _currentState = DetailState.Viewing;
                 SetItemDetailsEnabled();
-                FillItemDetails(item);
+
+                _selectedCategory = item.CategoryIndex;
+                _selectedSubCategory = item.SubCategoryIndex;
                 UpdateGrid();
-
-
             }
         }
 
@@ -542,9 +616,14 @@ namespace Ultimate_Gshop
             DetailAmount.IsEnabled = !isViewing;
             DetailExplanationEditor.IsEnabled = !isViewing;
             DetailPaletteButton.IsEnabled = !isViewing;
+            DetailPaletteButton.Opacity = !isViewing ? 1 : 0.25;
+            DetailSaleButton.IsEnabled = !isViewing;
+            DetailSaleButton.Opacity = !isViewing ? 0.8 : 0.25;
 
+            DetailClassComboBox.IsEnabled = !isViewing;
             DetailCategoryComboBox.IsEnabled = !isViewing;
             DetailSubCategoryComboBox.IsEnabled = !isViewing;
+            
             // Gift
             DetailGiftID.IsEnabled = !isViewing;
             DetailGiftAmount.IsEnabled = !isViewing;
@@ -557,6 +636,7 @@ namespace Ultimate_Gshop
             DetailReserve4.IsEnabled = !isViewing;
             DetailReserve5.IsEnabled = !isViewing;
             DetailReserve6.IsEnabled = !isViewing;
+            DetailOwnerAdd.IsEnabled = !isViewing;
 
             // Buttons
             DetailNewButton.IsVisible = isViewing;
@@ -565,6 +645,11 @@ namespace Ultimate_Gshop
 
             DetailSaveButton.IsVisible = !isViewing;
             DetailUndoButton.IsVisible = !isViewing;
+
+            DetailOwnerAddButton.IsEnabled = !isViewing;
+            DetailOwnerAddButton.Opacity = !isViewing ? 0.8 : 0.25;
+            DetailOwnerList.Resources["IsEnableDetailOwnerRemoveButton"] = _currentState != DetailState.Viewing;
+            DetailOwnerList.Resources["OpacityDetailOwnerRemoveButton"] = !isViewing ? 0.8 : 0.25;
         }
 
 
@@ -578,6 +663,7 @@ namespace Ultimate_Gshop
             {
                 DetailPanel.Tag = null;
                 DetailIcon.Source = null;
+                DetailIcon.Tag = null;
                 DetailID.Text = string.Empty;
                 DetailName.Text = string.Empty;
                 DetailLimitPeriod.Text = string.Empty;
@@ -586,6 +672,7 @@ namespace Ultimate_Gshop
                 SetExplanationFormatted(string.Empty);
                 DetailCategoryComboBox.SelectedIndex = -1;
                 DetailSubCategoryComboBox.SelectedIndex = -1;
+                DetailClassComboBox.SelectedIndex = -1;
                 // Gift
                 DetailGiftIcon.Source = null;
                 DetailGiftName.Text = string.Empty;
@@ -600,11 +687,13 @@ namespace Ultimate_Gshop
                 DetailReserve4.Text = string.Empty;
                 DetailReserve5.Text = string.Empty;
                 DetailReserve6.Text = string.Empty;
+                FillOwnerList([]);
                 return;
             }
 
             DetailPanel.Tag = item;
             DetailIcon.Source = item.LoadImage();
+            DetailIcon.Tag = item.Icon;
             DetailID.Text = item.ID.ToString();
             DetailName.Text = item.Name;
             DetailLimitPeriod.Text = item.LimitPeriod.ToString();
@@ -613,6 +702,7 @@ namespace Ultimate_Gshop
             SetExplanationFormatted(item.Explanation);
             DetailCategoryComboBox.SelectedIndex = item.CategoryIndex;
             DetailSubCategoryComboBox.SelectedIndex = item.SubCategoryIndex;
+            DetailClassComboBox.SelectedIndex = item.Class + 1;
             // Gift
             DetailGiftIcon.Source = _shop.Itens
                 .FirstOrDefault(i => i.ID == item.GiftID)?.LoadImage() ?? null;
@@ -630,6 +720,29 @@ namespace Ultimate_Gshop
             DetailReserve4.Text = item.Reserve4.ToString();
             DetailReserve5.Text = item.Reserve5.ToString();
             DetailReserve6.Text = item.Reserve6.ToString();
+            FillOwnerList(item.OwnerNpcs);
+        }
+
+        private void FillOwnerList(int[] ownerList)
+        {
+            if (ownerList == null || ownerList.Length == 0)
+            {
+                // mostre vazio
+                DetailOwnerList.ItemsSource = Array.Empty<object>();
+                return;
+            }
+
+            var rows = ownerList
+                .Where(id => id > 0)
+                .Distinct()
+                .Select(id => new
+                {
+                    DetailOwnerID = id,
+                    DetailOwnerName = "Unknown" // futuramente: lookup em tabela de NPCs
+                })
+                .ToList();
+
+            DetailOwnerList.ItemsSource = rows;
         }
 
         private void SetExplanationFormatted(string? text)
@@ -709,23 +822,22 @@ namespace Ultimate_Gshop
             int categoryIndex = _shop.Categories.IndexOf(firstCategory);
 
             CategoryList.ApplyTemplate();
-
-            if (CategoryList.ContainerFromIndex(categoryIndex) is ContentPresenter container)
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                if (container.Child is Border border)
+                var container = CategoryList.ContainerFromIndex(categoryIndex) as ContentPresenter;
+                if (container?.Child is Border border)
                 {
                     ApplyGoldShadow(border);
                     _lastSelectedCategory = border;
                 }
-                else if (container.Child is Grid grid && grid.Parent is Border b)
+                else if (container?.Child is Grid grid && grid.Parent is Border b)
                 {
                     ApplyGoldShadow(b);
                     _lastSelectedCategory = b;
                 }
-            }
 
-            CategoryToggled(categoryIndex);
-
+                CategoryToggled(categoryIndex);
+            });
         }
 
         private void SelectItem(Item item)
@@ -736,8 +848,6 @@ namespace Ultimate_Gshop
             FillItemDetails(item);
             _currentSelectedItem = item;
         }
-
-
 
         private void CategoryToggled(int index)
         {
@@ -796,7 +906,8 @@ namespace Ultimate_Gshop
         }
         private void Redo_Click(object? sender, RoutedEventArgs e)
         {
-
+            _tracking.Redo(_shop);
+            UpdateGrid();
         }
 
         private void OnTrackingChange(object? sender, PropertyChangedEventArgs e)

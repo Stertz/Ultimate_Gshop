@@ -21,6 +21,9 @@
 		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 	<ItemGroup>
+		<AvaloniaResource Include="Resources\btn_add.png" />
+		<AvaloniaResource Include="Resources\btn_remove.png" />
+		<AvaloniaResource Include="Resources\btn_sale.png" />
 		<AvaloniaResource Include="Resources\error.png" />
 		<AvaloniaResource Include="Resources\icon_gshop.ico" />
 	</ItemGroup>
@@ -28,7 +31,10 @@
   <ItemGroup>
     <None Remove="Resources\bg.png" />
     <None Remove="Resources\btn.png" />
+    <None Remove="Resources\btn_add.png" />
     <None Remove="Resources\btn_close.png" />
+    <None Remove="Resources\btn_remove.png" />
+    <None Remove="Resources\btn_sale.png" />
     <None Remove="Resources\category_frame.png" />
     <None Remove="Resources\color_palette.png" />
     <None Remove="Resources\cursor.png" />
