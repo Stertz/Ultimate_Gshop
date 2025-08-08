@@ -119,6 +119,7 @@ namespace Ultimate_Gshop
                _settings!.LastBackupFrom = bkp;
             }
             var gshop = await ImportGshop.Handle(this);
+            if (gshop == null) return;
             Close(gshop);
         }
 

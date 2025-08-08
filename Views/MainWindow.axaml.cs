@@ -73,6 +73,13 @@ namespace Ultimate_Gshop
                 return;
             }
 
+            // Assina eventos roteados do Avalonia no UserControl
+            DetailGiftID.AddHandler(KeyDownEvent,
+                DetailGiftID_KeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+
+            DetailGiftID.AddHandler(LostFocusEvent,
+                DetailGiftID_LostFocus, RoutingStrategies.Bubble);
+
             _settings = GshopSettings.Load();
             _tracking = ShopTracking.Load();
 
@@ -391,8 +398,7 @@ namespace Ultimate_Gshop
 
         private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-                ExecuteSearch();
+            ExecuteSearch();
         }
 
         private void SearchIcon_Click(object? sender, RoutedEventArgs e)
@@ -400,8 +406,13 @@ namespace Ultimate_Gshop
             ExecuteSearch();
         }
 
-        private void ExecuteSearch()
+        private async void ExecuteSearch()
         {
+            if (!await ConfirmDiscardChanges()) return;
+
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+
             string query = SearchBox.Text?.Trim() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(query))
@@ -508,8 +519,8 @@ namespace Ultimate_Gshop
                             ? brush.Color.ToUInt32().ToString("x8")[2..]  // Remove alpha e deixa minúsculo
                             : "ffffff"; // cor padrão
 
-                        // Texto com \n convertido para \r
-                        var text = run.Text?.Replace("\n", @"\r") ?? string.Empty;
+                        // Aqui mantemos \n para mostrar quebras reais no editor
+                        var text = run.Text ?? string.Empty;
 
                         // Adiciona a tag de cor com o texto
                         formattedText.Append($"^{hex}{text}");
@@ -548,77 +559,145 @@ namespace Ultimate_Gshop
                 "Sim", "Cancelar");
             var result = await msgBox.ShowDialogAsync(this);
 
-            if (result == "Sim")
+            if (result != "Sim") return;
+
+            // Fonte de verdade para Sales e OwnerNpcs é o item do painel
+            var tagItem = DetailPanel.Tag as Item;
+
+            // Permite vírgula ou ponto como separador decimal
+            var giftPriceText = DetailGiftPrice.Text?.Replace(',', '.') ?? "0";
+            var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+                ? (int)(parsed * 100)
+                : 0;
+            static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
+
+            // Usa Sales do tagItem (preenchido pelo SaleEditorWindow). Se nulo/vazio, usa fallback.
+            var sales = (tagItem?.Sales != null && tagItem.Sales.Count > 0)
+                ? [.. tagItem.Sales] // opcionalmente clone raso
+                : new List<Sale> { new() { Price = 1, Control = -1 }, new(), new(), new() };
+
+            // Normaliza OwnerNpcs: >0, distintos, no máximo 8, e preenche com zeros.
+            int[] owners;
             {
-                // Permite vírgula ou ponto como separador decimal
-                var giftPriceText = DetailGiftPrice.Text?.Replace(',', '.') ?? "0";
-
-                // Tenta converter para decimal e depois multiplica por 100
-                var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
-                    ? (int)(parsed * 100)
-                    : 0;
-                static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
-
-                var item = new Item()
-                {
-                    ID = ParseInt(DetailID.Text),
-                    Name = DetailName.Text ?? string.Empty,
-                    Amount = ParseInt(DetailAmount.Text),
-                    Explanation = DetailExplanationEditor.Text ?? string.Empty,
-                    Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
-                    CategoryIndex = DetailCategoryComboBox.SelectedIndex,
-                    SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
-                    Icon = DetailIcon.Tag as string ?? string.Empty,
-                    Sales = [new Sale() { Price = 1, Control = -1}, new Sale(), new Sale(), new Sale()],
-                    GiftID = ParseInt(DetailGiftID.Text),
-                    GiftAmount = ParseInt(DetailGiftAmount.Text),
-                    GiftTime = ParseInt(DetailGiftTime.Text),
-                    ILogPrice = Convert.ToInt32(giftPrice),
-                    OwnerNpcs = [0,0,0,0,0,0,0,0],
-                    LimitPeriod = ParseInt(DetailLimitPeriod.Text),
-                    AvailFrequency = ParseInt(DetailAvailFrequency.Text),
-                    Class = DetailClassComboBox.SelectedIndex - 1,
-                    Reserve1 = ParseInt(DetailReserve1.Text),
-                    Reserve2 = ParseInt(DetailReserve2.Text),
-                    Reserve3 = ParseInt(DetailReserve3.Text),
-                    Reserve4 = ParseInt(DetailReserve4.Text),
-                    Reserve5 = ParseInt(DetailReserve5.Text),
-                    Reserve6 = ParseInt(DetailReserve6.Text)
-                };
-
-
-                if (_currentState == DetailState.Creating)
-                {
-                    InsertItem.Handle(_shop.Itens, item, _tracking);
-                    _shop.ItemAmount++;
-                }
-                else
-                {
-                    UpdateItem.Handle(_shop.Itens, item, _currentSelectedItem!, _tracking);
-                }
-
-                _currentState = DetailState.Viewing;
-                SetItemDetailsEnabled();
-
-                _selectedCategory = item.CategoryIndex;
-                _selectedSubCategory = item.SubCategoryIndex;
-                UpdateGrid();
+                var list = (tagItem?.OwnerNpcs ?? [])
+                    .Where(id => id > 0)
+                    .Distinct()
+                    .Take(8)
+                    .ToList();
+                while (list.Count < 8) list.Add(0);
+                owners = [.. list];
             }
-        }
 
-        private async void DetailUndo_Click(object? sender, RoutedEventArgs e)
-        {
-            if (!await ConfirmDiscardChanges()) return;
-
-
-            if (DetailPanel.Tag is Item item && _currentState != DetailState.Creating)
+            var item = new Item()
             {
-                FillItemDetails(item);
+                ID = ParseInt(DetailID.Text),
+                Name = DetailName.Text ?? string.Empty,
+                Amount = ParseInt(DetailAmount.Text),
+                Explanation = (DetailExplanationEditor.Text ?? string.Empty).Replace("\n", @"\r"),
+                Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
+                CategoryIndex = DetailCategoryComboBox.SelectedIndex,
+                SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
+                Icon = DetailIcon.Tag as string ?? string.Empty,
+
+                // Agora preservando o que foi editado
+                Sales = sales,
+                OwnerNpcs = owners,
+
+                GiftID = ParseInt(DetailGiftID.Text),
+                GiftAmount = ParseInt(DetailGiftAmount.Text),
+                GiftTime = ParseInt(DetailGiftTime.Text),
+                ILogPrice = giftPrice,
+                LimitPeriod = ParseInt(DetailLimitPeriod.Text),
+                AvailFrequency = ParseInt(DetailAvailFrequency.Text),
+                Class = DetailClassComboBox.SelectedIndex - 1,
+                Reserve1 = ParseInt(DetailReserve1.Text),
+                Reserve2 = ParseInt(DetailReserve2.Text),
+                Reserve3 = ParseInt(DetailReserve3.Text),
+                Reserve4 = ParseInt(DetailReserve4.Text),
+                Reserve5 = ParseInt(DetailReserve5.Text),
+                Reserve6 = ParseInt(DetailReserve6.Text)
+            };
+
+            if (_currentState == DetailState.Creating)
+            {
+                InsertItem.Handle(_shop.Itens, item, _tracking);
+                _shop.ItemAmount++;
             }
             else
             {
+                UpdateItem.Handle(_shop.Itens, item, _currentSelectedItem!, _tracking);
+            }
+
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+
+            _selectedCategory = item.CategoryIndex;
+            _selectedSubCategory = item.SubCategoryIndex;
+            UpdateGrid();
+        }
+
+        private void UpdateGiftPreview()
+        {
+            // Limpa se inválido
+            if (!int.TryParse(DetailGiftID.Text, out var giftId) || giftId <= 0)
+            {
+                DetailGiftIcon.Source = null;
+                DetailGiftName.Text = string.Empty;
+                return;
+            }
+
+            // Busca no shop
+            var gift = _shop.Itens.FirstOrDefault(i => i.ID == giftId);
+
+            if (gift is null)
+            {
+                DetailGiftIcon.Source = null;
+                DetailGiftName.Text = "Not found";
+
+                return;
+            }
+
+            // Atualiza preview
+            DetailGiftIcon.Source = gift.LoadImage();
+            DetailGiftName.Text = gift.Name;
+        }
+
+        private void DetailGiftID_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter || e.Key == Key.Tab)
+            {
+                UpdateGiftPreview();
+
+                // Opcional: com Enter, avança o foco para o próximo campo
+                if (e.Key == Key.Enter)
+                {
+                    DetailGiftAmount.Focus();
+                    e.Handled = true; // evita comportamento inesperado
+                }
+            }
+        }
+
+        private void DetailGiftID_LostFocus(object? sender, RoutedEventArgs e)
+        {
+            UpdateGiftPreview();
+        }
+
+        private void DetailUndo_Click(object? sender, RoutedEventArgs e)
+        {
+            // Se estava criando, limpa o painel
+            if (_currentState == DetailState.Creating)
+            {
                 FillItemDetails(null);
             }
+            else
+            {
+                // Se estava editando, volta para o item original selecionado
+                if (_currentSelectedItem != null)
+                    FillItemDetails(_currentSelectedItem);
+                else
+                    FillItemDetails(null);
+            }
+
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
         }
@@ -708,6 +787,7 @@ namespace Ultimate_Gshop
                 FillOwnerList([]);
                 return;
             }
+            item = item.Clone();
 
             DetailPanel.Tag = item;
             DetailIcon.Source = item.LoadImage();
@@ -771,6 +851,10 @@ namespace Ultimate_Gshop
                 DetailExplanation.Inlines.Clear();
                 return;
             }
+
+            // Garante que todo texto comece com uma cor
+            if (!text.StartsWith("^", StringComparison.Ordinal))
+                text = "^ffffff" + text;
 
             DetailExplanation.Inlines.Clear();
 

@@ -595,7 +595,9 @@
 													x:Name="DetailGiftID"
 													Label="Gift ID"
 													IsEnabled="False"
-													ContentType="Number"/>
+													ContentType="Number"
+													KeyDown="DetailGiftID_KeyDown"
+													LostFocus="DetailGiftID_LostFocus"/>
 									<!-- GiftAmount -->
 									<controls:FloatingLabelTextBox
 													Grid.Column="1"
@@ -705,7 +707,7 @@
 
 									<Button Grid.Column="1"
 											x:Name="DetailOwnerAddButton"
-											Width="50" Height="50"
+											Width="35" Height="35"
 											Margin="0" Padding="0"
 											Background="Transparent"
 											BorderBrush="Transparent"
@@ -803,7 +805,7 @@
 
 																<!-- Botão remover -->
 																<Button Grid.Column="4"
-																		Width="50" Height="50"
+																		Width="25" Height="25"
 																		Margin="0" Padding="0"
 																		Background="Transparent"
 																		BorderBrush="Transparent"

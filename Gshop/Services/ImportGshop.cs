@@ -5,12 +5,12 @@ namespace Ultimate_Gshop.Gshop.Services
 {
     public static class ImportGshop
     {
-        public static async Task<Shop> Handle(Window window)
+        public static async Task<Shop?> Handle(Window window)
         {
 
             IStorageFile? file = await GetGshopFileFromOS.Handle(window);
 
-            if (file is null) return new Shop();
+            if (file is null) return null;
 
             var filepath = file.TryGetLocalPath() ?? throw new InvalidOperationException("Invalid path");
 
