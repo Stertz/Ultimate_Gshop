@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using System.Threading.Tasks;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Misc;
@@ -9,6 +10,7 @@ namespace Ultimate_Gshop
     {
         private readonly Shop? _shop;
         private readonly GshopSettings? _settings;
+        private readonly ShopTracking? _tracking;
 
         public MenuWindow()
         {
@@ -16,6 +18,7 @@ namespace Ultimate_Gshop
             Cursor = ApplicationSettings.InitializeCustomCursor();
             _shop = null;
             _settings = null;
+            _tracking = null;
             btnExportServer.IsEnabled = false;
             btnExportClient.IsEnabled = false;
             btnContinue.IsEnabled = ApplicationSettings.GshopExists;
@@ -35,12 +38,14 @@ namespace Ultimate_Gshop
             };
         }
 
-        public MenuWindow(Shop shop, GshopSettings settings)
+        public MenuWindow(Shop shop, GshopSettings settings, ShopTracking tracking)
         {
             InitializeComponent();
             Cursor = ApplicationSettings.InitializeCustomCursor();
             _shop = shop;
             _settings = settings;
+            _tracking = tracking;
+
             this.Opacity = 0;
 
             this.KeyDown += MenuWindow_KeyDown;
@@ -82,18 +87,37 @@ namespace Ultimate_Gshop
 
         }
 
-        private void OnExportClientClicked(object sender, RoutedEventArgs e)
+        private async void OnExportClientClicked(object sender, RoutedEventArgs e)
         {
-            using var bw = new BinaryWriter(File.Create(Path.Combine(Variables.GshopClient)));
+
+            var export_location = await SetGshopFileFromOS.Handle(this);
+
+            if (export_location is null) return;
+
+            var export_filepath = Path.Combine(export_location, "gshop.data");
+
+            using var bw = new BinaryWriter(File.Create(export_filepath));
             if (_shop == null)
                 throw new InvalidOperationException("Shop is not initialized.");
+
+            SaveGshop.Handle(_shop, _tracking!, _settings!);
             
             ExportGshopClient.Handle(bw, _shop);
+
             bw.Close();
         }
 
         private async void OnImportGshopClicked(object sender, RoutedEventArgs e)
         {
+            if (ApplicationSettings.GshopExists && _shop is not null)
+            {
+                Directory.CreateDirectory(ApplicationSettings.BackupFolder);
+                var bkp = Path.Combine(ApplicationSettings.BackupFolder, $"gshop_{DateTime.Now:dd_MM_yyyy_HH_mm_ss}");
+                Directory.CreateDirectory(bkp);
+                using var bw = new BinaryWriter(File.Create(Path.Combine(bkp, "gshop.data")));
+                ExportGshopClient.Handle(bw, _shop);
+               _settings!.LastBackupFrom = bkp;
+            }
             var gshop = await ImportGshop.Handle(this);
             Close(gshop);
         }

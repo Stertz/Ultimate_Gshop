@@ -30,9 +30,9 @@ namespace Ultimate_Gshop
 
         private static readonly List<string> ItemClass = ["All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian", "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"];
 
-        private Shop _shop;
-        private readonly ShopTracking _tracking = new();
-        private readonly GshopSettings _settings;
+        private Shop _shop = new();
+        private ShopTracking _tracking = new();
+        private GshopSettings _settings = new();
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
@@ -52,17 +52,6 @@ namespace Ultimate_Gshop
         public MainWindow()
         {
             InitializeComponent();
-            Cursor = ApplicationSettings.InitializeCustomCursor();
-            _settings = ApplicationSettings.Load();
-            _shop = new Shop();
-            this.Closing += (_, e) =>
-            {
-                if (!_isClosingHandled)
-                {
-                    e.Cancel = true;
-                    _ = HandleClosingAsync();
-                }
-            };
         }
 
         /// <summary>
@@ -74,26 +63,18 @@ namespace Ultimate_Gshop
         protected override async void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-            if (_settings.AlwaysFetchLastGshop)
-            {
-                _shop = await ContinueGshop.Handle(this);
-            }
-            else
-            {
-                var menuWindow = new MenuWindow()
-                {
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                    SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
-                    CanResize = false
-                };
-                _shop = await menuWindow.ShowDialog<Shop>(this);
-            }
+            Cursor = ApplicationSettings.InitializeCustomCursor();
+
+            _shop = ApplicationSettings.GshopExists ? await ContinueGshop.Handle(this) : await ReturnGshopFromMenu();
 
             if (_shop is null)
             {
                 Close();
                 return;
             }
+
+            _settings = GshopSettings.Load();
+            _tracking = ShopTracking.Load();
 
             RedoButton.IsEnabled = false;
             UndoButton.IsEnabled = false;
@@ -102,6 +83,27 @@ namespace Ultimate_Gshop
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
             SelectFirstCategory();
+        }
+
+        protected override void OnClosing(WindowClosingEventArgs e)
+        {
+            base.OnClosing(e);
+            if (!_isClosingHandled)
+            {
+                e.Cancel = true;
+                _ = HandleClosingAsync();
+            }
+        }
+
+        private async Task<Shop> ReturnGshopFromMenu()
+        {
+            var menuWindow = new MenuWindow()
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                CanResize = false
+            };
+            return await menuWindow.ShowDialog<Shop>(this);
         }
 
         private async Task HandleClosingAsync()
@@ -567,12 +569,12 @@ namespace Ultimate_Gshop
                     CategoryIndex = DetailCategoryComboBox.SelectedIndex,
                     SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
                     Icon = DetailIcon.Tag as string ?? string.Empty,
-                    Sales = [new Sale()],
+                    Sales = [new Sale() { Price = 1, Control = -1}, new Sale(), new Sale(), new Sale()],
                     GiftID = ParseInt(DetailGiftID.Text),
                     GiftAmount = ParseInt(DetailGiftAmount.Text),
                     GiftTime = ParseInt(DetailGiftTime.Text),
                     ILogPrice = Convert.ToInt32(giftPrice),
-                    OwnerNpcs = [],
+                    OwnerNpcs = [0,0,0,0,0,0,0,0],
                     LimitPeriod = ParseInt(DetailLimitPeriod.Text),
                     AvailFrequency = ParseInt(DetailAvailFrequency.Text),
                     Class = DetailClassComboBox.SelectedIndex - 1,
@@ -588,6 +590,7 @@ namespace Ultimate_Gshop
                 if (_currentState == DetailState.Creating)
                 {
                     InsertItem.Handle(_shop.Itens, item, _tracking);
+                    _shop.ItemAmount++;
                 }
                 else
                 {
@@ -896,7 +899,7 @@ namespace Ultimate_Gshop
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
         {
-            var menuWindow = new MenuWindow(_shop, _settings)
+            var menuWindow = new MenuWindow(_shop, _settings, _tracking)
             {
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra

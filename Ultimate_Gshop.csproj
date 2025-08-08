@@ -25,7 +25,6 @@
 		<AvaloniaResource Include="Resources\btn_remove.png" />
 		<AvaloniaResource Include="Resources\btn_sale.png" />
 		<AvaloniaResource Include="Resources\error.png" />
-		<AvaloniaResource Include="Resources\icon_gshop.ico" />
 	</ItemGroup>
 
   <ItemGroup>

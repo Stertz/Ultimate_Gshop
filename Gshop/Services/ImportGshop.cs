@@ -14,9 +14,10 @@ namespace Ultimate_Gshop.Gshop.Services
 
             var filepath = file.TryGetLocalPath() ?? throw new InvalidOperationException("Invalid path");
 
-            File.Copy(filepath, ApplicationSettings.GshopLocation, true);
+            File.Copy(filepath, ApplicationSettings.GshopBefore, true);
+            File.Copy(filepath, ApplicationSettings.GshopTemp, true);
 
-            return LoadGshop.Handle(ApplicationSettings.GshopLocation);
+            return LoadGshop.Handle(ApplicationSettings.GshopTemp);
 
         }
     }

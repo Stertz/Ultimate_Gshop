@@ -13,7 +13,7 @@ namespace Ultimate_Gshop.Gshop.Services
                 return await ImportGshop.Handle(owner);
             }
 
-            return LoadGshop.Handle(ApplicationSettings.GshopLocation);
+            return LoadGshop.Handle(ApplicationSettings.GshopTemp);
 
         }
     }

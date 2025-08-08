@@ -28,6 +28,7 @@ namespace Ultimate_Gshop.Gshop.Services
                     bw.Write(itens[i].Sales[f].SellingStartTime);
                     bw.Write(itens[i].Sales[f].Control);
                     bw.Write(itens[i].Sales[f].Day);
+                    bw.Write(itens[i].Sales[f].Status);
                     bw.Write(itens[i].Sales[f].Flags);
                     bw.Write(itens[i].Sales[f].VipLevelRequired);
                 }

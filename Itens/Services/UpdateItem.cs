@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ultimate_Gshop.Gshop;
-
+﻿using Ultimate_Gshop.Gshop;
 namespace Ultimate_Gshop.Itens.Services
 {
     public static class UpdateItem

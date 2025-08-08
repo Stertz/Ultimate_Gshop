@@ -10,9 +10,9 @@
         Width="1024" Height="760"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
-		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico"
 		CanResize="False"
-        Background="Transparent">
+        Background="Transparent"
+		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 
 
 	<Grid>

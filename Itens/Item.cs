@@ -39,7 +39,7 @@ namespace Ultimate_Gshop.Itens
                 Icon = Icon,
                 ID = ID,
                 Amount = Amount,
-                //Sales = [Sales[0].Clone(), Sales[1].Clone(), Sales[2].Clone(), Sales[3].Clone()],
+                Sales = [Sales[0].Clone(), Sales[1].Clone(), Sales[2].Clone(), Sales[3].Clone()],
                 Explanation = Explanation,
                 Name = Name,
                 GiftID = GiftID,
