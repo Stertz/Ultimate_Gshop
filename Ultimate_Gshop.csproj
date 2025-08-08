@@ -97,4 +97,10 @@
     <Folder Include="Resources\categories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Views\SaleEditorWindow.axaml.cs">
+      <DependentUpon>SaleEditorWindow.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

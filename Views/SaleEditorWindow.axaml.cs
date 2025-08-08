@@ -5,11 +5,11 @@ using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop
 {
-    public partial class ItemEditorWindow : Window
+    public partial class SaleEditorWindow : Window
     {
         private readonly Item? _item;
 
-        public ItemEditorWindow()
+        public SaleEditorWindow()
         {
             InitializeComponent();
             Cursor = ApplicationSettings.InitializeCustomCursor();
@@ -17,7 +17,7 @@ namespace Ultimate_Gshop
 
             this.Opacity = 0;
 
-            this.KeyDown += ItemEditorWindow_KeyDown;
+            this.KeyDown += SaleEditorWindow_KeyDown;
 
             this.Opened += async (_, __) =>
             {
@@ -30,14 +30,14 @@ namespace Ultimate_Gshop
             };
         }
 
-        public ItemEditorWindow(Item item)
+        public SaleEditorWindow(Item item)
         {
             InitializeComponent();
             Cursor = ApplicationSettings.InitializeCustomCursor();
             _item = item;
             this.Opacity = 0;
 
-            this.KeyDown += ItemEditorWindow_KeyDown;
+            this.KeyDown += SaleEditorWindow_KeyDown;
 
             this.Opened += async (_, __) =>
             {
@@ -50,7 +50,7 @@ namespace Ultimate_Gshop
             };
         }
 
-        private void ItemEditorWindow_KeyDown(object? sender, KeyEventArgs e)
+        private void SaleEditorWindow_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
             {

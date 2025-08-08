@@ -6,6 +6,7 @@
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
+		CanResize="False"
 		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 	<Grid>
 		<!-- imagem de fundo -->

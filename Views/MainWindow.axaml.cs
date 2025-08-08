@@ -290,7 +290,22 @@ namespace Ultimate_Gshop
         {
             if (DetailPanel.Tag is Item item)
             {
-                
+                var editorWindow = new SaleEditorWindow(item)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual,
+                    SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                    CanResize = false
+                };
+
+                // Pega tamanho do MainWindow e do MenuWindow
+                var mainBounds = this.Bounds;
+
+                editorWindow.Position = new PixelPoint(
+                    (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
+                    (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
+                );
+
+                item = await editorWindow.ShowDialog<Item>(this);
             }
         }
         #endregion

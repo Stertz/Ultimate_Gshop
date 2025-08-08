@@ -1,11 +1,12 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="Ultimate_Gshop.ItemEditorWindow"
+        x:Class="Ultimate_Gshop.SaleEditorWindow"
         Title="Item Editor"
         Width="375" Height="420"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
+		CanResize="False"
 		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 	<Grid>
 		<!-- imagem de fundo -->
