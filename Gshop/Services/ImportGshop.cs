@@ -14,6 +14,9 @@ namespace Ultimate_Gshop.Gshop.Services
 
             var filepath = file.TryGetLocalPath() ?? throw new InvalidOperationException("Invalid path");
 
+            Directory.CreateDirectory(Path.GetDirectoryName(ApplicationSettings.GshopBefore)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(ApplicationSettings.GshopTemp)!);
+
             File.Copy(filepath, ApplicationSettings.GshopBefore, true);
             File.Copy(filepath, ApplicationSettings.GshopTemp, true);
 

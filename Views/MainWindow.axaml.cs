@@ -21,6 +21,7 @@ using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Itens.Services;
 using Ultimate_Gshop.Misc;
 using Ultimate_Gshop.Views;
+using Ultimate_Gshop.Views.UserControls;
 
 namespace Ultimate_Gshop
 {
@@ -79,6 +80,11 @@ namespace Ultimate_Gshop
 
             DetailGiftID.AddHandler(LostFocusEvent,
                 DetailGiftID_LostFocus, RoutingStrategies.Bubble);
+
+            // Dispara ExecuteSearch no KeyUp do controle
+            SearchBox.AddHandler(InputElement.KeyUpEvent, SearchBox_KeyUp,
+                RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+
 
             _settings = GshopSettings.Load();
             _tracking = ShopTracking.Load();
@@ -394,34 +400,31 @@ namespace Ultimate_Gshop
 
         #endregion
 
-        #region Search
-
-        private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
+        private async void SearchBox_KeyUp(object? sender, KeyEventArgs e)
         {
-            ExecuteSearch();
+            await ExecuteSearchAsync(); // busca sempre no KeyUp (inclusive ao apagar)
         }
 
-        private void SearchIcon_Click(object? sender, RoutedEventArgs e)
-        {
-            ExecuteSearch();
-        }
-
-        private async void ExecuteSearch()
+        private async Task ExecuteSearchAsync()
         {
             if (!await ConfirmDiscardChanges()) return;
 
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
 
-            string query = SearchBox.Text?.Trim() ?? string.Empty;
+            var query = SearchBox.Text?.Trim() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                // Se o campo estiver vazio, apenas recarrega a lista normal
+                // reset quando vazio
                 UpdateGrid();
+                RemoveShadow(_lastSelectedBorder);
+                _lastSelectedBorder = null;
+                FillItemDetails(null);
                 return;
             }
 
+            // pesquisa sobre o conjunto atual (já filtrado por categoria/subcategoria)
             var filtered = _currentItems?
                 .Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -436,8 +439,6 @@ namespace Ultimate_Gshop
             _lastSelectedBorder = null;
             FillItemDetails(null);
         }
-
-        #endregion
 
         #region Shadow Helpers
 
@@ -561,6 +562,9 @@ namespace Ultimate_Gshop
 
             if (result != "Sim") return;
 
+            // Limpa SearchBox
+            SearchBox.Text = string.Empty;
+
             // Fonte de verdade para Sales e OwnerNpcs é o item do painel
             var tagItem = DetailPanel.Tag as Item;
 
@@ -588,12 +592,18 @@ namespace Ultimate_Gshop
                 owners = [.. list];
             }
 
+            var explanationText = (DetailExplanationEditor.Text ?? string.Empty).Replace("\n", @"\r");
+
+            // Garante que começa com uma cor
+            if (!explanationText.StartsWith('^') || !ColorTagRegex().IsMatch(explanationText.AsSpan(0, 8)))
+                explanationText = "^ffffff" + explanationText;
+
             var item = new Item()
             {
                 ID = ParseInt(DetailID.Text),
                 Name = DetailName.Text ?? string.Empty,
                 Amount = ParseInt(DetailAmount.Text),
-                Explanation = (DetailExplanationEditor.Text ?? string.Empty).Replace("\n", @"\r"),
+                Explanation = explanationText,
                 Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
                 CategoryIndex = DetailCategoryComboBox.SelectedIndex,
                 SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
@@ -720,7 +730,7 @@ namespace Ultimate_Gshop
             DetailClassComboBox.IsEnabled = !isViewing;
             DetailCategoryComboBox.IsEnabled = !isViewing;
             DetailSubCategoryComboBox.IsEnabled = !isViewing;
-            
+
             // Gift
             DetailGiftID.IsEnabled = !isViewing;
             DetailGiftAmount.IsEnabled = !isViewing;
@@ -853,7 +863,7 @@ namespace Ultimate_Gshop
             }
 
             // Garante que todo texto comece com uma cor
-            if (!text.StartsWith("^", StringComparison.Ordinal))
+            if (!text.StartsWith('^'))
                 text = "^ffffff" + text;
 
             DetailExplanation.Inlines.Clear();

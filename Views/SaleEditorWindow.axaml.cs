@@ -1,4 +1,3 @@
-// ... outras usings
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Globalization;
@@ -20,7 +19,7 @@ namespace Ultimate_Gshop
             "Vip0", "Vip1", "Vip2", "Vip3", "Vip4", "Vip5", "Vip6"
         ];
 
-        private readonly List<string> _controlOptions = ["Client", "Server"];
+        private readonly List<string> _controlOptions = ["", "Client", "Server"];
 
         private readonly Dictionary<string, int> _timeUnits = new()
         {
@@ -72,6 +71,21 @@ namespace Ultimate_Gshop
             };
         }
 
+        // Escolhe a MAIOR unidade que divide exatamente 'seconds'; fallback para Minute.
+        private (int value, string unit) SplitDuration(int seconds)
+        {
+            if (seconds <= 0) return (0, "Minute");
+
+            var match = _timeUnits
+                .OrderByDescending(kv => kv.Value)
+                .FirstOrDefault(kv => seconds % kv.Value == 0);
+
+            if (match.Value > 0)
+                return (seconds / match.Value, match.Key);
+
+            return (seconds / 60, "Minute");
+        }
+
         private void FillSales()
         {
             if (_item == null || _item.Sales.Count == 0)
@@ -86,9 +100,7 @@ namespace Ultimate_Gshop
             var rows = _item.Sales
                 .Select((s, index) =>
                 {
-                    var match = _timeUnits.FirstOrDefault(pair => s.During % pair.Value == 0);
-                    var time = match.Value > 0 ? s.During / match.Value : 0;
-                    var setTime = match.Key ?? "";
+                    var (time, setTime) = SplitDuration(s.During);
 
                     return new
                     {
@@ -132,21 +144,41 @@ namespace Ultimate_Gshop
         {
             if (_item == null) return;
 
+            static int ParseInt(string? s) => int.TryParse(s, out var v) ? v : 0;
+            static int NonNeg(int v) => v < 0 ? 0 : v;
+
             var start = SalesStartPicker.DateAsInt ?? 0;
             var end = SalesEndPicker.DateAsInt ?? 0;
 
+            var priceText = (PriceTextBox.Text ?? "0").Trim().Replace(',', '.');
+            var priceCents = decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var priceDec)
+                ? (int)Math.Round(priceDec * 100m, MidpointRounding.AwayFromZero)
+                : 0;
+            priceCents = NonNeg(priceCents);
+
+            var unitName = SetTimeComboBox.SelectedItem as string ?? "Minute";
+            var unitSeconds = _timeUnits.TryGetValue(unitName, out var sec) ? sec : 60;
+            var during = ParseInt(TimeTextBox.Text) > 0
+                ? checked(NonNeg(ParseInt(TimeTextBox.Text)) * unitSeconds)
+                : 0;
+
+            var statusIndex = StatusComboBox.SelectedIndex;
+            if (statusIndex < 0 || statusIndex >= _statusOptions.Count) statusIndex = 0;
+
+            var controlIndex = ControlComboBox.SelectedIndex;
+            if (controlIndex < 0 || controlIndex >= _controlOptions.Count) controlIndex = 0;
 
             _item.Sales.Add(new Sale
             {
-                Price = 1000,
-                Day = 7,
-                During = 86400,
+                Price = priceCents,
+                Day = NonNeg(ParseInt(DayTextBox.Text)),
+                During = during,
                 SellingStartTime = start,
                 SellingEndTime = end,
-                Flags = 0,
-                VipLevelRequired = 0,
-                Status = 0,
-                Control = 0
+                Flags = NonNeg(ParseInt(FlagsTextBox.Text)),
+                VipLevelRequired = NonNeg(ParseInt(VipLevelTextBox.Text)),
+                Status = statusIndex,
+                Control = controlIndex
             });
 
             FillSales();
@@ -159,12 +191,39 @@ namespace Ultimate_Gshop
             SetTimeComboBox.ItemsSource = _timeUnits.Keys.ToList();
 
             StatusComboBox.SelectedItem = "Default";
-            ControlComboBox.SelectedItem = "Client";
+            ControlComboBox.SelectedItem = "";
             SetTimeComboBox.SelectedItem = "Minute";
         }
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
+            if (_item?.Sales != null)
+            {
+                while (_item.Sales.Count < 4)
+                {
+                    _item.Sales.Add(new Sale
+                    {
+                        Price = 0,
+                        Day = 0,
+                        During = 0,
+                        SellingStartTime = 0,
+                        SellingEndTime = 0,
+                        Flags = 0,
+                        VipLevelRequired = 0,
+                        Status = 0,
+                        Control = 0
+                    });
+                }
+
+                // Remove extras com Price = 0
+                if (_item.Sales.Count > 4)
+                {
+                    for (int i = _item.Sales.Count - 1; i >= 4; i--)
+                        if (_item.Sales[i].Price == 0)
+                            _item.Sales.RemoveAt(i);
+                }
+            }
+
             this.Close(_item?.Sales);
         }
     }
