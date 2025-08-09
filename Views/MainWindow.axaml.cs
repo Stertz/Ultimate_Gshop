@@ -641,8 +641,8 @@ namespace Ultimate_Gshop
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
 
-            _selectedCategory = item.CategoryIndex;
-            _selectedSubCategory = item.SubCategoryIndex;
+            //_selectedCategory = item.CategoryIndex;
+            //_selectedSubCategory = item.SubCategoryIndex;
             UpdateGrid();
         }
 

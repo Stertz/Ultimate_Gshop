@@ -33,7 +33,7 @@ namespace Ultimate_Gshop.Gshop
             {
                 Index = index,
                 Action = EChangeAction.Update,
-                ItemBackup = oldItem.Clone()
+                ItemBackup = oldItem!.Clone()
             });
             RedoChanges.Clear();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));

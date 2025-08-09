@@ -218,7 +218,7 @@ namespace Ultimate_Gshop
                 // Remove extras com Price = 0
                 if (_item.Sales.Count > 4)
                 {
-                    _item.Sales.RemoveAll((s, idx) => idx >= 4 && s.Price == 0);
+                    _item.Sales.RemoveAll(s => { return _item.Sales.IndexOf(s) > 4 && s.Price == 0; });
                 }
             }
 

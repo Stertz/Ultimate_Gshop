@@ -10,6 +10,7 @@ namespace Ultimate_Gshop.Itens
     {
         public static bool Handle(Item? x, Item? y)
         {
+            if (x is null || y is null) return false;
             return x.Amount == y.Amount &&
                     x.Place == y.Place &&
                     x.CategoryIndex == y.CategoryIndex &&
