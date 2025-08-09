@@ -595,7 +595,7 @@ namespace Ultimate_Gshop
             var explanationText = (DetailExplanationEditor.Text ?? string.Empty).Replace("\n", @"\r");
 
             // Garante que começa com uma cor
-            if (!explanationText.StartsWith("^") || !ColorTagRegex().IsMatch(explanationText.AsSpan(0, 8)))
+            if (!explanationText.StartsWith('^') || !ColorTagRegex().IsMatch(explanationText.AsSpan(0, 8)))
                 explanationText = "^ffffff" + explanationText;
 
             var item = new Item()
