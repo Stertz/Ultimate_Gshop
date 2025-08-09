@@ -67,7 +67,7 @@ namespace Ultimate_Gshop.Gshop
                     RedoChanges.Push(new ShopChange
                     {
                         Index = op.Index,
-                        Action = EChangeAction.Insert
+                        Action = EChangeAction.Delete
                     });
                     break;
 
@@ -87,7 +87,7 @@ namespace Ultimate_Gshop.Gshop
                     RedoChanges.Push(new ShopChange
                     {
                         Index = op.Index,
-                        Action = EChangeAction.Delete,
+                        Action = EChangeAction.Insert,
                         ItemBackup = removed.Clone()
                     });
                     shop.Itens.RemoveAt(op.Index);
@@ -113,7 +113,7 @@ namespace Ultimate_Gshop.Gshop
                     UndoChanges.Push(new ShopChange
                     {
                         Index = op.Index,
-                        Action = EChangeAction.Insert,
+                        Action = EChangeAction.Delete,
                         ItemBackup = removed.Clone()
                     });
                     shop.Itens.RemoveAt(op.Index);
@@ -135,7 +135,7 @@ namespace Ultimate_Gshop.Gshop
                     UndoChanges.Push(new ShopChange
                     {
                         Index = op.Index,
-                        Action = EChangeAction.Delete,
+                        Action = EChangeAction.Insert,
                         ItemBackup = op.ItemBackup.Clone()
                     });
                     break;
