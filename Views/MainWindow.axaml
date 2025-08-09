@@ -162,56 +162,20 @@
 				   Stretch="Fill"
 				   Opacity="0.85"/>
 
-			<!-- Barra de pesquisa -->
-			<Grid HorizontalAlignment="Left"
-				  VerticalAlignment="Top"
-				  Width="420"
-				  Height="25"
-				  Margin="40,35,0,0">
-				<!-- Imagem de fundo da barra -->
-				<Image Source="avares://Ultimate_Gshop/Resources/search_bar.png"
-					   Stretch="Fill"/>
-				<!-- Campo de texto -->
-				<TextBox x:Name="SearchBox"
-						 KeyDown="SearchBox_KeyDown"
-						 Background="Transparent"
-						 BorderThickness="0"
-						 Foreground="White"
-						 FontSize="14"
-						 VerticalContentAlignment="Center"
-						 Padding="10,0">
-					<TextBox.Styles>
-						<Style Selector="TextBox:pointerover /template/ Border">
-							<Setter Property="BorderBrush" Value="Transparent"/>
-							<Setter Property="Background" Value="Transparent"/>
-						</Style>
-						<Style Selector="TextBox:focus /template/ Border">
-							<Setter Property="BorderBrush" Value="Transparent"/>
-							<Setter Property="Background" Value="Transparent"/>
-						</Style>
-					</TextBox.Styles>
-				</TextBox>
-			</Grid>
-
-			<!-- Icone de pesquisa -->
-			<Button Width="40"
-					Height="40"
-					HorizontalAlignment="Right"
-					VerticalAlignment="Top"
-					Margin="0,30,40,0" Padding="0"
-					Background="Transparent"
-					BorderBrush="Transparent"
-					Click="SearchIcon_Click">
-				<Image Source="avares://Ultimate_Gshop/Resources/search.png"
-					   Stretch="Fill"
-					   Width="35"
-					   Height="35"/>
-			</Button>
+			<controls:FloatingLabelTextBox
+				x:Name="SearchBox"
+				HorizontalAlignment="Left"
+				VerticalAlignment="Top"
+				Width="447"
+				Label="Search"
+				FontSize="14"
+				Foreground="White"
+				Margin="42,35,0,0"/>
 
 			<!-- ScrollViewer sobre a imagem, relativo ao Grid -->
 			<ScrollViewer Width="460"
-						  Height="380"
-						  Margin="0,70,0,0"
+						  Height="370"
+						  Margin="0,80,0,0"
 						  VerticalAlignment="Top"
 						  VerticalScrollBarVisibility="Visible">
 				<ItemsRepeater x:Name="ItemList">

@@ -58,11 +58,11 @@
 
 						<!-- Linha 1: Campos numéricos -->
 						<Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="4">
-							<controls:FloatingLabelTextBox Label="Price" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="1" Label="Days" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="2" Label="Time" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="3" Label="Flags" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="4" Label="Vip Level" ContentType="Number"/>
+							<controls:FloatingLabelTextBox x:Name="PriceTextBox" Label="Price" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="1" x:Name="DayTextBox" Label="Days" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="2" x:Name="TimeTextBox" Label="Time" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="3" x:Name="FlagsTextBox" Label="Flags" ContentType="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="4" x:Name="VipLevelTextBox" Label="Vip Level" ContentType="Number"/>
 						</Grid>
 
 						<!-- Linha 2: Campos de seleção -->
@@ -70,7 +70,7 @@
 							<controls:StyledComboBox x:Name="StatusComboBox" LabelText="Status"/>
 							<controls:StyledComboBox Grid.Column="1" x:Name="ControlComboBox" LabelText="Control"/>
 							<controls:StyledComboBox Grid.Column="2" x:Name="SetTimeComboBox" LabelText="Set Time"/>
-							<controls:StyledDatePicker Grid.Column="3" LabelText="Selling Start" x:Name="SalesStartPicker"/>
+							<controls:StyledDatePicker Grid.Column="3" x:Name="SalesStartPicker" LabelText="Selling Start"/>
 							<controls:StyledDatePicker Grid.Column="4" LabelText="Selling End" x:Name="SalesEndPicker"/>
 						</Grid>
 					</StackPanel>
