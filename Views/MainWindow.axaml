@@ -363,7 +363,7 @@
 						<Setter Property="Foreground" Value="#d9e2df"/>
 						<Setter Property="Padding" Value="0"/>
 						<!-- cor padrão -->
-						<Setter Property="Margin" Value="75,0,-60,-15"/>
+						<Setter Property="Margin" Value="75,0,-60,-5"/>
 						<Setter Property="HorizontalAlignment" Value="Center"/>
 						<!-- espaçamento entre abas -->
 						<Setter Property="MinWidth" Value="80"/>
@@ -471,87 +471,10 @@
 								</Grid>
 
 								<!-- Descrição com alternância -->
-								<Border Background="#344c51"
-										BorderBrush="#5d5737"
-										BorderThickness="1"
-										CornerRadius="4"
-										Width="280"
-										Height="110">
-									<Grid>
-										<!-- Editor (TextBox com texto bruto, usado para editar) -->
-										<TextBox x:Name="DetailExplanationEditor"
-												 Background="Transparent"
-												 BorderBrush="Transparent"
-												 Foreground="White"
-												 CornerRadius="4"
-												 Padding="6,3"
-												 FontSize="12"
-												 TextWrapping="Wrap"
-												 AcceptsReturn="True"
-												 Watermark="Descrição"
-												 IsVisible="False"
-												 IsEnabled="False">
-											<TextBox.Styles>
-												<Style Selector="TextBox">
-													<Setter Property="Foreground" Value="White"/>
-												</Style>
-												<!-- Hover -->
-												<Style Selector="TextBox:pointerover /template/ Border">
-													<Setter Property="Background" Value="#3A5055"/>
-													<Setter Property="BorderBrush" Value="#5d5737"/>
-												</Style>
-												<!-- Focus -->
-												<Style Selector="TextBox:focus /template/ Border">
-													<Setter Property="Background" Value="#415b60"/>
-													<Setter Property="BorderBrush" Value="#a59a69"/>
-												</Style>
-											</TextBox.Styles>
-										</TextBox>
-
-										<!-- Visual (TextBlock com cores, usado só para visualizar) -->
-										<ScrollViewer x:Name="DetailExplanationPreview"
-													  Background="Transparent"
-													  FontSize="12">
-											<TextBlock x:Name="DetailExplanation"
-													   TextWrapping="Wrap"
-													   Padding="6,3"
-													   Background="Transparent"
-													   Foreground="White"/>
-										</ScrollViewer>
-
-										<!-- Preview - Unpreview -->
-										<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
-												Margin="0,0,37,0">
-											<Button Width="30" Height="30"
-													Padding="0"
-													Background="Transparent"
-													BorderBrush="Transparent"
-													Click="PreviewToggle_Click">
-												<Image x:Name="PreviewButtonIcon"
-													   Source="avares://Ultimate_Gshop/Resources/preview.png"
-													   Stretch="Uniform"/>
-											</Button>
-										</Canvas>
-
-										<!-- Color Palette -->
-										<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
-												Margin="0,32,35,0">
-											<Button x:Name="DetailPaletteButton"
-													Width="27" Height="27"
-													Padding="0"
-													IsVisible="False"
-													Background="Transparent"
-													BorderBrush="Transparent"
-													Opacity="0.25"
-													IsEnabled="False"
-													Click="DetailPaletteButton_Click">
-												<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
-													   Stretch="Uniform"/>
-											</Button>
-										</Canvas>
-
-									</Grid>
-								</Border>
+								<controls:ExplanationEditorControl
+								   x:Name="ExplanationEditorControl"
+								   Width="280"
+								   Height="110"/>
 
 								<!-- Grid de Class +  -->
 								<Grid ColumnDefinitions="*,auto"
@@ -579,19 +502,19 @@
 									</Button>
 								</Grid>
 
-								<!-- Categorie + SubCategorie -->
+								<!-- Category + SubCategory -->
 								<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
 									<!-- ComboBox para selecionar categoria -->
 									<controls:StyledComboBox
 										x:Name="DetailCategoryComboBox"
-										LabelText="Categorie"
+										LabelText="Category"
 										IsEnabled="False"/>
 
 									<!-- ComboBox para selecionar categoria -->
 									<controls:StyledComboBox
 										Grid.Column="1"
 										x:Name="DetailSubCategoryComboBox"
-										LabelText="SubCategorie"
+										LabelText="SubCategory"
 										IsEnabled="False"/>
 								</Grid>
 							</StackPanel>

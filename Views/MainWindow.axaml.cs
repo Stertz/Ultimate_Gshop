@@ -46,9 +46,6 @@ namespace Ultimate_Gshop
         /* Campos para Detail Items*/
         private enum DetailState { Viewing, Creating, Editing }
         private DetailState _currentState = DetailState.Viewing;
-        private bool _isInEditMode = false;
-        [GeneratedRegex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline)]
-        private static partial Regex ColorTagRegex();
 
         public MainWindow()
         {
@@ -536,54 +533,6 @@ namespace Ultimate_Gshop
             return result == "Sim";
         }
 
-        private void ToggleExplanationMode()
-        {
-            _isInEditMode = !_isInEditMode;
-
-            if (_isInEditMode && DetailExplanation.Inlines != null)
-            {
-                var formattedText = new StringBuilder();
-
-                foreach (var inline in DetailExplanation.Inlines)
-                {
-                    if (inline is Run run)
-                    {
-                        // Pega a cor no formato "#RRGGBB"
-                        var hex = run.Foreground is ISolidColorBrush brush
-                            ? brush.Color.ToUInt32().ToString("x8")[2..]  // Remove alpha e deixa minúsculo
-                            : "ffffff"; // cor padrão
-
-                        // Aqui mantemos \n para mostrar quebras reais no editor
-                        var text = run.Text ?? string.Empty;
-
-                        // Adiciona a tag de cor com o texto
-                        formattedText.Append($"^{hex}{text}");
-                    }
-                }
-
-                DetailExplanationEditor.Text = formattedText.ToString();
-            }
-            else
-            {
-                SetExplanationFormatted(DetailExplanationEditor.Text);
-            }
-
-            DetailExplanationPreview.IsVisible = !_isInEditMode;
-            DetailExplanationEditor.IsVisible = _isInEditMode;
-            DetailPaletteButton.IsVisible = _isInEditMode;
-
-            var previewIcon = _isInEditMode
-                ? new Uri("avares://Ultimate_Gshop/Resources/unpreview.png")
-                : new Uri("avares://Ultimate_Gshop/Resources/preview.png");
-
-            PreviewButtonIcon.Source = new Bitmap(AssetLoader.Open(previewIcon));
-        }
-
-        private void PreviewToggle_Click(object? sender, RoutedEventArgs e)
-        {
-            ToggleExplanationMode();
-        }
-
         private async void DetailSave_Click(object? sender, RoutedEventArgs e)
         {
             var msgBox = new CustomMessageBox(
@@ -642,18 +591,12 @@ namespace Ultimate_Gshop
                 owners = [.. list];
             }
 
-            var explanationText = (DetailExplanationEditor.Text ?? string.Empty).Replace("\n", @"\r");
-
-            // Garante que começa com uma cor
-            if (!explanationText.StartsWith('^') || !ColorTagRegex().IsMatch(explanationText.AsSpan(0, 8)))
-                explanationText = "^ffffff" + explanationText;
-
             var item = new Item()
             {
                 ID = ParseInt(DetailID.Text),
                 Name = DetailName.Text ?? string.Empty,
                 Amount = ParseInt(DetailAmount.Text),
-                Explanation = explanationText,
+                Explanation = ExplanationEditorControl.ExportText(),
                 Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
                 CategoryIndex = DetailCategoryComboBox.SelectedIndex,
                 SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
@@ -770,9 +713,7 @@ namespace Ultimate_Gshop
             DetailLimitPeriod.IsEnabled = !isViewing;
             DetailAvailFrequency.IsEnabled = !isViewing;
             DetailAmount.IsEnabled = !isViewing;
-            DetailExplanationEditor.IsEnabled = !isViewing;
-            DetailPaletteButton.IsEnabled = !isViewing;
-            DetailPaletteButton.Opacity = !isViewing ? 1 : 0.25;
+            ExplanationEditorControl.IsEditing = !isViewing;
             DetailSaleButton.IsEnabled = !isViewing;
             DetailSaleButton.Opacity = !isViewing ? 0.8 : 0.25;
 
@@ -811,10 +752,6 @@ namespace Ultimate_Gshop
 
         private void FillItemDetails(Item? item)
         {
-            // Ao preencher detalhes, sempre em modo de visualização
-            _isInEditMode = true;
-            ToggleExplanationMode();
-
             if (item == null)
             {
                 DetailPanel.Tag = null;
@@ -825,7 +762,7 @@ namespace Ultimate_Gshop
                 DetailLimitPeriod.Text = string.Empty;
                 DetailAvailFrequency.Text = string.Empty;
                 DetailAmount.Text = string.Empty;
-                SetExplanationFormatted(string.Empty);
+                ExplanationEditorControl.ImportTagged(string.Empty);
                 DetailCategoryComboBox.SelectedIndex = -1;
                 DetailSubCategoryComboBox.SelectedIndex = -1;
                 DetailClassComboBox.SelectedIndex = -1;
@@ -856,7 +793,7 @@ namespace Ultimate_Gshop
             DetailLimitPeriod.Text = item.LimitPeriod.ToString();
             DetailAvailFrequency.Text = item.AvailFrequency.ToString();
             DetailAmount.Text = item.Amount.ToString();
-            SetExplanationFormatted(item.Explanation);
+            ExplanationEditorControl.ImportTagged(item.Explanation);
             DetailCategoryComboBox.SelectedIndex = item.CategoryIndex;
             DetailSubCategoryComboBox.SelectedIndex = item.SubCategoryIndex;
             DetailClassComboBox.SelectedIndex = item.Class + 1;
@@ -901,76 +838,6 @@ namespace Ultimate_Gshop
 
             DetailOwnerList.ItemsSource = rows;
         }
-
-        private void SetExplanationFormatted(string? text)
-        {
-            if (DetailExplanation.Inlines == null) return;
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                DetailExplanation.Inlines.Clear();
-                return;
-            }
-
-            // Garante que todo texto comece com uma cor
-            if (!text.StartsWith('^'))
-                text = "^ffffff" + text;
-
-            DetailExplanation.Inlines.Clear();
-
-            foreach (Match match in ColorTagRegex().Matches(text))
-            {
-                string hex = match.Groups["color"].Value;
-                string content = match.Groups["content"].Value;
-
-                // Substituir \r por quebra de linha
-                content = content.Replace(@"\r", "\n");
-
-                var run = new Run
-                {
-                    Text = content,
-                    Foreground = new SolidColorBrush(Color.Parse("#" + hex))
-                };
-
-                DetailExplanation.Inlines.Add(run);
-            }
-        }
-
-        private async void DetailPaletteButton_Click(object? sender, RoutedEventArgs e)
-        {
-            var color = await ColorPickerWindow.ShowAsync(this);
-            if (!color.HasValue)
-                return;
-
-            if (!DetailExplanationEditor.IsVisible)
-                return;
-
-            if (DetailExplanationEditor.Text == null)
-                return;
-
-            var editor = DetailExplanationEditor;
-            var caretIndex = editor.CaretIndex;
-            var selectedText = editor.SelectedText;
-            var selectionStart = editor.SelectionStart;
-            var selectionEnd = editor.SelectionEnd;
-
-            var hex = color.Value.ToUInt32().ToString("x8")[2..];
-
-            if (string.IsNullOrEmpty(selectedText))
-            {
-                // Nenhuma seleção: apenas insere a cor
-                editor.Text = editor.Text.Insert(caretIndex, $"^{hex}");
-                editor.CaretIndex = caretIndex + hex.Length + 1; // posiciona depois do ^
-            }
-            else
-            {
-                // Com seleção: aplica a cor no texto selecionado
-                editor.Text = editor.Text.Remove(selectionStart, selectionEnd - selectionStart)
-                                         .Insert(selectionStart, $"^{hex}{selectedText}");
-
-                editor.CaretIndex = selectionStart + hex.Length + 1 + selectedText.Length;
-            }
-        }
-
 
         private void SelectFirstCategory()
         {
