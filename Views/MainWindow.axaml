@@ -363,7 +363,7 @@
 						<Setter Property="Foreground" Value="#d9e2df"/>
 						<Setter Property="Padding" Value="0"/>
 						<!-- cor padrão -->
-						<Setter Property="Margin" Value="70,10,-50,-10"/>
+						<Setter Property="Margin" Value="75,0,-60,-15"/>
 						<Setter Property="HorizontalAlignment" Value="Center"/>
 						<!-- espaçamento entre abas -->
 						<Setter Property="MinWidth" Value="80"/>
@@ -371,8 +371,8 @@
 							<ControlTemplate>
 								<Border CornerRadius="7"
 										BorderThickness="1"
-										Padding="0"
 										Background="#344c51"
+										Height="30"
 										BorderBrush="#5d5737"
 										BoxShadow="0 1 0 0 #0f1a1d, 0 0 10 0 #00000055">
 									<!-- Renderiza o Header como texto e aplica a cor da aba -->
@@ -380,9 +380,8 @@
 											   Foreground="{TemplateBinding Foreground}"
 											   FontSize="{TemplateBinding FontSize}"
 											   FontWeight="{TemplateBinding FontWeight}"
-											   HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+											   HorizontalAlignment="Center"
 											   Padding="0" Margin="0"
-											   Height="{TemplateBinding Height}"
 											   VerticalAlignment="Center"/>
 								</Border>
 							</ControlTemplate>

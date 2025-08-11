@@ -405,17 +405,21 @@ namespace Ultimate_Gshop
         {
             var category = _shop.Categories[_selectedCategory];
 
-            var dialog = new TextInputDialog
-            {
-                Title = "Enter New Name",
-                Prompt = "Title:"
-            };
+            var dlg = new CustomMessageBox(
+                title: "Renomear",
+                message: "Informe o novo nome para Categoria:",
+                icon: CustomMessageBox.MessageBoxIcon.Information,
+                withInput: true,
+                inputLabel: "Category", // aparece no FloatingLabelTextBox
+                initialText: "",        // opcional
+                buttons: ["OK", "Cancelar"]
+            );
 
-            var result = await dialog.ShowDialog<string?>(this);
+            var result = await dlg.ShowInputDialogAsync(this);
 
-            if (!string.IsNullOrWhiteSpace(result))
+            if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                category.Title = result;
+                category.Title = result.Text;
                 CategoryList.ItemsSource = null;
                 CategoryList.ItemsSource = _shop.Categories;
             }
@@ -431,7 +435,7 @@ namespace Ultimate_Gshop
 
         private async void SearchBox_KeyUp(object? sender, KeyEventArgs e)
         {
-            await ExecuteSearchAsync(); // busca sempre no KeyUp (inclusive ao apagar)
+            await ExecuteSearchAsync();
         }
 
         private async Task ExecuteSearchAsync()
