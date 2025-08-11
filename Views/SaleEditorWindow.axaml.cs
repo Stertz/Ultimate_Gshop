@@ -197,33 +197,6 @@ namespace Ultimate_Gshop
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
-            if (_item?.Sales != null)
-            {
-                while (_item.Sales.Count < 4)
-                {
-                    _item.Sales.Add(new Sale
-                    {
-                        Price = 0,
-                        Day = 0,
-                        During = 0,
-                        SellingStartTime = 0,
-                        SellingEndTime = 0,
-                        Flags = 0,
-                        VipLevelRequired = 0,
-                        Status = 0,
-                        Control = 0
-                    });
-                }
-
-                // Remove extras com Price = 0
-                if (_item.Sales.Count > 4)
-                {
-                    for (int i = _item.Sales.Count - 1; i >= 4; i--)
-                        if (_item.Sales[i].Price == 0)
-                            _item.Sales.RemoveAt(i);
-                }
-            }
-
             this.Close(_item?.Sales);
         }
     }

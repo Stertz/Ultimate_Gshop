@@ -102,4 +102,7 @@
     </Compile>
   </ItemGroup>
 
+	<PropertyGroup>
+		<ApplicationIcon>Resources\icon_gshop.ico</ApplicationIcon>
+	</PropertyGroup>
 </Project>

@@ -1,7 +1,7 @@
 <UserControl
-	xmlns="https://github.com/avaloniaui"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	x:Class="Ultimate_Gshop.Views.UserControls.FloatingLabelTextBox">
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="Ultimate_Gshop.Views.UserControls.FloatingLabelTextBox">
 
 	<Border x:Name="Border"
 			Background="#344c51"
@@ -35,8 +35,7 @@
 					 BorderThickness="0"
 					 CornerRadius="4"
 					 Padding="0,10,0,0"
-					 VerticalAlignment="Center"
-					 TextInputOptions.ContentType="{Binding ContentType, RelativeSource={RelativeSource AncestorType=UserControl}}">
+					 VerticalAlignment="Center">
 				<TextBox.Styles>
 					<!-- Texto -->
 					<Style Selector="TextBox">

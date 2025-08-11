@@ -328,471 +328,545 @@
 			<!-- Container geral com conteúdo e botões -->
 			<Grid>
 				<Grid.RowDefinitions>
-					<!-- Conteúdo com scroll -->
-					<RowDefinition Height="*" />
-					<!-- Área fixa para os botões -->
-					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
-				<!-- Scroll apenas no conteúdo -->
-				<ScrollViewer Grid.Row="0"
-							  Width="320"
-							  Margin="0,20,0,0"
-							  HorizontalScrollBarVisibility="Disabled"
-							  VerticalScrollBarVisibility="Auto">
-					<StackPanel x:Name="DetailPanel"
-								Margin="0,20,0,0"
-								Spacing="6">
 
-						<!-- Ícone com moldura -->
-						<Grid HorizontalAlignment="Center" Margin="0,0,0,15">
-							<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
-								   Width="100" Height="100"
-								   Stretch="Fill"/>
-							<Image x:Name="DetailIcon"
-								   Width="60" Height="60"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
-						</Grid>
+				<!-- ====== ESTILO DAS ABAS (centralizado + spacing + selected fg) ====== -->
+				<Grid.Styles>
+					<!-- TabControl do painel -->
+					<Style Selector="TabControl#DetailPanel">
+						<Setter Property="TabStripPlacement" Value="Top"/>
+						<Setter Property="Background" Value="Transparent"/>
+						<Setter Property="Padding" Value="0"/>
+					</Style>
 
-						<!-- ID + Amount -->
-						<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
-							<!-- ID (somente números) -->
-							<controls:FloatingLabelTextBox
-								x:Name="DetailID"
-								Label="ID"
-								IsEnabled="False"
-								ContentType="Number"/>
+					<!-- Conteúdo da página -->
+					<Style Selector="TabControl#DetailPanel /template/ ContentPresenter">
+						<Setter Property="Background" Value="Transparent"/>
+						<Setter Property="Padding" Value="0"/>
+					</Style>
 
-							<!-- Amount -->
-							<controls:FloatingLabelTextBox
-								x:Name="DetailAmount"
-								Grid.Column="1"
-								Label="Amount"
-								IsEnabled="False"
-								ContentType="Number"/>
-						</Grid>
-
-						<!-- Nome -->
-						<controls:FloatingLabelTextBox
-								x:Name="DetailName"
-								Width="280"
-								Label="Name"
-								IsEnabled="False"/>
-
-						<!-- Time Limit + Avail Frequency -->
-						<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
-							<!-- Time Limit -->
-							<controls:FloatingLabelTextBox
-								x:Name="DetailLimitPeriod"
-								Label="Limit Period"
-								IsEnabled="False"
-								ContentType="Number"/>
-
-							<!-- Avail Frequency -->
-							<controls:FloatingLabelTextBox
-								Grid.Column="1"
-								x:Name="DetailAvailFrequency"
-								Label="Avail Frequency"
-								IsEnabled="False"
-								ContentType="Number"/>
-						</Grid>
-
-						<!-- Descrição com alternância -->
-						<Border Background="#344c51"
-								BorderBrush="#5d5737"
-								BorderThickness="1"
-								CornerRadius="4"
-								Width="280"
-								Height="110">
-							<Grid>
-								<!-- Editor (TextBox com texto bruto, usado para editar) -->
-								<TextBox x:Name="DetailExplanationEditor"
-										 Background="Transparent"
-										 BorderBrush="Transparent"
-										 Foreground="White"
-										 CornerRadius="4"
-										 Padding="6,3"
-										 FontSize="12"
-										 TextWrapping="Wrap"
-										 AcceptsReturn="True"
-										 Watermark="Descrição"
-										 IsVisible="False"
-										 IsEnabled="False">
-									<TextBox.Styles>
-										<Style Selector="TextBox">
-											<Setter Property="Foreground" Value="White"/>
-										</Style>
-										<!-- Hover -->
-										<Style Selector="TextBox:pointerover /template/ Border">
-											<Setter Property="Background" Value="#3A5055"/>
-											<Setter Property="BorderBrush" Value="#5d5737"/>
-										</Style>
-										<!-- Focus -->
-										<Style Selector="TextBox:focus /template/ Border">
-											<Setter Property="Background" Value="#415b60"/>
-											<Setter Property="BorderBrush" Value="#a59a69"/>
-										</Style>
-									</TextBox.Styles>
-								</TextBox>
-
-								<!-- Visual (TextBlock com cores, usado só para visualizar) -->
-								<ScrollViewer x:Name="DetailExplanationPreview"
-											  Background="Transparent"
-											  FontSize="12">
-									<TextBlock x:Name="DetailExplanation"
-											   TextWrapping="Wrap"
-											   Padding="6,3"
-											   Background="Transparent"
-											   Foreground="White"/>
-								</ScrollViewer>
-
-								<!-- Preview - Unpreview -->
-								<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
-										Margin="0,0,37,0">
-									<Button Width="30" Height="30"
-											Padding="0"
-											Background="Transparent"
-											BorderBrush="Transparent"
-											Click="PreviewToggle_Click">
-										<Image x:Name="PreviewButtonIcon"
-											   Source="avares://Ultimate_Gshop/Resources/preview.png"
-											   Stretch="Uniform"/>
-									</Button>
-								</Canvas>
-
-								<!-- Color Palette -->
-								<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
-										Margin="0,32,35,0">
-									<Button x:Name="DetailPaletteButton" 
-											Width="27" Height="27"
-											Padding="0"
-											IsVisible="False"
-											Background="Transparent"
-											BorderBrush="Transparent"
-											Opacity="0.25"
-											IsEnabled="False"
-											Click="DetailPaletteButton_Click">
-										<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
-											   Stretch="Uniform"/>
-									</Button>
-								</Canvas>
-
-							</Grid>
-						</Border>
-
-						<!-- Grid de Class +  -->
-						<Grid ColumnDefinitions="*,auto"
-							  ColumnSpacing="4"
-							  Width="280">
-							<!-- Class -->
-							<controls:StyledComboBox
-								x:Name="DetailClassComboBox"
-								LabelText="Class"
-								IsEnabled="False"
-								HorizontalAlignment="Stretch"/>
-
-							<!-- Sale -->
-							<Button Grid.Column="1"
-									x:Name="DetailSaleButton"
-									Width="45" Height="45"
-									Background="Transparent"
-									BorderBrush="Transparent"
-									IsDefault="False"
-									Margin="0,5,0,0" Padding="0"
-									Opacity="0.25"
-									IsEnabled="False"
-									Click="SaleEditor_Click">
-								<Image Source="avares://Ultimate_Gshop/Resources/btn_sale.png"/>
-							</Button>
-						</Grid>
-
-						<!-- Categorie + SubCategorie -->
-						<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
-							<!-- ComboBox para selecionar categoria -->
-							<controls:StyledComboBox
-								x:Name="DetailCategoryComboBox"
-								LabelText="Categorie"
-								IsEnabled="False"/>
-
-							<!-- ComboBox para selecionar categoria -->
-							<controls:StyledComboBox
-								Grid.Column="1"
-								x:Name="DetailSubCategoryComboBox"
-								LabelText="SubCategorie"
-								IsEnabled="False"/>
-						</Grid>
-
-						<!-- Gift -->
-						<Border Background="#344c51"
-								BorderBrush="#5d5737"
-								BorderThickness="1"
-								CornerRadius="4"
-								Padding="10"
-								Width="280">
-							<StackPanel>
-								<Grid ColumnDefinitions="auto,*" ColumnSpacing="4">
-									<!-- Ícone com moldura -->
-									<Grid HorizontalAlignment="Left" Margin="0,0,0,10">
-										<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
-											   Width="40" Height="40"
-											   Stretch="Fill"/>
-										<Image x:Name="DetailGiftIcon"
-											   Width="24" Height="24"
+					<!-- Cabeçalho da aba -->
+					<Style Selector="TabControl#DetailPanel TabItem">
+						<Setter Property="FontSize" Value="12"/>
+						<Setter Property="FontWeight" Value="DemiBold"/>
+						<Setter Property="Foreground" Value="#d9e2df"/>
+						<Setter Property="Padding" Value="0"/>
+						<!-- cor padrão -->
+						<Setter Property="Margin" Value="70,10,-50,-10"/>
+						<!-- espaçamento entre abas -->
+						<Setter Property="MinWidth" Value="80"/>
+						<Setter Property="Template">
+							<ControlTemplate>
+								<Border CornerRadius="7"
+										BorderThickness="1"
+										Padding="12,0"
+										Background="#344c51"
+										BorderBrush="#5d5737"
+										BoxShadow="0 1 0 0 #0f1a1d, 0 0 10 0 #00000055">
+									<!-- Renderiza o Header como texto e aplica a cor da aba -->
+									<TextBlock Text="{TemplateBinding Header}"
+											   Foreground="{TemplateBinding Foreground}"
+											   FontSize="{TemplateBinding FontSize}"
+											   FontWeight="{TemplateBinding FontWeight}"
 											   HorizontalAlignment="Center"
+											   Padding="{TemplateBinding Padding}"
+											   Height="{TemplateBinding Height}"
 											   VerticalAlignment="Center"/>
-									</Grid>
+								</Border>
+							</ControlTemplate>
+						</Setter>
+					</Style>
 
-									<!-- Ícone com GiftName -->
-									<TextBlock Grid.Column="1"
-											   x:Name="DetailGiftName"
-											   TextWrapping="Wrap"
-											   FontSize="13"
-											   HorizontalAlignment="Center"
-											   FontWeight="Bold"
-											   Margin="5,0"
-											   Foreground="White"/>
+					<!-- Hover -->
+					<Style Selector="TabControl#DetailPanel TabItem:pointerover /template/ Border">
+						<Setter Property="Background" Value="#3d5a60"/>
+						<Setter Property="BorderBrush" Value="#a59a69"/>
+					</Style>
+
+					<!-- Selecionada: muda também a cor da FONTE -->
+					<Style Selector="TabControl#DetailPanel TabItem:selected">
+						<Setter Property="Foreground" Value="#fff4c2"/>
+						<!-- fonte da aba ativa -->
+					</Style>
+					<Style Selector="TabControl#DetailPanel TabItem:selected /template/ Border">
+						<Setter Property="Background" Value="#415b60"/>
+						<Setter Property="BorderBrush" Value="#ebb935"/>
+						<!-- dourado vivo -->
+						<Setter Property="BoxShadow" Value="0 0 0 1 #0f1a1d inset, 0 0 12 0 #00000088"/>
+					</Style>
+				</Grid.Styles>
+
+				<!-- ====== CONTEÚDO EM ABAS ====== -->
+				<TabControl x:Name="DetailPanel" Grid.Row="0" Margin="0,20,0,0" Width="320">
+
+					<!-- ABA 1: GERAL -->
+					<TabItem Header="Principal">
+						<ScrollViewer HorizontalScrollBarVisibility="Disabled"
+									  VerticalScrollBarVisibility="Auto">
+							<StackPanel Spacing="6" Margin="0,20,0,0">
+
+								<!-- Ícone com moldura -->
+								<Grid HorizontalAlignment="Center" Margin="0,0,0,15">
+									<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
+										   Width="100" Height="100"
+										   Stretch="Fill"/>
+									<Image x:Name="DetailIcon"
+										   Width="60" Height="60"
+										   HorizontalAlignment="Center"
+										   VerticalAlignment="Center"/>
 								</Grid>
-								<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
-									<!-- GiftID -->
+
+								<!-- ID + Amount -->
+								<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
+									<!-- ID (somente números) -->
 									<controls:FloatingLabelTextBox
-													Grid.Column="0"
-													x:Name="DetailGiftID"
-													Label="Gift ID"
-													IsEnabled="False"
-													ContentType="Number"
-													KeyDown="DetailGiftID_KeyDown"
-													LostFocus="DetailGiftID_LostFocus"/>
-									<!-- GiftAmount -->
-									<controls:FloatingLabelTextBox
-													Grid.Column="1"
-													x:Name="DetailGiftAmount"
-													Label="Gift Amount"
-													IsEnabled="False"
-													ContentType="Number"/>
-								</Grid>
-								<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
-									<!-- GiftPrice -->
-									<controls:FloatingLabelTextBox
-													Grid.Column="0"
-													x:Name="DetailGiftPrice"
-													Label="Gift Price"
-													IsEnabled="False"
-													ContentType="Number"/>
-									<!-- GiftTime -->
-									<controls:FloatingLabelTextBox
-													Grid.Column="1"
-													x:Name="DetailGiftTime"
-													Label="Gift Time"
-													IsEnabled="False"
-													ContentType="Number"/>
-								</Grid>
-							</StackPanel>
-						</Border>
-
-						<!-- Reserve 1, 2 e 3 -->
-						<Grid Width="280" ColumnDefinitions="*,*,*" ColumnSpacing="4">
-							<!-- Reserve1 -->
-							<controls:FloatingLabelTextBox
-								Grid.Column="0"
-								x:Name="DetailReserve1"
-								Label="Reserve1"
-								IsEnabled="False"
-								ContentType="Number"/>
-
-							<!-- Reserve2 -->
-							<controls:FloatingLabelTextBox
-								x:Name="DetailReserve2"
-								Grid.Column="1"
-								Label="Reserve2"
-								IsEnabled="False"
-								ContentType="Number"/>
-
-							<!-- Reserve3 -->
-							<controls:FloatingLabelTextBox
-								Grid.Column="2"
-								x:Name="DetailReserve3"
-								Label="Reserve3"
-								IsEnabled="False"
-								ContentType="Number"/>
-						</Grid>
-
-						<!-- Reserve 4, 5 e 6 -->
-						<Grid Width="280" ColumnDefinitions="*,*,*" ColumnSpacing="4">
-							<!-- Reserve4 -->
-							<controls:FloatingLabelTextBox
-								Grid.Column="0"
-								x:Name="DetailReserve4"
-								Label="Reserve4"
-								IsEnabled="False"
-								ContentType="Number"/>
-
-							<!-- Reserve5 -->
-							<controls:FloatingLabelTextBox
-								x:Name="DetailReserve5"
-								Grid.Column="1"
-								Label="Reserve5"
-								IsEnabled="False"
-								ContentType="Number"/>
-
-							<!-- Reserve6 -->
-							<controls:FloatingLabelTextBox
-								Grid.Column="2"
-								x:Name="DetailReserve6"
-								Label="Reserve6"
-								IsEnabled="False"
-								ContentType="Number"/>
-						</Grid>
-						<!-- Owner List -->
-						<Border Background="#344c51"
-								BorderBrush="#5d5737"
-								BorderThickness="1"
-								CornerRadius="4"
-								Padding="10"
-								Width="280">
-
-							<StackPanel Spacing="10">
-
-								<!-- Título da seção -->
-								<TextBlock Text="Owner NPCs"
-										   FontWeight="Bold"
-										   Foreground="White"
-										   FontSize="13"
-										   Margin="0,0,0,4"/>
-
-								<!-- Grid de adição -->
-								<Grid ColumnDefinitions="*,Auto"
-									  ColumnSpacing="4">
-									<controls:FloatingLabelTextBox
-										x:Name="DetailOwnerAdd"
-										Label="Owner NPC"
+										x:Name="DetailID"
+										Label="ID"
 										IsEnabled="False"
-										ContentType="Number"
-										KeyDown="DetailOwnerAdd_KeyDown"/>
+										InputMode="Number"/>
 
-									<Button Grid.Column="1"
-											x:Name="DetailOwnerAddButton"
-											Width="35" Height="35"
-											Margin="0" Padding="0"
-											Background="Transparent"
-											BorderBrush="Transparent"
-											IsDefault="False"
-											Opacity="0.25"
-											IsEnabled="False"
-											Click="AddOwner_Click">
-										<Image Source="avares://Ultimate_Gshop/Resources/btn_add.png"/>
-									</Button>
+									<!-- Amount -->
+									<controls:FloatingLabelTextBox
+										x:Name="DetailAmount"
+										Grid.Column="1"
+										Label="Amount"
+										IsEnabled="False"
+										InputMode="Number"/>
 								</Grid>
 
-								<!-- Lista de owners com borda própria -->
-								<Border Background="#2b3d41"
+								<!-- Nome -->
+								<controls:FloatingLabelTextBox
+										x:Name="DetailName"
+										Width="280"
+										Label="Name"
+										IsEnabled="False"/>
+
+								<!-- Time Limit + Avail Frequency -->
+								<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
+									<!-- Time Limit -->
+									<controls:FloatingLabelTextBox
+										x:Name="DetailLimitPeriod"
+										Label="Limit Period"
+										IsEnabled="False"
+										InputMode="Number"/>
+
+									<!-- Avail Frequency -->
+									<controls:FloatingLabelTextBox
+										Grid.Column="1"
+										x:Name="DetailAvailFrequency"
+										Label="Avail Frequency"
+										IsEnabled="False"
+										InputMode="Number"/>
+								</Grid>
+
+								<!-- Descrição com alternância -->
+								<Border Background="#344c51"
 										BorderBrush="#5d5737"
 										BorderThickness="1"
 										CornerRadius="4"
-										Padding="6">
+										Width="280"
+										Height="110">
+									<Grid>
+										<!-- Editor (TextBox com texto bruto, usado para editar) -->
+										<TextBox x:Name="DetailExplanationEditor"
+												 Background="Transparent"
+												 BorderBrush="Transparent"
+												 Foreground="White"
+												 CornerRadius="4"
+												 Padding="6,3"
+												 FontSize="12"
+												 TextWrapping="Wrap"
+												 AcceptsReturn="True"
+												 Watermark="Descrição"
+												 IsVisible="False"
+												 IsEnabled="False">
+											<TextBox.Styles>
+												<Style Selector="TextBox">
+													<Setter Property="Foreground" Value="White"/>
+												</Style>
+												<!-- Hover -->
+												<Style Selector="TextBox:pointerover /template/ Border">
+													<Setter Property="Background" Value="#3A5055"/>
+													<Setter Property="BorderBrush" Value="#5d5737"/>
+												</Style>
+												<!-- Focus -->
+												<Style Selector="TextBox:focus /template/ Border">
+													<Setter Property="Background" Value="#415b60"/>
+													<Setter Property="BorderBrush" Value="#a59a69"/>
+												</Style>
+											</TextBox.Styles>
+										</TextBox>
 
+										<!-- Visual (TextBlock com cores, usado só para visualizar) -->
+										<ScrollViewer x:Name="DetailExplanationPreview"
+													  Background="Transparent"
+													  FontSize="12">
+											<TextBlock x:Name="DetailExplanation"
+													   TextWrapping="Wrap"
+													   Padding="6,3"
+													   Background="Transparent"
+													   Foreground="White"/>
+										</ScrollViewer>
+
+										<!-- Preview - Unpreview -->
+										<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
+												Margin="0,0,37,0">
+											<Button Width="30" Height="30"
+													Padding="0"
+													Background="Transparent"
+													BorderBrush="Transparent"
+													Click="PreviewToggle_Click">
+												<Image x:Name="PreviewButtonIcon"
+													   Source="avares://Ultimate_Gshop/Resources/preview.png"
+													   Stretch="Uniform"/>
+											</Button>
+										</Canvas>
+
+										<!-- Color Palette -->
+										<Canvas HorizontalAlignment="Right" VerticalAlignment="Top"
+												Margin="0,32,35,0">
+											<Button x:Name="DetailPaletteButton"
+													Width="27" Height="27"
+													Padding="0"
+													IsVisible="False"
+													Background="Transparent"
+													BorderBrush="Transparent"
+													Opacity="0.25"
+													IsEnabled="False"
+													Click="DetailPaletteButton_Click">
+												<Image Source="avares://Ultimate_Gshop/Resources/color_palette.png"
+													   Stretch="Uniform"/>
+											</Button>
+										</Canvas>
+
+									</Grid>
+								</Border>
+
+								<!-- Grid de Class +  -->
+								<Grid ColumnDefinitions="*,auto"
+									  ColumnSpacing="4"
+									  Width="280">
+									<!-- Class -->
+									<controls:StyledComboBox
+										x:Name="DetailClassComboBox"
+										LabelText="Class"
+										IsEnabled="False"
+										HorizontalAlignment="Stretch"/>
+
+									<!-- Sale -->
+									<Button Grid.Column="1"
+											x:Name="DetailSaleButton"
+											Width="45" Height="45"
+											Background="Transparent"
+											BorderBrush="Transparent"
+											IsDefault="False"
+											Margin="0,5,0,0" Padding="0"
+											Opacity="0.25"
+											IsEnabled="False"
+											Click="SaleEditor_Click">
+										<Image Source="avares://Ultimate_Gshop/Resources/btn_sale.png"/>
+									</Button>
+								</Grid>
+
+								<!-- Categorie + SubCategorie -->
+								<Grid Width="280" ColumnDefinitions="*,*" ColumnSpacing="4">
+									<!-- ComboBox para selecionar categoria -->
+									<controls:StyledComboBox
+										x:Name="DetailCategoryComboBox"
+										LabelText="Categorie"
+										IsEnabled="False"/>
+
+									<!-- ComboBox para selecionar categoria -->
+									<controls:StyledComboBox
+										Grid.Column="1"
+										x:Name="DetailSubCategoryComboBox"
+										LabelText="SubCategorie"
+										IsEnabled="False"/>
+								</Grid>
+							</StackPanel>
+						</ScrollViewer>
+					</TabItem>
+
+					<!-- ABA 2: GIFT & EXTRAS -->
+					<TabItem Header="Extras">
+						<ScrollViewer HorizontalScrollBarVisibility="Disabled"
+									  VerticalScrollBarVisibility="Auto">
+							<StackPanel Spacing="6" Margin="0,20,0,0">
+								<!-- Gift -->
+								<Border Background="#344c51"
+										BorderBrush="#5d5737"
+										BorderThickness="1"
+										CornerRadius="4"
+										Padding="10"
+										Width="280">
 									<StackPanel>
-										<!-- Cabeçalho -->
-										<Grid ColumnDefinitions="48,1,*,1,59"
-											  Margin="0,0,0,4">
-											<TextBlock Text="ID"
-													   FontSize="11"
-													   FontWeight="DemiBold"
-													   Foreground="White"
-													   VerticalAlignment="Center"
-													   Margin="7,0,0,0"/>
-
-											<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="4,0"/>
-
-											<TextBlock Grid.Column="2"
-													   Text="Name"
-													   FontSize="11"
-													   FontWeight="DemiBold"
-													   Foreground="White"
-													   VerticalAlignment="Center"
-													   Margin="5,0,0,0"/>
-
-											<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="4,0"/>
-
-											<TextBlock Grid.Column="4"
-													   Text="Actions"
-													   FontSize="11"
-													   FontWeight="DemiBold"
-													   Foreground="White"
+										<Grid ColumnDefinitions="auto,*" ColumnSpacing="4">
+											<!-- Ícone com moldura -->
+											<Grid HorizontalAlignment="Left" Margin="0,0,0,10">
+												<Image Source="avares://Ultimate_Gshop/Resources/frame.png"
+													   Width="40" Height="40"
+													   Stretch="Fill"/>
+												<Image x:Name="DetailGiftIcon"
+													   Width="24" Height="24"
 													   HorizontalAlignment="Center"
 													   VerticalAlignment="Center"/>
+											</Grid>
+
+											<!-- Ícone com GiftName -->
+											<TextBlock Grid.Column="1"
+													   x:Name="DetailGiftName"
+													   TextWrapping="Wrap"
+													   FontSize="13"
+													   HorizontalAlignment="Center"
+													   FontWeight="Bold"
+													   Margin="5,0"
+													   Foreground="White"/>
+										</Grid>
+										<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+											<!-- GiftID -->
+											<controls:FloatingLabelTextBox
+															Grid.Column="0"
+															x:Name="DetailGiftID"
+															Label="Gift ID"
+															IsEnabled="False"
+															InputMode="Number"
+															KeyDown="DetailGiftID_KeyDown"
+															LostFocus="DetailGiftID_LostFocus"/>
+											<!-- GiftAmount -->
+											<controls:FloatingLabelTextBox
+															Grid.Column="1"
+															x:Name="DetailGiftAmount"
+															Label="Gift Amount"
+															IsEnabled="False"
+															InputMode="Number"/>
+										</Grid>
+										<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+											<!-- GiftPrice -->
+											<controls:FloatingLabelTextBox
+															Grid.Column="0"
+															x:Name="DetailGiftPrice"
+															Label="Gift Price"
+															IsEnabled="False"
+															InputMode="Decimal"/>
+											<!-- GiftTime -->
+											<controls:FloatingLabelTextBox
+															Grid.Column="1"
+															x:Name="DetailGiftTime"
+															Label="Gift Time"
+															IsEnabled="False"
+															InputMode="Number"/>
+										</Grid>
+									</StackPanel>
+								</Border>
+
+								<!-- Reserve 1, 2 e 3 -->
+								<Grid Width="280" ColumnDefinitions="*,*,*" ColumnSpacing="4">
+									<!-- Reserve1 -->
+									<controls:FloatingLabelTextBox
+										Grid.Column="0"
+										x:Name="DetailReserve1"
+										Label="Reserve1"
+										IsEnabled="False"
+										InputMode="Number"/>
+
+									<!-- Reserve2 -->
+									<controls:FloatingLabelTextBox
+										x:Name="DetailReserve2"
+										Grid.Column="1"
+										Label="Reserve2"
+										IsEnabled="False"
+										InputMode="Number"/>
+
+									<!-- Reserve3 -->
+									<controls:FloatingLabelTextBox
+										Grid.Column="2"
+										x:Name="DetailReserve3"
+										Label="Reserve3"
+										IsEnabled="False"
+										InputMode="Number"/>
+								</Grid>
+
+								<!-- Reserve 4, 5 e 6 -->
+								<Grid Width="280" ColumnDefinitions="*,*,*" ColumnSpacing="4">
+									<!-- Reserve4 -->
+									<controls:FloatingLabelTextBox
+										Grid.Column="0"
+										x:Name="DetailReserve4"
+										Label="Reserve4"
+										IsEnabled="False"
+										InputMode="Number"/>
+
+									<!-- Reserve5 -->
+									<controls:FloatingLabelTextBox
+										x:Name="DetailReserve5"
+										Grid.Column="1"
+										Label="Reserve5"
+										IsEnabled="False"
+										InputMode="Number"/>
+
+									<!-- Reserve6 -->
+									<controls:FloatingLabelTextBox
+										Grid.Column="2"
+										x:Name="DetailReserve6"
+										Label="Reserve6"
+										IsEnabled="False"
+										InputMode="Number"/>
+								</Grid>
+								<!-- Owner List -->
+								<Border Background="#344c51"
+										BorderBrush="#5d5737"
+										BorderThickness="1"
+										CornerRadius="4"
+										Padding="10"
+										Width="280">
+
+									<StackPanel Spacing="10">
+
+										<!-- Título da seção -->
+										<TextBlock Text="Owner NPCs"
+												   FontWeight="Bold"
+												   Foreground="White"
+												   FontSize="13"
+												   Margin="0,0,0,4"/>
+
+										<!-- Grid de adição -->
+										<Grid ColumnDefinitions="*,Auto"
+											  ColumnSpacing="4">
+											<controls:FloatingLabelTextBox
+												x:Name="DetailOwnerAdd"
+												Label="Owner NPC"
+												IsEnabled="False"
+												InputMode="Number"
+												KeyDown="DetailOwnerAdd_KeyDown"/>
+
+											<Button Grid.Column="1"
+													x:Name="DetailOwnerAddButton"
+													Width="35" Height="35"
+													Margin="0" Padding="0"
+													Background="Transparent"
+													BorderBrush="Transparent"
+													IsDefault="False"
+													Opacity="0.25"
+													IsEnabled="False"
+													Click="AddOwner_Click">
+												<Image Source="avares://Ultimate_Gshop/Resources/btn_add.png"/>
+											</Button>
 										</Grid>
 
-										<!-- Lista -->
+										<!-- Lista de owners com borda própria -->
 										<Border Background="#2b3d41"
 												BorderBrush="#5d5737"
 												BorderThickness="1"
 												CornerRadius="4"
 												Padding="6">
-											<ItemsControl x:Name="DetailOwnerList">
-												<ItemsControl.Resources>
-													<x:Boolean x:Key="IsEnableDetailOwnerRemoveButton">True</x:Boolean>
-													<x:Double x:Key="OpacityDetailOwnerRemoveButton">0.8</x:Double>
-												</ItemsControl.Resources>
 
-												<ItemsControl.ItemsPanel>
-													<ItemsPanelTemplate>
-														<StackPanel/>
-													</ItemsPanelTemplate>
-												</ItemsControl.ItemsPanel>
+											<StackPanel>
+												<!-- Cabeçalho -->
+												<Grid ColumnDefinitions="48,1,*,1,59"
+													  Margin="0,0,0,4">
+													<TextBlock Text="ID"
+															   FontSize="11"
+															   FontWeight="DemiBold"
+															   Foreground="White"
+															   VerticalAlignment="Center"
+															   Margin="7,0,0,0"/>
 
-												<ItemsControl.ItemTemplate>
-													<DataTemplate>
-														<Border BorderBrush="#5d5737" BorderThickness="0,1,0,0" Padding="2,6">
-															<Grid ColumnDefinitions="40,1,*,1,50"
-																  VerticalAlignment="Center">
+													<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="4,0"/>
 
-																<!-- ID -->
-																<TextBlock Text="{Binding DetailOwnerID}"
-																		   Foreground="White"
-																		   FontSize="11"
-																		   VerticalAlignment="Center"
-																		   HorizontalAlignment="Left"/>
+													<TextBlock Grid.Column="2"
+															   Text="Name"
+															   FontSize="11"
+															   FontWeight="DemiBold"
+															   Foreground="White"
+															   VerticalAlignment="Center"
+															   Margin="5,0,0,0"/>
 
-																<!-- Linha vertical entre ID e Name -->
-																<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="4,0"/>
+													<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="4,0"/>
 
-																<!-- Name -->
-																<TextBlock Grid.Column="2"
-																		   Text="{Binding DetailOwnerName}"
-																		   Foreground="White"
-																		   FontSize="11"
-																		   VerticalAlignment="Center"
-																		   HorizontalAlignment="Left"/>
+													<TextBlock Grid.Column="4"
+															   Text="Actions"
+															   FontSize="11"
+															   FontWeight="DemiBold"
+															   Foreground="White"
+															   HorizontalAlignment="Center"
+															   VerticalAlignment="Center"/>
+												</Grid>
 
-																<!-- Linha vertical entre Name e Ações -->
-																<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="4,0"/>
+												<!-- Lista -->
+												<Border Background="#2b3d41"
+														BorderBrush="#5d5737"
+														BorderThickness="1"
+														CornerRadius="4"
+														Padding="6">
+													<ItemsControl x:Name="DetailOwnerList">
+														<ItemsControl.Resources>
+															<x:Boolean x:Key="IsEnableDetailOwnerRemoveButton">True</x:Boolean>
+															<x:Double x:Key="OpacityDetailOwnerRemoveButton">0.8</x:Double>
+														</ItemsControl.Resources>
 
-																<!-- Botão remover -->
-																<Button Grid.Column="4"
-																		Width="25" Height="25"
-																		Margin="0" Padding="0"
-																		Background="Transparent"
-																		BorderBrush="Transparent"
-																		Opacity="{StaticResource OpacityDetailOwnerRemoveButton}"
-																		IsEnabled="{StaticResource IsEnableDetailOwnerRemoveButton}"
-																		Click="RemoveOwner_Click"
-																		Tag="{Binding DetailOwnerID}"
-																		HorizontalAlignment="Center"
-																		VerticalAlignment="Center">
-																	<Image Source="avares://Ultimate_Gshop/Resources/btn_remove.png"/>
-																</Button>
-															</Grid>
-														</Border>
-													</DataTemplate>
-												</ItemsControl.ItemTemplate>
-											</ItemsControl>
+														<ItemsControl.ItemsPanel>
+															<ItemsPanelTemplate>
+																<StackPanel/>
+															</ItemsPanelTemplate>
+														</ItemsControl.ItemsPanel>
+
+														<ItemsControl.ItemTemplate>
+															<DataTemplate>
+																<Border BorderBrush="#5d5737" BorderThickness="0,1,0,0" Padding="2,6">
+																	<Grid ColumnDefinitions="40,1,*,1,50"
+																		  VerticalAlignment="Center">
+
+																		<!-- ID -->
+																		<TextBlock Text="{Binding DetailOwnerID}"
+																				   Foreground="White"
+																				   FontSize="11"
+																				   VerticalAlignment="Center"
+																				   HorizontalAlignment="Left"/>
+
+																		<!-- Linha vertical entre ID e Name -->
+																		<Border Grid.Column="1" Width="1" Background="#5d5737" Margin="4,0"/>
+
+																		<!-- Name -->
+																		<TextBlock Grid.Column="2"
+																				   Text="{Binding DetailOwnerName}"
+																				   Foreground="White"
+																				   FontSize="11"
+																				   VerticalAlignment="Center"
+																				   HorizontalAlignment="Left"/>
+
+																		<!-- Linha vertical entre Name e Ações -->
+																		<Border Grid.Column="3" Width="1" Background="#5d5737" Margin="4,0"/>
+
+																		<!-- Botão remover -->
+																		<Button Grid.Column="4"
+																				Width="25" Height="25"
+																				Margin="0" Padding="0"
+																				Background="Transparent"
+																				BorderBrush="Transparent"
+																				Opacity="{StaticResource OpacityDetailOwnerRemoveButton}"
+																				IsEnabled="{StaticResource IsEnableDetailOwnerRemoveButton}"
+																				Click="RemoveOwner_Click"
+																				Tag="{Binding DetailOwnerID}"
+																				HorizontalAlignment="Center"
+																				VerticalAlignment="Center">
+																			<Image Source="avares://Ultimate_Gshop/Resources/btn_remove.png"/>
+																		</Button>
+																	</Grid>
+																</Border>
+															</DataTemplate>
+														</ItemsControl.ItemTemplate>
+													</ItemsControl>
+												</Border>
+											</StackPanel>
 										</Border>
 									</StackPanel>
 								</Border>
 							</StackPanel>
-						</Border>
-					</StackPanel>
-				</ScrollViewer>
+						</ScrollViewer>
+					</TabItem>
+				</TabControl>
 				<StackPanel Grid.Row="1"
 							Orientation="Horizontal"
 							HorizontalAlignment="Center"

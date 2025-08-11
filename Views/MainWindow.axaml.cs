@@ -575,10 +575,27 @@ namespace Ultimate_Gshop
                 : 0;
             static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
 
-            // Usa Sales do tagItem (preenchido pelo SaleEditorWindow). Se nulo/vazio, usa fallback.
-            var sales = (tagItem?.Sales != null && tagItem.Sales.Count > 0)
-                ? [.. tagItem.Sales] // opcionalmente clone raso
-                : new List<Sale> { new() { Price = 1, Control = -1 }, new(), new(), new() };
+            // Sempre cria lista a partir do existente ou vazia
+            var sales = (tagItem?.Sales?.Count > 0)
+                ? [.. tagItem.Sales]
+                : new List<Sale>();
+
+            // Se não existir nenhum com preço > 0, cria o principal
+            if (!sales.Any(s => s.Price > 0))
+                sales.Insert(0, new Sale { Price = 1, Control = -1 });
+
+            // Ajusta para ter exatamente 4 itens
+            while (sales.Count < 4)
+                sales.Add(new Sale()); // zerado
+
+
+            if (sales.Count > 4)
+                sales = [.. sales.Take(4)];
+
+            if (sales.Count > 4)
+                sales = [.. sales
+                    .OrderByDescending(s => s.Price) // maiores preços primeiro
+                    .Take(4)];
 
             // Normaliza OwnerNpcs: >0, distintos, no máximo 8, e preenche com zeros.
             int[] owners;
@@ -609,7 +626,6 @@ namespace Ultimate_Gshop
                 SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
                 Icon = DetailIcon.Tag as string ?? string.Empty,
 
-                // Agora preservando o que foi editado
                 Sales = sales,
                 OwnerNpcs = owners,
 

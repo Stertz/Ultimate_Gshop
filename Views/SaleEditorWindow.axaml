@@ -58,11 +58,11 @@
 
 						<!-- Linha 1: Campos numéricos -->
 						<Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="4">
-							<controls:FloatingLabelTextBox x:Name="PriceTextBox" Label="Price" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="1" x:Name="DayTextBox" Label="Days" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="2" x:Name="TimeTextBox" Label="Time" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="3" x:Name="FlagsTextBox" Label="Flags" ContentType="Number"/>
-							<controls:FloatingLabelTextBox Grid.Column="4" x:Name="VipLevelTextBox" Label="Vip Level" ContentType="Number"/>
+							<controls:FloatingLabelTextBox x:Name="PriceTextBox" Label="Price" InputMode="Decimal"/>
+							<controls:FloatingLabelTextBox Grid.Column="1" x:Name="DayTextBox" Label="Days" InputMode="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="2" x:Name="TimeTextBox" Label="Time" InputMode="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="3" x:Name="FlagsTextBox" Label="Flags" InputMode="Number"/>
+							<controls:FloatingLabelTextBox Grid.Column="4" x:Name="VipLevelTextBox" Label="Vip Level" InputMode="Number"/>
 						</Grid>
 
 						<!-- Linha 2: Campos de seleção -->
