@@ -335,7 +335,7 @@
 				   Stretch="Fill"/>
 
 			<!-- Container geral com conteúdo e botões -->
-			<Grid>
+			<Grid HorizontalAlignment="Center">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="Auto"/>
@@ -364,13 +364,14 @@
 						<Setter Property="Padding" Value="0"/>
 						<!-- cor padrão -->
 						<Setter Property="Margin" Value="70,10,-50,-10"/>
+						<Setter Property="HorizontalAlignment" Value="Center"/>
 						<!-- espaçamento entre abas -->
 						<Setter Property="MinWidth" Value="80"/>
 						<Setter Property="Template">
 							<ControlTemplate>
 								<Border CornerRadius="7"
 										BorderThickness="1"
-										Padding="12,0"
+										Padding="0"
 										Background="#344c51"
 										BorderBrush="#5d5737"
 										BoxShadow="0 1 0 0 #0f1a1d, 0 0 10 0 #00000055">
@@ -379,8 +380,8 @@
 											   Foreground="{TemplateBinding Foreground}"
 											   FontSize="{TemplateBinding FontSize}"
 											   FontWeight="{TemplateBinding FontWeight}"
-											   HorizontalAlignment="Center"
-											   Padding="{TemplateBinding Padding}"
+											   HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+											   Padding="0" Margin="0"
 											   Height="{TemplateBinding Height}"
 											   VerticalAlignment="Center"/>
 								</Border>
