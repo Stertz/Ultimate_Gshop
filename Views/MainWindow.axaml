@@ -106,6 +106,15 @@
 											   FontSize="14"
 											   TextAlignment="Center"/>
 								</StackPanel>
+								<Grid.ContextMenu>
+									<ContextMenu>
+										<MenuItem Header="Rename" Click="OnRenameCategoryClick"/>
+										<MenuItem Header="Reset"  Click="OnResetCategoryClick"/>
+									</ContextMenu>
+								</Grid.ContextMenu>
+
+
+
 							</Grid>
 						</Border>
 					</DataTemplate>

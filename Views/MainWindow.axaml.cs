@@ -329,6 +329,9 @@ namespace Ultimate_Gshop
 
         private async void OnCategoryClick(object? sender, PointerPressedEventArgs e)
         {
+
+            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
             if (sender is Grid grid && grid.DataContext is Category category && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
@@ -365,6 +368,8 @@ namespace Ultimate_Gshop
 
         private async void OnSubCategoryClick(object? sender, PointerPressedEventArgs e)
         {
+
+           
             if (sender is Grid grid && grid.DataContext is string subCategory && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
@@ -396,6 +401,30 @@ namespace Ultimate_Gshop
             }
         }
 
+        private async void OnRenameCategoryClick(object? sender, RoutedEventArgs e)
+        {
+            var category = _shop.Categories[_selectedCategory];
+
+            var dialog = new TextInputDialog
+            {
+                Title = "Enter New Name",
+                Prompt = "Title:"
+            };
+
+            var result = await dialog.ShowDialog<string?>(this);
+
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                category.Title = result;
+                CategoryList.ItemsSource = null;
+                CategoryList.ItemsSource = _shop.Categories;
+            }
+        }
+
+        private void OnResetCategoryClick(object? sender, RoutedEventArgs e)
+        {
+
+        }
 
 
         #endregion
@@ -657,8 +686,8 @@ namespace Ultimate_Gshop
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
 
-            _selectedCategory = item.CategoryIndex;
-            _selectedSubCategory = item.SubCategoryIndex;
+            //_selectedCategory = item.CategoryIndex;
+            //_selectedSubCategory = item.SubCategoryIndex;
             UpdateGrid();
         }
 
