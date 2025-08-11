@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Ultimate_Gshop.Views.CustomMessageBox"
+		xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         Width="420"
 		SizeToContent="Height"
         SystemDecorations="None"
@@ -42,6 +43,15 @@
 					   TextWrapping="Wrap"
 					   TextAlignment="Center"
 					   Width="300"/>
+
+			<!-- Input opcional -->
+			<StackPanel x:Name="InputPanel" IsVisible="False" Spacing="6" HorizontalAlignment="Center">
+				<controls:FloatingLabelTextBox x:Name="InputBox"
+										 Label="Digite aqui"
+										 Width="300"
+										 FontSize="14"
+										 Foreground="White"/>
+			</StackPanel>
 
 			<!-- Botões -->
 			<StackPanel x:Name="ButtonPanel"
