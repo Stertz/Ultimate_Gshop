@@ -10,7 +10,7 @@ namespace Ultimate_Gshop.Gshop.Services
 
             if (!ApplicationSettings.GshopExists)
             {
-                return await ImportGshop.Handle(owner);
+                return await ImportGshop.Handle(owner) ?? LoadGshop.Handle(ApplicationSettings.GshopTemp);
             }
 
             return LoadGshop.Handle(ApplicationSettings.GshopTemp);
