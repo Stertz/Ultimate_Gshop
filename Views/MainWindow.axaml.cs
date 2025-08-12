@@ -61,38 +61,106 @@ namespace Ultimate_Gshop
         protected override async void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
+
             Cursor = ApplicationSettings.InitializeCustomCursor();
 
-            _shop = ApplicationSettings.GshopExists ? await ContinueGshop.Handle(this) : await ReturnGshopFromMenu();
+            _shop = ApplicationSettings.GshopExists
+                ? await ContinueGshop.Handle(this)
+                : await ReturnGshopFromMenu();
 
-            if (_shop is null)
-            {
-                Close();
-                return;
-            }
+            if (_shop is null) { Close(); return; }
 
-            // Assina eventos roteados do Avalonia no UserControl
-            DetailGiftID.AddHandler(KeyDownEvent,
-                DetailGiftID_KeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
-            DetailGiftID.AddHandler(LostFocusEvent,
-                DetailGiftID_LostFocus, RoutingStrategies.Bubble);
-
-            // Dispara ExecuteSearch no KeyUp do controle
-            SearchBox.AddHandler(InputElement.KeyUpEvent, SearchBox_KeyUp,
-                RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
+            // Routed events essenciais
+            DetailGiftID.AddHandler(KeyDownEvent, DetailGiftID_KeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+            DetailGiftID.AddHandler(LostFocusEvent, DetailGiftID_LostFocus, RoutingStrategies.Bubble);
+            SearchBox.AddHandler(InputElement.KeyUpEvent, SearchBox_KeyUp, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
             _settings = GshopSettings.Load();
             _tracking = ShopTracking.Load();
-
-            RedoButton.IsEnabled = false;
-            UndoButton.IsEnabled = false;
             _tracking.PropertyChanged += OnTrackingChange;
+
+            UndoButton.IsEnabled = false;
+            RedoButton.IsEnabled = false;
+
             CategoryList.ItemsSource = _shop.Categories;
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
             SelectFirstCategory();
+
+
+            // ItemsList: copiar (clona e posiciona no próximo Place)
+            ItemsList.CopyRequested += async (_, item) =>
+            {
+                if (!await ConfirmDiscardChanges() || item is null) return;
+
+                var cloned = item.Clone();                     // clone
+                var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
+                cloned.Place = maxPlace + 1;                   // próximo slot
+
+                _currentState = DetailState.Creating;
+                SetItemDetailsEnabled();
+                FillItemDetails(cloned);
+            };
+
+            // ItemsList: editar
+            ItemsList.EditRequested += async (_, item) =>
+            {
+                if (!await ConfirmDiscardChanges()) return;
+
+                _currentState = DetailState.Editing;
+                SetItemDetailsEnabled();
+                FillItemDetails(item);
+            };
+
+            // ItemsList: excluir
+            ItemsList.DeleteRequested += async (_, item) =>
+            {
+                if (!await ConfirmDiscardChanges()) return;
+
+                FillItemDetails(item);
+                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
+                {
+                    UpdateGrid();
+                    _currentState = DetailState.Viewing;
+                    SetItemDetailsEnabled();
+                }
+            };
+
+            // ItemsList: seleção
+            ItemsList.ItemPressed += async (_, item) =>
+            {
+                if (!await ConfirmDiscardChanges()) return;
+                SelectItem(item);
+            };
+
+            // ItemsList: reorder (recalcula Place preservando base do escopo)
+            ItemsList.ReorderRequested += (_, args) =>
+            {
+                var scope = _shop.Itens
+                    .Where(i => i.CategoryIndex == _selectedCategory &&
+                                (_selectedSubCategory < 0 || i.SubCategoryIndex == _selectedSubCategory))
+                    .OrderBy(i => i.Place)
+                    .ToList();
+
+                if (scope.Count == 0) return;
+
+                var basePlace = scope.Min(i => i.Place);
+                var srcIdx = scope.FindIndex(i => i.Place == args.SourcePlace);
+                if (srcIdx < 0) return;
+
+                var moving = scope[srcIdx];
+                scope.RemoveAt(srcIdx);
+
+                var insertIdx = Math.Clamp(args.TargetIndex, 0, scope.Count);
+                scope.Insert(insertIdx, moving);
+
+                for (int i = 0; i < scope.Count; i++)
+                    scope[i].Place = basePlace + i;
+
+                UpdateGrid();
+                ItemsList.SelectByPlace(moving.Place);
+                SelectItem(moving.Clone());
+            };
         }
 
         protected override void OnClosing(WindowClosingEventArgs e)
@@ -129,87 +197,6 @@ namespace Ultimate_Gshop
         }
 
         #region Item Events
-
-        private async void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
-        {
-            if (sender is Grid grid)
-            {
-                if (!await ConfirmDiscardChanges()) return;
-                var item = (grid.Tag as Item);
-                if (item == null) return;
-                SelectItem(item);
-                if (grid.Parent is Border current)
-                {
-                    RemoveShadow(_lastSelectedBorder);
-                    ApplyGoldShadow(current);
-                    _lastSelectedBorder = current;
-                }
-            }
-        }
-
-        private async void ItemCopyButton_Click(object? sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is Item item)
-            {
-                if (!await ConfirmDiscardChanges()) return;
-                if (item == null) return;
-
-                _currentState = DetailState.Creating;
-                SetItemDetailsEnabled();
-                FillItemDetails(item);
-
-                RemoveShadow(_lastSelectedBorder);
-                _lastSelectedBorder = null;
-            }
-        }
-
-        private async void ItemEditButton_Click(object? sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is Item item)
-            {
-                if (!await ConfirmDiscardChanges()) return;
-                if (item == null) return;
-
-                _currentState = DetailState.Editing;
-                SetItemDetailsEnabled();
-                FillItemDetails(item);
-
-                if (btn.Parent is Grid grid && grid.Parent is Border current)
-                {
-                    RemoveShadow(_lastSelectedBorder);
-
-                    ApplyGoldShadow(current);
-                    _lastSelectedBorder = current;
-                }
-            }
-        }
-
-        private async void ItemDeleteButton_Click(object? sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is Item item)
-            {
-                if (!await ConfirmDiscardChanges()) return;
-                if (item == null) return;
-
-                FillItemDetails(item);
-
-                if (btn.Parent is Grid grid && grid.Parent is Border current)
-                {
-                    RemoveShadow(_lastSelectedBorder);
-
-                    ApplyGoldShadow(current);
-                    _lastSelectedBorder = current;
-                }
-
-                if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
-                {
-                    UpdateGrid();
-                    _currentState = DetailState.Viewing;
-                    SetItemDetailsEnabled();
-                }
-            }
-        }
-
         private async void DetailNew_Click(object? sender, RoutedEventArgs e)
         {
             if (!await ConfirmDiscardChanges()) return;
@@ -462,7 +449,8 @@ namespace Ultimate_Gshop
             if (filtered != null)
             {
                 _currentItems = filtered.AsQueryable();
-                FillTable();
+                ItemsList.ItemsSource = _currentItems;
+                ItemsList.FillTable();
             }
 
             RemoveShadow(_lastSelectedBorder);
@@ -499,26 +487,6 @@ namespace Ultimate_Gshop
         #endregion
 
         #region Utils
-
-        private void FillTable()
-        {
-            var convertedList = _currentItems?.Select(item => new
-            {
-                Tag = item,
-                item.ID,
-                item.Name,
-                item.Amount,
-                LimitPeriod = item.LimitPeriod == 0 ? "Perm." : $"{item.LimitPeriod} dias",
-                Price = item.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture),
-                IconBitmap = item.LoadImage()
-            }).ToList();
-
-            var repeater = this.FindControl<ItemsRepeater>("ItemList");
-            if (repeater != null)
-            {
-                repeater.ItemsSource = convertedList;
-            }
-        }
 
         private async Task<bool> ConfirmDiscardChanges()
         {
@@ -591,13 +559,20 @@ namespace Ultimate_Gshop
                 owners = [.. list];
             }
 
+            // garantir PLACE único quando Creating
+            var isCreating = _currentState == DetailState.Creating;
+            var ensuredPlace = isCreating
+                ? (_shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) + 1 : 0)      // novo place
+                : (_currentSelectedItem?.Place ?? tagItem?.Place                        // mantém o place ao editar
+                    ?? (_shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) + 1 : 0));
+
             var item = new Item()
             {
                 ID = ParseInt(DetailID.Text),
                 Name = DetailName.Text ?? string.Empty,
                 Amount = ParseInt(DetailAmount.Text),
                 Explanation = ExplanationEditorControl.ExportText(),
-                Place = _shop.Itens.FindIndex(i => i.ID == ParseInt(DetailID.Text)),
+                Place = ensuredPlace,
                 CategoryIndex = DetailCategoryComboBox.SelectedIndex,
                 SubCategoryIndex = DetailSubCategoryComboBox.SelectedIndex,
                 Icon = DetailIcon.Tag as string ?? string.Empty,
@@ -636,6 +611,18 @@ namespace Ultimate_Gshop
             //_selectedCategory = item.CategoryIndex;
             //_selectedSubCategory = item.SubCategoryIndex;
             UpdateGrid();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Re-seleciona e destaca o item salvo pelo Place
+                ItemsList.SelectByPlace(item.Place);  // destaca e dá BringIntoView no card
+
+                // Só leva pro fim se for novo (ou se estiver no último place)
+                var lastPlace = _shop.Itens.Count > 0 ? _shop.Itens.Max(i => i.Place) : item.Place;
+                if (item.Place == lastPlace)
+                    ItemsList.ScrollToEnd();
+            }, DispatcherPriority.Render);
+
         }
 
         private void UpdateGiftPreview()
@@ -903,7 +890,8 @@ namespace Ultimate_Gshop
             FillItemDetails(null);
 
             _currentItems = query;
-            FillTable();
+            ItemsList.ItemsSource = _currentItems;
+            ItemsList.FillTable();
 
         }
 

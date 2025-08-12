@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ultimate_Gshop.Views.UserControls.ItemsListControl"
+             Width="460" Height="370">
+
+	<ScrollViewer x:Name="RootScroll"
+				  VerticalAlignment="Top"
+				  VerticalScrollBarVisibility="Visible">
+		<ItemsRepeater x:Name="ItemList">
+			<ItemsRepeater.Layout>
+				<UniformGridLayout Orientation="Horizontal"
+								   MinRowSpacing="5"
+								   MinColumnSpacing="5"/>
+			</ItemsRepeater.Layout>
+
+			<ItemsRepeater.ItemTemplate>
+				<DataTemplate>
+					<Border x:Name="CardBorder"
+							CornerRadius="4"
+							BorderThickness="0"
+							BorderBrush="Transparent"
+							Margin="2"
+							BoxShadow="0 0 10 0 Transparent"
+							Tag="{Binding Place}">
+						<!-- Tag do Border = Place -->
+						<Grid Width="218" Height="92" Margin="0.8"
+							  Tag="{Binding Tag}"
+							  PointerPressed="OnItemCard_PointerPressed"
+							  PointerMoved="OnItemCard_PointerMoved"
+							  PointerReleased="OnItemCard_PointerReleased">
+							<!-- Tag do Grid = Item -->
+
+							<Image Source="avares://Ultimate_Gshop/Resources/item_slot_frame.png"
+								   Stretch="Fill"/>
+
+							<Image Source="{Binding IconBitmap}" Width="31" Height="31"
+								   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,42,0,0"/>
+
+							<TextBlock Text="{Binding Name}" HorizontalAlignment="Center"
+									   VerticalAlignment="Top" Margin="0,7,0,0" FontSize="11"
+									   FontWeight="Bold" Foreground="White"/>
+
+							<TextBlock Text="{Binding ID, StringFormat=ID: {0}}" HorizontalAlignment="Left"
+									   VerticalAlignment="Top" Margin="60,34,0,0" FontSize="11"
+									   FontWeight="DemiBold" Foreground="White"/>
+
+							<TextBlock Text="{Binding Price, StringFormat={}{0} GOLD}" HorizontalAlignment="Left"
+									   VerticalAlignment="Top" Margin="60,48.5,0,0" FontSize="10.5"
+									   FontWeight="DemiBold" Foreground="#ebb935"/>
+
+							<TextBlock Text="{Binding LimitPeriod}" HorizontalAlignment="Right"
+									   VerticalAlignment="Top" Margin="0,34,10,0" FontSize="11"
+									   FontWeight="DemiBold" Foreground="White"/>
+
+							<TextBlock Text="{Binding Amount, StringFormat={}{0} Qtd}" HorizontalAlignment="Right"
+									   VerticalAlignment="Top" Margin="0,48.5,10,0" FontSize="10.5"
+									   FontWeight="DemiBold" Foreground="DarkKhaki"/>
+
+							<!-- Copiar -->
+							<Button Width="52" Height="29" Margin="55,0,0,3" Padding="0"
+									Background="Transparent" BorderBrush="Transparent"
+									HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.9"
+									Click="ItemCopyButton_Click" Tag="{Binding Tag}">
+								<Grid>
+									<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+									<TextBlock Text="Copiar" Foreground="White" FontSize="9" FontWeight="DemiBold"
+											   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Grid>
+							</Button>
+
+							<!-- Editar -->
+							<Button Width="52" Height="29" Margin="107,0,0,3" Padding="0"
+									Background="Transparent" BorderBrush="Transparent"
+									HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.9"
+									Click="ItemEditButton_Click" Tag="{Binding Tag}">
+								<Grid>
+									<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+									<TextBlock Text="Editar" Foreground="White" FontSize="9" FontWeight="DemiBold"
+											   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Grid>
+							</Button>
+
+							<!-- Excluir -->
+							<Button Width="52" Height="29" Margin="160,0,0,3" Padding="0"
+									Background="Transparent" BorderBrush="Transparent"
+									HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.9"
+									Click="ItemDeleteButton_Click" Tag="{Binding Tag}">
+								<Grid>
+									<Image Source="avares://Ultimate_Gshop/Resources/btn.png"/>
+									<TextBlock Text="Excluir" Foreground="White" FontSize="9" FontWeight="DemiBold"
+											   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Grid>
+							</Button>
+
+						</Grid>
+					</Border>
+				</DataTemplate>
+			</ItemsRepeater.ItemTemplate>
+		</ItemsRepeater>
+	</ScrollViewer>
+</UserControl>
