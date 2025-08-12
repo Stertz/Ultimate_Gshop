@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -124,7 +125,6 @@ public partial class ItemsListControl : UserControl
                 ApplyGoldShadow(border);
                 _lastSelectedBorder = border;
                 border.BringIntoView();
-
                 break;
             }
         }
@@ -256,6 +256,46 @@ public partial class ItemsListControl : UserControl
         }
     }
 
+    // --- Helpers para calcular alvo quando solta no "vão" ---
+    private Rect GetRectRelativeTo(Border b, Visual relativeTo)
+    {
+        var topLeft = b.TranslatePoint(new Point(0, 0), relativeTo) ?? new Point(0, 0);
+        return new Rect(topLeft, b.Bounds.Size);
+    }
+
+    private int GetTargetIndexFromPoint(Point pInList)
+    {
+        // pega todos os cards visíveis e ordena por linha (Y) depois coluna (X)
+        var cards = ItemList.GetVisualDescendants()
+            .OfType<Border>()
+            .Where(b => b.Name == "CardBorder")
+            .Select(b => new { Border = b, Rect = GetRectRelativeTo(b, ItemList) })
+            .OrderBy(x => x.Rect.Y)
+            .ThenBy(x => x.Rect.X)
+            .ToList();
+
+        if (cards.Count == 0) return 0;
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            var r = cards[i].Rect;
+
+            // 1) Estamos acima do retângulo do card i ⇒ insere antes dele
+            if (pInList.Y < r.Top) return i;
+
+            // 2) Dentro da faixa vertical do card i ⇒ decide pela metade
+            if (pInList.Y <= r.Bottom)
+            {
+                return pInList.X < (r.Left + r.Width / 2.0)
+                    ? i
+                    : Math.Min(i + 1, cards.Count);
+            }
+        }
+
+        // 3) Abaixo do último card ⇒ fim
+        return cards.Count;
+    }
+
     private void OnItem_Drop(object? sender, DragEventArgs e)
     {
         if (!e.Data.Contains("application/x-item-place")) return;
@@ -264,8 +304,7 @@ public partial class ItemsListControl : UserControl
         var sourcePlace = e.Data.Get("application/x-item-place") as int? ?? -1;
         if (sourcePlace < 0) return;
 
-        // Índice padrão caso solte fora de um card específico: ao final da lista
-        var targetIndex = _rows.Count;
+        int targetIndex;
 
         // Descobre o card alvo (Border "CardBorder") sob o ponteiro, se existir
         var border = FindCardBorder(sender);
@@ -277,10 +316,19 @@ public partial class ItemsListControl : UserControl
             if (idx >= 0)
             {
                 // Heurística "antes ou depois" do card alvo:
-                // se soltou na metade esquerda, insere antes; na direita, depois
                 var pt = e.GetPosition(border);
                 targetIndex = pt.X < border.Bounds.Width / 2.0 ? idx : idx + 1;
             }
+            else
+            {
+                targetIndex = _rows.Count;
+            }
+        }
+        else
+        {
+            // *** Novo: caiu no "vão" ⇒ calcula pelo ponto no container da lista ***
+            var ptInList = e.GetPosition(ItemList);
+            targetIndex = GetTargetIndexFromPoint(ptInList);
         }
 
         // Garante que o índice está dentro dos limites
