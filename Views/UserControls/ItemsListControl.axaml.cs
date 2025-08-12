@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -101,7 +98,6 @@ public partial class ItemsListControl : UserControl
 
     private void AttachDnDToCards()
     {
-        
         // Percorre os cards visuais e injeta handlers de DragOver/Drop e ponteiro
         foreach (var b in ItemList.GetVisualDescendants().OfType<Border>().Where(x => x.Name == "CardBorder"))
         {
@@ -110,34 +106,6 @@ public partial class ItemsListControl : UserControl
             b.RemoveHandler(DragDrop.DropEvent, OnItem_Drop);
             b.AddHandler(DragDrop.DragOverEvent, OnItem_DragOver, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
             b.AddHandler(DragDrop.DropEvent, OnItem_Drop, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
-            /*var g = b.GetVisualDescendants().OfType<Grid>().FirstOrDefault();
-            if (g != null)
-            {
-                // Também habilita na Grid interna para melhor área hit‑test
-                DragDrop.SetAllowDrop(g, true);
-                g.RemoveHandler(DragDrop.DragOverEvent, OnItem_DragOver);
-                g.RemoveHandler(DragDrop.DropEvent, OnItem_Drop);
-                g.AddHandler(DragDrop.DragOverEvent, OnItem_DragOver, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-                g.AddHandler(DragDrop.DropEvent, OnItem_Drop, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
-                // Handlers de ponteiro responsáveis por "armar" e iniciar o DnD
-                g.RemoveHandler(PointerPressedEvent, OnItemCard_PointerPressed);
-                g.RemoveHandler(PointerMovedEvent, OnItemCard_PointerMoved);
-                g.RemoveHandler(PointerReleasedEvent, OnItemCard_PointerReleased);
-
-                g.AddHandler(PointerPressedEvent, OnItemCard_PointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-                g.AddHandler(PointerMovedEvent, OnItemCard_PointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-                g.AddHandler(PointerReleasedEvent, OnItemCard_PointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
-                g.RemoveHandler(Button.ClickEvent, ItemCopyButton_Click);
-                g.RemoveHandler(Button.ClickEvent, ItemEditButton_Click);
-                g.RemoveHandler(Button.ClickEvent, ItemDeleteButton_Click);
-
-                g.AddHandler(Button.ClickEvent, ItemCopyButton_Click, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-                g.AddHandler(Button.ClickEvent, ItemEditButton_Click, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-                g.AddHandler(Button.ClickEvent, ItemDeleteButton_Click, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-            }*/
         }
     }
 
@@ -157,8 +125,6 @@ public partial class ItemsListControl : UserControl
                 _lastSelectedBorder = border;
                 border.BringIntoView();
 
-                // Dispara para o host preencher os detalhes
-                ItemPressed?.Invoke(this, it);
                 break;
             }
         }
