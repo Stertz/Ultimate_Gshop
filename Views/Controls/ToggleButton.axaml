@@ -1,0 +1,153 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal">
+
+	<!-- =======================
+     # Paleta estilo do jogo
+     ======================= -->
+	<SolidColorBrush x:Key="PrimaryBackground" Color="#111317"/>
+	<SolidColorBrush x:Key="PrimaryForeground" Color="#F7F0DB"/>
+	<!-- bege claro (osso) -->
+	<SolidColorBrush x:Key="TrackOffFill" Color="#1C2A2E"/>
+	<!-- trilho OFF (verde-acinzentado bem escuro) -->
+	<SolidColorBrush x:Key="TrackOnFill"  Color="#EACB7A"/>
+	<!-- trilho ON (teal escuro) -->
+	<SolidColorBrush x:Key="DisabledFill" Color="#2E3238"/>
+
+	<!-- Dourados (borda / glow) -->
+	<LinearGradientBrush x:Key="GoldBorder" StartPoint="0,0" EndPoint="1,1">
+		<GradientStop Color="#F7E29C" Offset="0"/>
+		<GradientStop Color="#C89B3C" Offset="1"/>
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="GoldBorderHover" StartPoint="0,0" EndPoint="1,1">
+		<GradientStop Color="#FFEAB5" Offset="0"/>
+		<GradientStop Color="#D7B259" Offset="1"/>
+	</LinearGradientBrush>
+
+	<!-- Glow dourado muito sutil -->
+	<SolidColorBrush x:Key="GoldGlow" Color="#ebb935"/>
+
+	<!-- =======================
+     # Preview (opcional)
+     ======================= -->
+	<Design.PreviewWith>
+		<Border Padding="24" Background="{StaticResource PrimaryBackground}" Width="420">
+			<StackPanel Spacing="16" Orientation="Horizontal" HorizontalAlignment="Left">
+				<ToggleButton/>
+				<ToggleButton IsChecked="True"/>
+				<ToggleButton IsThreeState="True" IsChecked="{x:Null}"/>
+				<ToggleButton IsEnabled="False"/>
+				<ToggleButton IsEnabled="False" IsChecked="True"/>
+			</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+
+	<!-- =======================
+     # ToggleButton -> Switch
+     ======================= -->
+	<ControlTheme x:Key="{x:Type ToggleButton}" TargetType="ToggleButton">
+		<!-- Dimensões -->
+		<Setter Property="Width" Value="46"/>
+		<Setter Property="Height" Value="24"/>
+		<Setter Property="HorizontalAlignment" Value="Left"/>
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="Background" Value="Transparent"/>
+
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid>
+					<!-- Trilho -->
+					<Border x:Name="PART_Track"
+							CornerRadius="12"
+							Background="{StaticResource TrackOffFill}"
+							BorderBrush="{StaticResource GoldBorder}"
+							BorderThickness="1">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.10"/>
+								<BrushTransition Property="BorderBrush" Duration="0:0:0.10"/>
+								<DoubleTransition Property="Opacity" Duration="0:0:0.08"/>
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+
+					<!-- Thumb (cunha/“moeda”) -->
+					<Border x:Name="PART_Thumb"
+							Width="16" Height="16"
+							Margin="4,4,26,4"
+							CornerRadius="8"
+							Background="{StaticResource PrimaryForeground}"
+							BorderBrush="#9E8035" BorderThickness="1"
+							HorizontalAlignment="Left">
+						<Border.Transitions>
+							<Transitions>
+								<ThicknessTransition Property="Margin" Duration="0:0:0.10"/>
+								<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.07"/>
+								<DoubleTransition Property="Opacity" Duration="0:0:0.07"/>
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+
+		<!-- Pressionado (leve “peso”) -->
+		<Style Selector="^:pressed /template/ Border#PART_Thumb">
+			<Setter Property="RenderTransform" Value="scale(0.95)"/>
+		</Style>
+
+		<!-- Unchecked -->
+		<Style Selector="^:not(:checked) /template/ Border#PART_Track">
+			<Setter Property="Background" Value="{StaticResource TrackOffFill}"/>
+			<Setter Property="BorderBrush" Value="#7A6743"/>
+			<!-- dourado opaco -->
+			<Setter Property="Opacity" Value="0.95"/>
+		</Style>
+		<Style Selector="^:not(:checked) /template/ Border#PART_Thumb">
+			<Setter Property="Margin" Value="4,4,26,4"/>
+			<Setter Property="Opacity" Value="0.95"/>
+		</Style>
+
+		<!-- Checked -->
+		<Style Selector="^:checked /template/ Border#PART_Track">
+			<Setter Property="Background" Value="{StaticResource TrackOnFill}"/>
+			<Setter Property="BorderBrush" Value="{StaticResource GoldBorder}"/>
+			<Setter Property="Opacity" Value="1"/>
+		</Style>
+		<Style Selector="^:checked /template/ Border#PART_Thumb">
+			<Setter Property="Margin" Value="26,4,4,4"/>
+			<Setter Property="Opacity" Value="1"/>
+		</Style>
+
+		<!-- Indeterminate (thumb central) -->
+		<Style Selector="^:indeterminate /template/ Border#PART_Track">
+			<Setter Property="Background" Value="#20363C"/>
+			<Setter Property="BorderBrush" Value="{StaticResource GoldBorderHover}"/>
+		</Style>
+		<Style Selector="^:indeterminate /template/ Border#PART_Thumb">
+			<Setter Property="Margin" Value="15,4,15,4"/>
+			<Setter Property="Opacity" Value="1"/>
+		</Style>
+
+		<!-- Hover / Focus -->
+		<Style Selector="^:pointerover:not(:disabled) /template/ Border#PART_Track">
+			<Setter Property="BorderBrush" Value="{StaticResource GoldBorderHover}"/>
+		</Style>
+		<Style Selector="^:focus /template/ Border#PART_Track">
+		</Style>
+
+		<!-- Disabled -->
+		<Style Selector="^:disabled /template/ Border#PART_Track">
+			<Setter Property="Background" Value="{StaticResource DisabledFill}"/>
+			<Setter Property="BorderBrush" Value="#5C5443"/>
+			<Setter Property="Opacity" Value="0.55"/>
+		</Style>
+		<Style Selector="^:disabled /template/ Border#PART_Thumb">
+			<Setter Property="Background" Value="#B7AF9B"/>
+			<Setter Property="Opacity" Value="0.55"/>
+		</Style>
+	</ControlTheme>
+</ResourceDictionary>

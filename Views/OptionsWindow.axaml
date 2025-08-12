@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultimate_Gshop.Views.OptionsWindow"
+        xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
+        Width="200" Height="200"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
+	<Grid>
+		<Grid.Background>
+			<ImageBrush Source="avares://Ultimate_Gshop/Resources/items_bg.png" Stretch="Fill"/>
+		</Grid.Background>
+
+		<StackPanel VerticalAlignment="Center" Margin="40" Spacing="12">
+
+
+				<TextBlock Text="Auto Save"
+						   FontSize="14"
+						   Foreground="White"
+						   FontWeight="Bold"
+						   Margin="4,0,0,-7" Padding="0"
+						   HorizontalAlignment="Left"
+						   VerticalAlignment="Center"/>
+				<ToggleButton Classes="switch"
+							  Padding="0" Margin="0"
+							  IsChecked="{Binding AutoSaveToggleButton}">
+				</ToggleButton>
+
+			<controls:FloatingLabelTextBox x:Name="SaveFromSecondsTextBox"
+										   Label="Save From Seconds"
+										   InputMode="Decimal"
+										   Text="{Binding SaveFromSeconds}"/>
+		</StackPanel>
+		
+		<!-- fechar -->
+		<Button Width="30" Height="30"
+				Margin="0,25,25,0"
+				Padding="0"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Top"
+				Opacity="0.9"
+				Click="CloseButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/btn_close.png"/>
+		</Button>
+	</Grid>
+</Window>

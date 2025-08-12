@@ -26,8 +26,11 @@
 		<AvaloniaResource Include="Resources\btn_sale.png" />
 		<AvaloniaResource Include="Resources\error.png" />
 	</ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Views\Controls\ToggleButton.axaml" />
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <None Remove="Resources\bg.png" />
     <None Remove="Resources\btn.png" />
     <None Remove="Resources\btn_add.png" />

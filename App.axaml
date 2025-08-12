@@ -2,9 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Ultimate_Gshop.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <Application.Styles>
-        <FluentTheme />
+	<Application.Styles>
+		<!-- Tema base do Avalonia -->
+		<FluentTheme/>
 	</Application.Styles>
+	<Application.Resources>
+
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<MergeResourceInclude Source="Views/Controls/ToggleButton.axaml"></MergeResourceInclude>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+		</Application.Resources>
 </Application>
