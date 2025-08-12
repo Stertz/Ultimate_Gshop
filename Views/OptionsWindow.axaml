@@ -27,16 +27,15 @@
 				<ToggleButton x:Name="AutoSaveToggleButton"
 							  Classes="switch"
 							  Padding="0" Margin="0"					  
-							  IsCheckedChanged="OnAutoSaveToggle">
+							  IsChecked="{Binding AutoSave, Mode=TwoWay}">
 				</ToggleButton>
 
 			<controls:FloatingLabelTextBox x:Name="SaveFromSecondsTextBox"
 										   Label="Save From Seconds"
 										   InputMode="Number"
-										   Text="{Binding SaveFromSeconds}"/>
+										   Text="{Binding SaveFromSeconds, Mode=TwoWay}"/>
 		</StackPanel>
 		
-		<!-- fechar -->
 		<Button Width="30" Height="30"
 				Margin="0,25,25,0"
 				Padding="0"

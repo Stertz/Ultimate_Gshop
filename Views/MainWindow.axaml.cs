@@ -90,7 +90,7 @@ namespace Ultimate_Gshop
             {
                 _saveTimer = new DispatcherTimer
                 {
-                    Interval = TimeSpan.FromSeconds((long)_settings.SaveFromSeconds!)
+                    Interval = TimeSpan.FromSeconds((_settings.SaveFromSeconds ?? 30))
                 };
 
                 _saveTimer.Tick += SaveTimer_Tick;
