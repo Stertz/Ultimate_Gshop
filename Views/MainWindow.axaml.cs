@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
@@ -28,6 +29,8 @@ namespace Ultimate_Gshop
     public partial class MainWindow : Window
     {
         private bool _isClosingHandled = false;
+
+        private DispatcherTimer? _saveTimer;
 
         private static readonly List<string> ItemClass = ["All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian", "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"];
 
@@ -51,7 +54,6 @@ namespace Ultimate_Gshop
         {
             InitializeComponent();
         }
-
         /// <summary>
         /// Disparado ao abrir a janela
         /// </summary>
@@ -78,6 +80,17 @@ namespace Ultimate_Gshop
             _settings = GshopSettings.Load();
             _tracking = ShopTracking.Load();
             _tracking.PropertyChanged += OnTrackingChange;
+
+            if (_settings.AutoSave)
+            {
+                _saveTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds((long)_settings.SaveFromSeconds!)
+                };
+
+                _saveTimer.Tick += SaveTimer_Tick;
+                _saveTimer.Start();
+            }
 
             UndoButton.IsEnabled = false;
             RedoButton.IsEnabled = false;
@@ -161,6 +174,12 @@ namespace Ultimate_Gshop
                 ItemsList.SelectByPlace(moving.Place);
                 SelectItem(moving.Clone());
             };
+        }
+
+
+        private void SaveTimer_Tick(object? sender, EventArgs e)
+        {
+            SaveGshop.Handle(_shop, _tracking, _settings);
         }
 
         protected override void OnClosing(WindowClosingEventArgs e)
