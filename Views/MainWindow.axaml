@@ -108,8 +108,9 @@
 								</StackPanel>
 								<Grid.ContextMenu>
 									<ContextMenu>
-										<MenuItem Header="Rename" Click="OnRenameCategoryClick"/>
-										<MenuItem Header="Reset"  Click="OnResetCategoryClick"/>
+										<MenuItem Header="Rename Category" Click="OnRenameCategoryClick"/>
+										<MenuItem Header="Reset Category"  Click="OnResetCategoryClick"/>
+										<MenuItem Header="Add SubCategory" Click="OnAddSubCategoryClick"/>
 									</ContextMenu>
 								</Grid.ContextMenu>
 
@@ -122,13 +123,6 @@
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
 
-
-			<Button Content="+"
-				Width="30"
-				Height="30"
-				Margin="80,0,0,280"
-				Click="OnAddSubCategoryClick"/>
-			
 			<!-- SubCategory Panel -->
 			<ItemsControl x:Name="SubCategoryList"
               HorizontalAlignment="Center"
@@ -164,6 +158,14 @@
 										   FontWeight="DemiBold"
 										   FontSize="12"
 										   TextAlignment="Center"/>
+
+								<Grid.ContextMenu>
+									<ContextMenu>
+										<MenuItem Header="Rename SubCategory" Click="OnRenameSubCategoryClick"/>
+										<MenuItem Header="Reset SubCategory"  Click="OnResetSubCategoryClick"/>
+										<MenuItem Header="Delete SubCategory" Click="OnDeleteSubCategoryClick"/>
+									</ContextMenu>
+								</Grid.ContextMenu>
 							</Grid>
 						</Border>
 					</DataTemplate>

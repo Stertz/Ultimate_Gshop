@@ -98,7 +98,9 @@ namespace Ultimate_Gshop
             CategoryList.ItemsSource = _shop.Categories;
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
-            SelectFirstCategory();
+
+            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e sem subcategoria
+                SelectCategoryAndSubCategory();
 
 
             // ItemsList: copiar (clona e posiciona no próximo Place)
@@ -332,53 +334,28 @@ namespace Ultimate_Gshop
 
         private async void OnCategoryClick(object? sender, PointerPressedEventArgs e)
         {
-
-            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-
             if (sender is Grid grid && grid.DataContext is Category category && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
-                _currentState = DetailState.Viewing;
-                SetItemDetailsEnabled();
-
-                int categoryIndex = _shop!.Categories.IndexOf(category);
-                SearchBox.Text = string.Empty;
-
+                if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && _lastSelectedCategory == current) return;
+                // Toggle off se clicar na mesma categoria
                 if (_lastSelectedCategory == current)
                 {
-                    RemoveShadow(current);
-                    _lastSelectedCategory = null;
-                    SubCategoryList.ItemsSource = null;
-                    DetailSubCategoryComboBox.ItemsSource = null;
-                    _selectedCategory = -1;
-                    _selectedSubCategory = -1;
-                    UpdateGrid();
+                    SelectCategoryAndSubCategory();
                     return;
                 }
 
-                RemoveShadow(_lastSelectedCategory);
-
-                ApplyGoldShadow(current);
-                _lastSelectedCategory = current;
-
-                SubCategoryList.ItemsSource = category.SubCategories;
-                DetailSubCategoryComboBox.ItemsSource = category.SubCategories;
-
-                CategoryToggled(categoryIndex);
-
+                var categoryIndex = _shop!.Categories.IndexOf(category);
+                SelectCategoryAndSubCategory(categoryIndex);
             }
         }
 
         private async void OnSubCategoryClick(object? sender, PointerPressedEventArgs e)
         {
-
-           
             if (sender is Grid grid && grid.DataContext is string subCategory && grid.Parent is Border current)
             {
                 if (!await ConfirmDiscardChanges()) return;
-                _currentState = DetailState.Viewing;
-                SetItemDetailsEnabled();
-                SearchBox.Text = string.Empty;
+                if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && _lastSelectedSubCategory == current) return;
 
                 if (_lastSelectedCategory?.Child is not Grid categoryGrid ||
                     categoryGrid.DataContext is not Category category)
@@ -386,27 +363,21 @@ namespace Ultimate_Gshop
 
                 int subCategoryIndex = category.SubCategories.IndexOf(subCategory);
 
+
                 if (_lastSelectedSubCategory == current)
                 {
-                    RemoveShadow(current);
-                    _lastSelectedSubCategory = null;
-                    _selectedSubCategory = -1;
-                    UpdateGrid();
+                    SelectCategoryAndSubCategory(_selectedCategory);
                     return;
                 }
-
-                RemoveShadow(_lastSelectedSubCategory);
-
-                ApplyGoldShadow(current);
-                _lastSelectedSubCategory = current;
-
-                SubCategoryToggled(subCategoryIndex);
+                var categoryIndex = _shop!.Categories.IndexOf(category);
+                SelectCategoryAndSubCategory(categoryIndex, subCategoryIndex);
             }
         }
 
         private async void OnRenameCategoryClick(object? sender, RoutedEventArgs e)
         {
-            var category = _shop.Categories[_selectedCategory];
+            if (_selectedCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
 
             var dlg = new CustomMessageBox(
                 title: "Renomear",
@@ -414,7 +385,7 @@ namespace Ultimate_Gshop
                 icon: CustomMessageBox.MessageBoxIcon.Information,
                 withInput: true,
                 inputLabel: "Category", // aparece no FloatingLabelTextBox
-                initialText: "",        // opcional
+                initialText: _shop.Categories[_selectedCategory].Title,
                 buttons: ["OK", "Cancelar"]
             );
 
@@ -422,25 +393,50 @@ namespace Ultimate_Gshop
 
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                category.Title = result.Text;
-                CategoryList.ItemsSource = null;
-                CategoryList.ItemsSource = _shop.Categories;
+                _shop.Categories[_selectedCategory].Title = result.Text;
+                CategoryList.ItemsSource = _shop.Categories.ToList();
+                SelectCategoryAndSubCategory(_selectedCategory);
             }
         }
 
-        private void OnResetCategoryClick(object? sender, RoutedEventArgs e)
+        private async void OnResetCategoryClick(object? sender, RoutedEventArgs e)
         {
+            if (_selectedCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
 
+            var dlg = new CustomMessageBox(
+                title: "Resetar Categoria?",
+                message: "Isso vai excluir TODOS os itens desta categoria. Deseja continuar?",
+                icon: CustomMessageBox.MessageBoxIcon.Question,
+                buttons: ["Sim", "Cancelar"]
+            );
+
+            var choice = await dlg.ShowDialogAsync(this);
+            if (choice != "Sim") return;
+
+            // Remove in-place para manter a referência da lista
+            var removed = _shop.Itens.RemoveAll(i => i.CategoryIndex == _selectedCategory);
+
+            SearchBox.Text = string.Empty;
+            SelectCategoryAndSubCategory(_selectedCategory);
+
+            await new CustomMessageBox(
+                title: "Categoria resetada",
+                message: removed > 0 ? $"{removed} itens removidos." : "Nenhum item para remover.",
+                icon: CustomMessageBox.MessageBoxIcon.Information,
+                buttons: ["OK"]
+            ).ShowDialogAsync(this);
         }
+
 
         private async void OnAddSubCategoryClick(object? sender, RoutedEventArgs e)
         {
-
             if (_selectedCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
 
             var category = _shop.Categories[_selectedCategory];
 
-            if(category.SubCategories.Count >= 11)
+            if (category.SubCategories.Count >= 11)
             {
                 await new CustomMessageBox("Subcategoria", "Máximo de subcategorias atingido (11)", "Ok").ShowDialogAsync(this);
                 return;
@@ -461,19 +457,206 @@ namespace Ultimate_Gshop
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
                 category.SubCategories.Add(result.Text);
-                CategoryList.ItemsSource = null;
-                CategoryList.ItemsSource = _shop.Categories;
-                //SubCategoryList.ItemsSource = null;
-                //SubCategoryList.ItemsSource = category.SubCategories;
+                CategoryList.ItemsSource = _shop.Categories.ToList();
+                SelectCategoryAndSubCategory(_selectedCategory, category.SubCategories.Count - 1);
+            }
+        }
+
+        private async void OnRenameSubCategoryClick(object? sender, RoutedEventArgs e)
+        {
+            if (_selectedCategory == -1 || _selectedSubCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
+
+            var category = _shop.Categories[_selectedCategory];
+
+            var currentName = category.SubCategories[_selectedSubCategory];
+
+            var dlg = new CustomMessageBox(
+                title: "Renomear Subcategoria",
+                message: "Informe o novo nome:",
+                icon: CustomMessageBox.MessageBoxIcon.Information,
+                withInput: true,
+                inputLabel: "Subcategory",
+                initialText: currentName,
+                buttons: ["OK", "Cancelar"]
+            );
+
+            var result = await dlg.ShowInputDialogAsync(this);
+            if (result.Button != "OK" || string.IsNullOrWhiteSpace(result.Text)) return;
+
+            var newName = result.Text.Trim();
+            if (newName.Length == 0) return;
+
+            if (category.SubCategories.Contains(newName, StringComparer.OrdinalIgnoreCase))
+            {
+                await new CustomMessageBox("Renomear Subcategoria", "Já existe uma subcategoria com esse nome.", CustomMessageBox.MessageBoxIcon.Error, "OK").ShowDialogAsync(this);
+                return;
             }
 
+            category.SubCategories[_selectedSubCategory] = newName;
+
+            // Rebind das fontes UI
+            SubCategoryList.ItemsSource = category.SubCategories.ToList();
+            DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
+
+            // Mantém a sub renomeada selecionada
+            SelectCategoryAndSubCategory(_selectedCategory, _selectedSubCategory);
         }
 
-        private void OnResetSubCategoryClick(object? sender, RoutedEventArgs e)
+
+        private async void OnResetSubCategoryClick(object? sender, RoutedEventArgs e)
         {
+            if (_selectedCategory == -1 || _selectedSubCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
 
+            var category = _shop.Categories[_selectedCategory];
+
+            var subName = category.SubCategories[_selectedSubCategory];
+
+            var dlg = new CustomMessageBox(
+                title: "Resetar Subcategoria?",
+                message: $"Isso vai excluir TODOS os itens da subcategoria \"{subName}\". Deseja continuar?",
+                icon: CustomMessageBox.MessageBoxIcon.Question,
+                buttons: ["Sim", "Cancelar"]
+            );
+
+            var choice = await dlg.ShowDialogAsync(this);
+            if (choice != "Sim") return;
+
+            // Remove in-place
+            var removed = _shop.Itens.RemoveAll(i =>
+                i.CategoryIndex == _selectedCategory && i.SubCategoryIndex == _selectedSubCategory);
+
+            // Rebind UI e mantém mesma sub selecionada
+            SearchBox.Text = string.Empty;
+            SubCategoryList.ItemsSource = category.SubCategories.ToList();
+            DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
+
+            SelectCategoryAndSubCategory(_selectedCategory, _selectedSubCategory);
+
+            await new CustomMessageBox(
+                title: "Subcategoria resetada",
+                message: removed > 0 ? $"{removed} itens removidos." : "Nenhum item para remover.",
+                icon: CustomMessageBox.MessageBoxIcon.Information,
+                buttons: ["OK"]
+            ).ShowDialogAsync(this);
         }
 
+
+        private async void OnDeleteSubCategoryClick(object? sender, RoutedEventArgs e)
+        {
+            if (_selectedCategory == -1 || _selectedSubCategory == -1) return;
+            if (!await ConfirmDiscardChanges()) return;
+
+            var category = _shop.Categories[_selectedCategory];
+            var subName = category.SubCategories[_selectedSubCategory];
+
+            // Validação: não deixa apagar se houver itens na sub
+            bool hasItems = _shop.Itens.Any(i =>
+                i.CategoryIndex == _selectedCategory && i.SubCategoryIndex == _selectedSubCategory);
+
+            if (hasItems)
+            {
+                await new CustomMessageBox(
+                    title: "Não é possível excluir",
+                    message: $"Existem itens vinculados à subcategoria \"{subName}\". Remova-os ou mova-os antes de excluir.",
+                    icon: CustomMessageBox.MessageBoxIcon.Error,
+                    buttons: ["OK"]
+                ).ShowDialogAsync(this);
+                return;
+            }
+
+            // Confirmação
+            var dlg = new CustomMessageBox(
+                title: "Excluir Subcategoria?",
+                message: $"Tem certeza que deseja excluir \"{subName}\"?",
+                icon: CustomMessageBox.MessageBoxIcon.Question,
+                buttons: ["Excluir", "Cancelar"]
+            );
+
+            var choice = await dlg.ShowDialogAsync(this);
+            if (choice != "Excluir") return;
+
+            // Remove a subcategoria
+            category.SubCategories.RemoveAt(_selectedSubCategory);
+
+            // Limpa seleção de sub e rebind das listas
+            _selectedSubCategory = -1;
+            RemoveShadow(_lastSelectedSubCategory);
+            _lastSelectedSubCategory = null;
+
+            SubCategoryList.ItemsSource = category.SubCategories.ToList();
+            DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
+
+            // Seleciona apenas a categoria
+            SelectCategoryAndSubCategory(_selectedCategory, -1);
+        }
+
+
+        private void SelectCategoryAndSubCategory(int categoryIndex = 0, int subCategoryIndex = -1)
+        {
+            if (_shop is null) return;
+            if (categoryIndex < 0 || categoryIndex >= _shop.Categories.Count) return;
+
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+
+            SearchBox.Text = string.Empty;
+
+            // Limpa shadows anteriores
+            RemoveShadow(_lastSelectedSubCategory);
+            _lastSelectedSubCategory = null;
+            RemoveShadow(_lastSelectedCategory);
+            _lastSelectedCategory = null;
+
+            // Atualiza fontes de subcategoria da categoria alvo
+            var category = _shop.Categories[categoryIndex];
+            SubCategoryList.ItemsSource = category.SubCategories.ToList();
+            DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
+
+            // Atualiza seleção lógica
+            _selectedCategory = categoryIndex;
+            _selectedSubCategory = (subCategoryIndex >= 0 && subCategoryIndex < category.SubCategories.Count)
+                ? subCategoryIndex
+                : -1;
+
+            // Aplica shadow da categoria (agarra o Border do item do CategoryList)
+            CategoryList.ApplyTemplate();
+            Dispatcher.UIThread.Post(() =>
+            {
+                var cp = CategoryList.ContainerFromIndex(categoryIndex) as ContentPresenter;
+                Border? catBorder = null;
+
+                if (cp?.Child is Border b1) catBorder = b1;
+                else if (cp?.Child is Grid g1 && g1.Parent is Border b2) catBorder = b2;
+
+                if (catBorder is not null)
+                {
+                    ApplyGoldShadow(catBorder);
+                    _lastSelectedCategory = catBorder;
+                }
+
+                // Se houver subcategoria selecionada, aplica shadow nela também
+                if (_selectedSubCategory >= 0)
+                {
+                    SubCategoryList.ApplyTemplate();
+                    var scp = SubCategoryList.ContainerFromIndex(_selectedSubCategory) as ContentPresenter;
+                    Border? subBorder = null;
+
+                    if (scp?.Child is Border sb1) subBorder = sb1;
+                    else if (scp?.Child is Grid sg1 && sg1.Parent is Border sb2) subBorder = sb2;
+
+                    if (subBorder is not null)
+                    {
+                        ApplyGoldShadow(subBorder);
+                        _lastSelectedSubCategory = subBorder;
+                    }
+                }
+            }, DispatcherPriority.Render);
+
+            // Atualiza grid conforme os campos selecionados
+            UpdateGrid();
+        }
 
         #endregion
 
@@ -886,35 +1069,6 @@ namespace Ultimate_Gshop
             DetailOwnerList.ItemsSource = rows;
         }
 
-        private void SelectFirstCategory()
-        {
-            if (_shop == null) return;
-            var firstCategory = _shop.Categories.FirstOrDefault();
-            if (firstCategory == null) return;
-
-            SubCategoryList.ItemsSource = firstCategory.SubCategories;
-            DetailSubCategoryComboBox.ItemsSource = firstCategory.SubCategories;
-            int categoryIndex = _shop.Categories.IndexOf(firstCategory);
-
-            CategoryList.ApplyTemplate();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                var container = CategoryList.ContainerFromIndex(categoryIndex) as ContentPresenter;
-                if (container?.Child is Border border)
-                {
-                    ApplyGoldShadow(border);
-                    _lastSelectedCategory = border;
-                }
-                else if (container?.Child is Grid grid && grid.Parent is Border b)
-                {
-                    ApplyGoldShadow(b);
-                    _lastSelectedCategory = b;
-                }
-
-                CategoryToggled(categoryIndex);
-            });
-        }
-
         private void SelectItem(Item item)
         {
             if (item == null) return;
@@ -922,19 +1076,6 @@ namespace Ultimate_Gshop
             SetItemDetailsEnabled();
             FillItemDetails(item);
             _currentSelectedItem = item;
-        }
-
-        private void CategoryToggled(int index)
-        {
-            _selectedCategory = index;
-            _selectedSubCategory = -1;
-            UpdateGrid();
-        }
-
-        private void SubCategoryToggled(int subcategoryIndex)
-        {
-            _selectedSubCategory = subcategoryIndex;
-            UpdateGrid();
         }
 
         private void UpdateGrid()
