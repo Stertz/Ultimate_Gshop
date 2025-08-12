@@ -6,8 +6,8 @@ namespace Ultimate_Gshop.Gshop
 {
     public class ShopTracking : INotifyPropertyChanged
     {
-        public Stack<ShopChange> UndoChanges { get; } = new();
-        public Stack<ShopChange> RedoChanges { get; } = new();
+        public Stack<ShopChange> UndoChanges { get; set; } = new();
+        public Stack<ShopChange> RedoChanges { get; set; } = new();
 
         public bool CanUndo => UndoChanges.Count > 0;
         public bool CanRedo => RedoChanges.Count > 0;

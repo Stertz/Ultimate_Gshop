@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Misc;
+using Ultimate_Gshop.Views;
 namespace Ultimate_Gshop
 {
     public partial class MenuWindow : Window
@@ -137,7 +138,13 @@ namespace Ultimate_Gshop
 
         private void OnOptionsClicked(object sender, RoutedEventArgs e)
         {
-
+            var options_window = new OptionsWindow(_settings!)
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SystemDecorations = SystemDecorations.None,
+                CanResize = false
+            };
+            options_window.Show();
         }
 
     }

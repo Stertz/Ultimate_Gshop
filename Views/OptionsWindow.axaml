@@ -24,14 +24,15 @@
 						   Margin="4,0,0,-7" Padding="0"
 						   HorizontalAlignment="Left"
 						   VerticalAlignment="Center"/>
-				<ToggleButton Classes="switch"
-							  Padding="0" Margin="0"
-							  IsChecked="{Binding AutoSaveToggleButton}">
+				<ToggleButton x:Name="AutoSaveToggleButton"
+							  Classes="switch"
+							  Padding="0" Margin="0"					  
+							  IsCheckedChanged="OnAutoSaveToggle">
 				</ToggleButton>
 
 			<controls:FloatingLabelTextBox x:Name="SaveFromSecondsTextBox"
 										   Label="Save From Seconds"
-										   InputMode="Decimal"
+										   InputMode="Number"
 										   Text="{Binding SaveFromSeconds}"/>
 		</StackPanel>
 		

@@ -78,8 +78,13 @@ namespace Ultimate_Gshop
             SearchBox.AddHandler(InputElement.KeyUpEvent, SearchBox_KeyUp, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
             _settings = GshopSettings.Load();
+
+            UndoButton.IsEnabled = false;
+            RedoButton.IsEnabled = false;
+
             _tracking = ShopTracking.Load();
             _tracking.PropertyChanged += OnTrackingChange;
+            RefreshTracking();
 
             if (_settings.AutoSave)
             {
@@ -91,9 +96,6 @@ namespace Ultimate_Gshop
                 _saveTimer.Tick += SaveTimer_Tick;
                 _saveTimer.Start();
             }
-
-            UndoButton.IsEnabled = false;
-            RedoButton.IsEnabled = false;
 
             CategoryList.ItemsSource = _shop.Categories;
             DetailClassComboBox.ItemsSource = ItemClass;
@@ -182,6 +184,7 @@ namespace Ultimate_Gshop
         private void SaveTimer_Tick(object? sender, EventArgs e)
         {
             SaveGshop.Handle(_shop, _tracking, _settings);
+
         }
 
         protected override void OnClosing(WindowClosingEventArgs e)
@@ -1128,6 +1131,11 @@ namespace Ultimate_Gshop
         }
 
         private void OnTrackingChange(object? sender, PropertyChangedEventArgs e)
+        {
+            RefreshTracking();
+        }
+
+        private void RefreshTracking()
         {
             UndoButton.IsEnabled = _tracking.CanUndo;
             RedoButton.IsEnabled = _tracking.CanRedo;
