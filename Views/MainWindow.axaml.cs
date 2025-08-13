@@ -125,6 +125,7 @@ namespace Ultimate_Gshop
                 if (!await ConfirmDiscardChanges()) return;
 
                 _currentState = DetailState.Editing;
+                _currentSelectedItem = item;
                 SetItemDetailsEnabled();
                 FillItemDetails(item);
             };
