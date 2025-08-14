@@ -657,6 +657,7 @@ namespace Ultimate_Gshop
 
         #endregion
 
+        #region Search
         private async void SearchBox_KeyUp(object? sender, KeyEventArgs e)
         {
             await ExecuteSearchAsync();
@@ -697,6 +698,7 @@ namespace Ultimate_Gshop
             _lastSelectedBorder = null;
             FillItemDetails(null);
         }
+        #endregion
 
         #region Shadow Helpers
 
@@ -847,9 +849,6 @@ namespace Ultimate_Gshop
 
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
-
-            //_selectedCategory = item.CategoryIndex;
-            //_selectedSubCategory = item.SubCategoryIndex;
             UpdateGrid();
 
             Dispatcher.UIThread.Post(() =>
