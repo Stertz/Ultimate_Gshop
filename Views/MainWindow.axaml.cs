@@ -1,20 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
-using DynamicData;
 using System.ComponentModel;
 using System.Globalization;
-using System.Security.Claims;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
@@ -37,6 +29,7 @@ namespace Ultimate_Gshop
         private Shop _shop = new();
         private ShopTracking _tracking = new();
         private GshopSettings _settings = new();
+
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
@@ -67,7 +60,7 @@ namespace Ultimate_Gshop
             Cursor = ApplicationSettings.InitializeCustomCursor();
 
             _shop = ApplicationSettings.GshopExists
-                ? await ContinueGshop.Handle(this)
+                ? ContinueGshop.Handle()
                 : await ReturnGshopFromMenu();
 
             if (_shop is null) { Close(); return; }
@@ -97,13 +90,7 @@ namespace Ultimate_Gshop
                 _saveTimer.Start();
             }
 
-            CategoryList.ItemsSource = _shop.Categories;
-            DetailClassComboBox.ItemsSource = ItemClass;
-            DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
-
-            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e sem subcategoria
-                SelectCategoryAndSubCategory();
-
+            InitializeShopSources();
 
             // ItemsList: copiar (clona e posiciona no próximo Place)
             ItemsList.CopyRequested += async (_, item) =>
@@ -181,13 +168,17 @@ namespace Ultimate_Gshop
             };
         }
 
-
-        private void SaveTimer_Tick(object? sender, EventArgs e)
+        private void InitializeShopSources()
         {
-            SaveGshop.Handle(_shop, _tracking, _settings);
+            CategoryList.ItemsSource = _shop.Categories;
+            DetailClassComboBox.ItemsSource = ItemClass;
+            DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
 
+            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e sem subcategoria
+                SelectCategoryAndSubCategory();
         }
 
+        private void SaveTimer_Tick(object? sender, EventArgs e) => SaveGshop.Handle(_shop, _tracking, _settings);
         protected override void OnClosing(WindowClosingEventArgs e)
         {
             base.OnClosing(e);
@@ -203,7 +194,7 @@ namespace Ultimate_Gshop
             var menuWindow = new MenuWindow()
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
+                SystemDecorations = SystemDecorations.None,
                 CanResize = false
             };
             return await menuWindow.ShowDialog<Shop>(this);
@@ -217,7 +208,9 @@ namespace Ultimate_Gshop
             if (await ConfirmDiscardChanges())
             {
                 _isClosingHandled = true;
-                this.Close();
+                _saveTimer?.Stop();
+                SaveGshop.Handle(_shop, _tracking, _settings);
+                Close();
             }
         }
 
@@ -1117,7 +1110,11 @@ namespace Ultimate_Gshop
                 (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
             );
 
-            await menuWindow.ShowDialog<Shop>(this);
+            _shop = await menuWindow.ShowDialog<Shop>(this);
+
+            InitializeShopSources();
+            UpdateGrid();
+
         }
 
         private void Undo_Click(object? sender, RoutedEventArgs e)

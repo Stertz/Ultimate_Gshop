@@ -162,5 +162,12 @@ namespace Ultimate_Gshop.Gshop
             File.WriteAllText(_tracking, json);
         }
 
+        public static void Save(ShopTracking tracking, string path)
+        {
+            var json = JsonSerializer.Serialize(tracking, ApplicationSettings.IdentedJson);
+            File.WriteAllText(path, json);
+        }
+
+
     }
 }

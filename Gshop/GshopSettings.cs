@@ -29,5 +29,11 @@ namespace Ultimate_Gshop.Gshop
             File.WriteAllText(_settings, json);
         }
 
+        public static void Save(GshopSettings settings, string path)
+        {
+            var json = JsonSerializer.Serialize(settings, ApplicationSettings.IdentedJson);
+            File.WriteAllText(path, json);
+        }
+
     }
 }

@@ -5,16 +5,7 @@ namespace Ultimate_Gshop.Gshop.Services
 {
     public static class ContinueGshop
     {
-        public static async Task<Shop> Handle(Window owner)
-        {
-
-            if (!ApplicationSettings.GshopExists)
-            {
-                return await ImportGshop.Handle(owner) ?? LoadGshop.Handle(ApplicationSettings.GshopTemp);
-            }
-
-            return LoadGshop.Handle(ApplicationSettings.GshopTemp);
-
-        }
+        public static Shop Handle()
+            => LoadGshop.Handle(ApplicationSettings.GshopTemp);
     }
 }

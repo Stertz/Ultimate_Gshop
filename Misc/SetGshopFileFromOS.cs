@@ -16,7 +16,7 @@ namespace Ultimate_Gshop.Misc
             var options = new FolderPickerOpenOptions
             {
                 Title = "Select folder to release file",
-                AllowMultiple = false,
+                AllowMultiple = false
             };
 
             var folders = await window.StorageProvider.OpenFolderPickerAsync(options);
