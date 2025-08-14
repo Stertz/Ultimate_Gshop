@@ -1,111 +1,143 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>False</UseWPF>
-	<LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<!-- Configuração básica do app -->
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>False</UseWPF>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <AvaloniaXaml Remove="Resources\surfaces\**" />
-    <Compile Remove="Resources\surfaces\**" />
-    <EmbeddedResource Remove="Resources\surfaces\**" />
-    <None Remove="Resources\surfaces\**" />
-    <Page Remove="Resources\surfaces\**" />
-  </ItemGroup>
+	<!-- Metadados do produto / assembly -->
+	<PropertyGroup>
+		<AssemblyTitle>Ultimate Gshop</AssemblyTitle>
+		<Product>Ultimate Gshop</Product>
+		<Description>Gshop Editor Tool for the Perfect World Game — supports Gshop &gt;= v1.7.4.</Description>
+		<Company>Ultimate Gshop Project</Company>
+		<!-- Autores em ordem alfabética -->
+		<Authors>João Carlos Ilha Baierle; Lucas Fernando Padilha Stertz</Authors>
+		<NeutralLanguage>en-US</NeutralLanguage>
 
+		<!-- Versões -->
+		<Version>1.0.0</Version>
+		<FileVersion>1.0.0.0</FileVersion>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+
+		<!-- Informações de licença e repositório -->
+		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/joaocib/Ultimate_Gshop</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/joaocib/Ultimate_Gshop</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>PerfectWorld;Gshop;Editor;Avalonia</PackageTags>
+
+		<!-- Ícone do executável -->
+		<ApplicationIcon>Resources\icon_gshop.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<!-- Exclusões específicas -->
+	<ItemGroup>
+		<AvaloniaXaml Remove="Resources\surfaces\**" />
+		<Compile Remove="Resources\surfaces\**" />
+		<EmbeddedResource Remove="Resources\surfaces\**" />
+		<None Remove="Resources\surfaces\**" />
+		<Page Remove="Resources\surfaces\**" />
+	</ItemGroup>
+
+	<!-- Assets a copiar para a saída -->
 	<ItemGroup>
 		<None Include="Resources\surfaces\**\*.png" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-	<ItemGroup>
-		<AvaloniaResource Include="Resources\btn_add.png" />
-		<AvaloniaResource Include="Resources\btn_remove.png" />
-		<AvaloniaResource Include="Resources\btn_sale.png" />
-		<AvaloniaResource Include="Resources\error.png" />
-	</ItemGroup>
+
+	<!-- Recursos Avalonia -->
 	<ItemGroup>
 		<AvaloniaResource Include="Views\Controls\ToggleButton.axaml" />
 	</ItemGroup>
 
+	<!-- Normaliza como AvaloniaResource os arquivos usados pela UI -->
 	<ItemGroup>
-    <None Remove="Resources\bg.png" />
-    <None Remove="Resources\btn.png" />
-    <None Remove="Resources\btn_add.png" />
-    <None Remove="Resources\btn_close.png" />
-    <None Remove="Resources\btn_remove.png" />
-    <None Remove="Resources\btn_sale.png" />
-    <None Remove="Resources\category_frame.png" />
-    <None Remove="Resources\color_palette.png" />
-    <None Remove="Resources\cursor.png" />
-    <None Remove="Resources\error.png" />
-    <None Remove="Resources\frame.png" />
-    <None Remove="Resources\icon_gshop.ico" />
-    <None Remove="Resources\information.png" />
-    <None Remove="Resources\items_bg.png" />
-    <None Remove="Resources\item_slot_frame.png" />
-    <None Remove="Resources\menu.png" />
-    <None Remove="Resources\paper.png" />
-    <None Remove="Resources\preview.png" />
-    <None Remove="Resources\question.png" />
-    <None Remove="Resources\question_mark.png" />
-    <None Remove="Resources\redo_arrow.png" />
-    <None Remove="Resources\search.png" />
-    <None Remove="Resources\search_bar.png" />
-    <None Remove="Resources\settings.png" />
-    <None Remove="Resources\undo_arrow.png" />
-    <None Remove="Resources\unpreview.png" />
-  </ItemGroup>
+		<None Remove="Resources\bg.png" />
+		<None Remove="Resources\btn.png" />
+		<None Remove="Resources\btn_add.png" />
+		<None Remove="Resources\btn_close.png" />
+		<None Remove="Resources\btn_remove.png" />
+		<None Remove="Resources\btn_sale.png" />
+		<None Remove="Resources\category_frame.png" />
+		<None Remove="Resources\color_palette.png" />
+		<None Remove="Resources\cursor.png" />
+		<None Remove="Resources\error.png" />
+		<None Remove="Resources\frame.png" />
+		<None Remove="Resources\icon_gshop.ico" />
+		<None Remove="Resources\information.png" />
+		<None Remove="Resources\items_bg.png" />
+		<None Remove="Resources\item_slot_frame.png" />
+		<None Remove="Resources\menu.png" />
+		<None Remove="Resources\paper.png" />
+		<None Remove="Resources\preview.png" />
+		<None Remove="Resources\question.png" />
+		<None Remove="Resources\question_mark.png" />
+		<None Remove="Resources\redo_arrow.png" />
+		<None Remove="Resources\search.png" />
+		<None Remove="Resources\search_bar.png" />
+		<None Remove="Resources\settings.png" />
+		<None Remove="Resources\undo_arrow.png" />
+		<None Remove="Resources\unpreview.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="Resources\bg.png" />
-    <AvaloniaResource Include="Resources\btn.png" />
-    <AvaloniaResource Include="Resources\btn_close.png" />
-    <AvaloniaResource Include="Resources\category_frame.png" />
-    <AvaloniaResource Include="Resources\color_palette.png" />
-    <AvaloniaResource Include="Resources\cursor.png" />
-    <AvaloniaResource Include="Resources\frame.png" />
-    <AvaloniaResource Include="Resources\icon_gshop.ico" />
-    <AvaloniaResource Include="Resources\information.png" />
-    <AvaloniaResource Include="Resources\items_bg.png" />
-    <AvaloniaResource Include="Resources\item_slot_frame.png" />
-    <AvaloniaResource Include="Resources\menu.png" />
-    <AvaloniaResource Include="Resources\paper.png" />
-    <AvaloniaResource Include="Resources\preview.png" />
-    <AvaloniaResource Include="Resources\question.png" />
-    <AvaloniaResource Include="Resources\question_mark.png" />
-    <AvaloniaResource Include="Resources\redo_arrow.png" />
-    <AvaloniaResource Include="Resources\search.png" />
-    <AvaloniaResource Include="Resources\search_bar.png" />
-    <AvaloniaResource Include="Resources\settings.png" />
-    <AvaloniaResource Include="Resources\undo_arrow.png" />
-    <AvaloniaResource Include="Resources\unpreview.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Resources\bg.png" />
+		<AvaloniaResource Include="Resources\btn.png" />
+		<AvaloniaResource Include="Resources\btn_add.png" />
+		<AvaloniaResource Include="Resources\btn_close.png" />
+		<AvaloniaResource Include="Resources\btn_remove.png" />
+		<AvaloniaResource Include="Resources\btn_sale.png" />
+		<AvaloniaResource Include="Resources\category_frame.png" />
+		<AvaloniaResource Include="Resources\color_palette.png" />
+		<AvaloniaResource Include="Resources\cursor.png" />
+		<AvaloniaResource Include="Resources\error.png" />
+		<AvaloniaResource Include="Resources\frame.png" />
+		<AvaloniaResource Include="Resources\icon_gshop.ico" />
+		<AvaloniaResource Include="Resources\information.png" />
+		<AvaloniaResource Include="Resources\items_bg.png" />
+		<AvaloniaResource Include="Resources\item_slot_frame.png" />
+		<AvaloniaResource Include="Resources\menu.png" />
+		<AvaloniaResource Include="Resources\paper.png" />
+		<AvaloniaResource Include="Resources\preview.png" />
+		<AvaloniaResource Include="Resources\question.png" />
+		<AvaloniaResource Include="Resources\question_mark.png" />
+		<AvaloniaResource Include="Resources\redo_arrow.png" />
+		<AvaloniaResource Include="Resources\search.png" />
+		<AvaloniaResource Include="Resources\search_bar.png" />
+		<AvaloniaResource Include="Resources\settings.png" />
+		<AvaloniaResource Include="Resources\undo_arrow.png" />
+		<AvaloniaResource Include="Resources\unpreview.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.3" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.3" />
-  </ItemGroup>
+	<!-- Dependências -->
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.3.3" />
+		<PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.3" />
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.3" />
+		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.3.3" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.3" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="11.3.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Resources\categories\" />
-  </ItemGroup>
+	<!-- Mantém relação XAML/Code-behind -->
+	<ItemGroup>
+		<Compile Update="Views\SaleEditorWindow.axaml.cs">
+			<DependentUpon>SaleEditorWindow.axaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Views\SaleEditorWindow.axaml.cs">
-      <DependentUpon>SaleEditorWindow.axaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<!-- Empacotar README e LICENSE em caso de publicação NuGet (opcional, mas completo) -->
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
-	<PropertyGroup>
-		<ApplicationIcon>Resources\icon_gshop.ico</ApplicationIcon>
-	</PropertyGroup>
 </Project>
