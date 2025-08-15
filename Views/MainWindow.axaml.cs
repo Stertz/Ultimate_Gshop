@@ -168,14 +168,54 @@ namespace Ultimate_Gshop
             };
         }
 
-        private void InitializeShopSources()
+        private async void InitializeShopSources()
         {
             CategoryList.ItemsSource = _shop.Categories;
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
 
-            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e sem subcategoria
-                SelectCategoryAndSubCategory();
+            var categories = _shop.Categories;
+            var SubCategoriesResolver = new Func<object?, IEnumerable<string>>(categoryTitle =>
+            {
+                if (categoryTitle is string title)
+                {
+                    var category = categories.FirstOrDefault(c => c.Title == title);
+                    return category?.SubCategories ?? [];
+                }
+                return [];
+            });
+
+            // Itens do primeiro combo
+            var combo1Items = categories.Select(c => c.Title).ToList();
+
+            var dlg = new CustomMessageBox(
+                title: "Trocar Categoria",
+                message: "Escolha a categoria e a subcategoria",
+                icon: CustomMessageBox.MessageBoxIcon.Information,
+                combo1Label: "Category",
+                combo1Items: combo1Items,
+                selected1: combo1Items.FirstOrDefault(),
+                combo2Label: "SubCategory",
+                combo2Resolver: SubCategoriesResolver,
+                selected2: null,
+                buttons: ["OK", "Cancelar"]
+            );
+
+            var res = await dlg.ShowComboDialogAsync(this);
+
+            if (res.Button == "OK")
+            {
+                var categoryTitle = res.Selected1 as string;
+                var subcategory = res.Selected2 as string;
+
+                // Exemplo de uso:
+                // - recuperar a Category pelo título
+                var category = categories.FirstOrDefault(c => c.Title == categoryTitle);
+                // - aplicar sua lógica (ex.: salvar filtro, atualizar lista, etc.)
+            }
+
+            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e primeira subcategoria
+                SelectCategoryAndSubCategory(0, 0);
         }
 
         private void SaveTimer_Tick(object? sender, EventArgs e) => SaveGshop.Handle(_shop, _tracking, _settings);
@@ -590,32 +630,41 @@ namespace Ultimate_Gshop
         }
 
 
-        private void SelectCategoryAndSubCategory(int categoryIndex = 0, int subCategoryIndex = -1)
+        private void SelectCategoryAndSubCategory(int categoryIndex = -1, int subCategoryIndex = -1)
         {
             if (_shop is null) return;
-            if (categoryIndex < 0 || categoryIndex >= _shop.Categories.Count) return;
+            if (categoryIndex < -1 || categoryIndex >= _shop.Categories.Count) return;
 
+            // se não há categoria, não pode haver subcategoria
+            if (categoryIndex == -1) subCategoryIndex = -1;
+
+            // valida subcategoria
+            if (categoryIndex > -1)
+                if (subCategoryIndex < -1 || subCategoryIndex >= _shop.Categories[categoryIndex].SubCategories.Count) return;
+
+            if (categoryIndex > -1)
+            {
+                // Atualiza fontes de subcategoria da categoria alvo
+                var category = _shop.Categories[categoryIndex];
+                SubCategoryList.ItemsSource = category.SubCategories.ToList();
+                DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
+            }
+            else
+            {
+                SubCategoryList.ItemsSource = null;
+                DetailSubCategoryComboBox.ItemsSource = null;
+            }
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
-
             SearchBox.Text = string.Empty;
 
-            // Limpa shadows anteriores
-            RemoveShadow(_lastSelectedSubCategory);
-            _lastSelectedSubCategory = null;
-            RemoveShadow(_lastSelectedCategory);
-            _lastSelectedCategory = null;
+            // limpa seleção visual anterior
+            RemoveShadow(_lastSelectedSubCategory); _lastSelectedSubCategory = null;
+            RemoveShadow(_lastSelectedCategory); _lastSelectedCategory = null;
 
-            // Atualiza fontes de subcategoria da categoria alvo
-            var category = _shop.Categories[categoryIndex];
-            SubCategoryList.ItemsSource = category.SubCategories.ToList();
-            DetailSubCategoryComboBox.ItemsSource = category.SubCategories.ToList();
-
-            // Atualiza seleção lógica
+            // atualiza seleção lógica
             _selectedCategory = categoryIndex;
-            _selectedSubCategory = (subCategoryIndex >= 0 && subCategoryIndex < category.SubCategories.Count)
-                ? subCategoryIndex
-                : -1;
+            _selectedSubCategory = subCategoryIndex;
 
             // Aplica shadow da categoria (agarra o Border do item do CategoryList)
             CategoryList.ApplyTemplate();
@@ -669,22 +718,36 @@ namespace Ultimate_Gshop
 
             _currentState = DetailState.Viewing;
             SetItemDetailsEnabled();
+            FillItemDetails(null);
 
             var query = SearchBox.Text?.Trim() ?? string.Empty;
-
             if (string.IsNullOrWhiteSpace(query))
             {
-                // reset quando vazio
-                UpdateGrid();
-                RemoveShadow(_lastSelectedBorder);
-                _lastSelectedBorder = null;
-                FillItemDetails(null);
+                UpdateGrid(); // reset quando vazio
                 return;
             }
 
-            // pesquisa sobre o conjunto atual (já filtrado por categoria/subcategoria)
+            // termos para busca por nome (like por partes)
+            var searchTerms = query
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+
+            // só considerar ID se o usuário digitou só números (permite parcial)
+            bool isDigitsOnly = query.All(char.IsDigit);
+
             var filtered = _currentItems?
-                .Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .AsEnumerable()
+                .Where(i =>
+                {
+                    var name = i.Name ?? string.Empty;
+
+                    bool nameMatch = searchTerms.All(term =>
+                        name.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0);
+
+                    bool idMatch = isDigitsOnly && i.ID.ToString().Contains(query);
+
+                    return nameMatch || idMatch;
+                })
                 .ToList();
 
             if (filtered != null)
@@ -693,11 +756,8 @@ namespace Ultimate_Gshop
                 ItemsList.ItemsSource = _currentItems;
                 ItemsList.FillTable();
             }
-
-            RemoveShadow(_lastSelectedBorder);
-            _lastSelectedBorder = null;
-            FillItemDetails(null);
         }
+
         #endregion
 
         #region Shadow Helpers
@@ -772,17 +832,9 @@ namespace Ultimate_Gshop
                 ? [.. tagItem.Sales]
                 : new List<Sale>();
 
-            // Se não existir nenhum com preço > 0, cria o principal
-            if (!sales.Any(s => s.Price > 0))
-                sales.Insert(0, new Sale { Price = 1, Control = -1 });
-
             // Ajusta para ter exatamente 4 itens
             while (sales.Count < 4)
                 sales.Add(new Sale()); // zerado
-
-
-            if (sales.Count > 4)
-                sales = [.. sales.Take(4)];
 
             if (sales.Count > 4)
                 sales = [.. sales
@@ -1079,8 +1131,12 @@ namespace Ultimate_Gshop
             if (_shop == null) return;
 
             var query = _shop.Itens.AsQueryable();
-            query = query.Where(i => i.CategoryIndex == _selectedCategory);
-            if (_selectedSubCategory > -1) query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
+
+            if (_selectedCategory > -1)
+                query = query.Where(i => i.CategoryIndex == _selectedCategory);
+
+            if (_selectedSubCategory > -1 && _selectedCategory > -1)
+                query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
 
             RemoveShadow(_lastSelectedBorder);
             _lastSelectedBorder = null;
@@ -1089,7 +1145,6 @@ namespace Ultimate_Gshop
             _currentItems = query;
             ItemsList.ItemsSource = _currentItems;
             ItemsList.FillTable();
-
         }
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
