@@ -44,6 +44,9 @@ public partial class ItemsListControl : UserControl
     private Border? _lastSelectedBorder;
     private List<ItemRow> _rows = [];
 
+    public List<Item> SelectedItems { get; set; } = [];
+    private bool _isMultiSelecting;
+
     // Parâmetros de "arming" do drag: só inicia o DnD se segurar/esperar ou mover o suficiente.
     private const int DragStartDelayMs = 150;     // tempo mínimo segurando antes de permitir arrastar
     private const double DragStartThreshold = 6.0; // distância mínima caso o tempo não tenha passado
@@ -114,8 +117,11 @@ public partial class ItemsListControl : UserControl
 
     private void HighlightByPlace(int? place)
     {
-        RemoveShadow(_lastSelectedBorder);
-        if (place is null) return;
+        if (!_isMultiSelecting)
+        {
+            RemoveShadow(_lastSelectedBorder);
+            if (place is null) return;
+        }
 
         foreach (var border in ItemList.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "CardBorder"))
         {
@@ -137,11 +143,29 @@ public partial class ItemsListControl : UserControl
         if (e.Source is Control src && (src is Button || src.GetVisualAncestors().OfType<Button>().Any()))
             return;
 
+        _isMultiSelecting = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control);
         // 2) Seleção “lógica”
         if (sender is Grid g && g.Tag is Item item)
         {
+            if (!_isMultiSelecting)
+            {
+                SelectedItems.Clear();
+                var list = ItemList.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "CardBorder");
+                foreach (var border in list)
+                {
+                    if (border.Tag is not null)
+                    {
+                        if ((int)border.Tag != item.Place)
+                        {
+                            RemoveShadow(border);
+                        }
+                    }
+                }
+            }
+
             ItemPressed?.Invoke(this, item);
             SelectByPlace(item.Place);
+            SelectedItems.Add(item);
         }
 
         var pt = e.GetCurrentPoint(this);

@@ -35,6 +35,7 @@ namespace Ultimate_Gshop
         private Border? _lastSelectedSubCategory;
 
         private IQueryable<Item>? _currentItems;
+        private List<Item> _currentSelectedItems = [];
         private Item? _currentSelectedItem;
         private int _selectedCategory = -1;
         private int _selectedSubCategory = -1;
