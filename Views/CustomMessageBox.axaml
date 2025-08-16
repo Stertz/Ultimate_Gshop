@@ -1,21 +1,20 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Ultimate_Gshop.Views.CustomMessageBox"
-		xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
+        xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         Width="420"
-		SizeToContent="Height"
+        SizeToContent="Height"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
-	<Grid >
+        Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
+	<Grid>
 		<Grid.Background>
-			<ImageBrush
-                Source="avares://Ultimate_Gshop/Resources/items_bg.png"
-                Stretch="Fill"/>
+			<ImageBrush Source="avares://Ultimate_Gshop/Resources/items_bg.png" Stretch="Fill"/>
 		</Grid.Background>
+
 		<StackPanel VerticalAlignment="Center"
 					HorizontalAlignment="Center"
 					Margin="0,25"
@@ -44,13 +43,46 @@
 					   TextAlignment="Center"
 					   Width="300"/>
 
-			<!-- Input opcional -->
-			<StackPanel x:Name="InputPanel" IsVisible="False" Spacing="6" HorizontalAlignment="Center">
+			<!-- Input opcional (modo Input) -->
+			<StackPanel x:Name="InputPanel"
+						IsVisible="False"
+						Spacing="6"
+						HorizontalAlignment="Center">
 				<controls:FloatingLabelTextBox x:Name="InputBox"
-										 Label="Digite aqui"
-										 Width="300"
-										 FontSize="14"
-										 Foreground="White"/>
+											   Label="Digite aqui"
+											   Width="300"
+											   FontSize="14"
+											   Foreground="White"/>
+			</StackPanel>
+
+			<!-- Combo 1 (modo Combo) -->
+			<StackPanel x:Name="ComboPanel1"
+						IsVisible="False"
+						Spacing="6"
+						HorizontalAlignment="Center"
+						Width="300">
+				<TextBlock x:Name="Combo1Label"
+						   Foreground="#ebb935"
+						   FontSize="13"
+						   FontWeight="SemiBold"/>
+				<ComboBox x:Name="ComboBox1"
+						  Width="300"
+						  MaxDropDownHeight="260"/>
+			</StackPanel>
+
+			<!-- Combo 2 (modo Combo, opcional / dependente) -->
+			<StackPanel x:Name="ComboPanel2"
+						IsVisible="False"
+						Spacing="6"
+						HorizontalAlignment="Center"
+						Width="300">
+				<TextBlock x:Name="Combo2Label"
+						   Foreground="#ebb935"
+						   FontSize="13"
+						   FontWeight="SemiBold"/>
+				<ComboBox x:Name="ComboBox2"
+						  Width="300"
+						  MaxDropDownHeight="260"/>
 			</StackPanel>
 
 			<!-- Botões -->
@@ -60,6 +92,5 @@
 						VerticalAlignment="Center"
 						Spacing="15"/>
 		</StackPanel>
-
 	</Grid>
 </Window>
