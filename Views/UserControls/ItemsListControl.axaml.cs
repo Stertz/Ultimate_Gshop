@@ -28,6 +28,9 @@ public partial class ItemsListControl : UserControl
     public event EventHandler<Item>? CopyRequested;
     public event EventHandler<Item>? EditRequested;
     public event EventHandler<Item>? DeleteRequested;
+    public event EventHandler<List<Item>>? MultipleCloneRequested;
+    public event EventHandler<List<Item>>? MultipleEditRequested;
+    public event EventHandler<List<Item>>? MultipleDeleteRequested;
 
     // Timer para auto‑scroll enquanto um item arrastado está perto das bordas
     private DispatcherTimer? _autoScrollTimer;
@@ -45,7 +48,7 @@ public partial class ItemsListControl : UserControl
     private List<ItemRow> _rows = [];
 
     public List<Item> SelectedItems { get; set; } = [];
-    private bool _isMultiSelecting;
+    public bool IsMultiSelecting { get; set; }
 
     // Parâmetros de "arming" do drag: só inicia o DnD se segurar/esperar ou mover o suficiente.
     private const int DragStartDelayMs = 150;     // tempo mínimo segurando antes de permitir arrastar
@@ -117,7 +120,7 @@ public partial class ItemsListControl : UserControl
 
     private void HighlightByPlace(int? place)
     {
-        if (!_isMultiSelecting)
+        if (!IsMultiSelecting)
         {
             RemoveShadow(_lastSelectedBorder);
             if (place is null) return;
@@ -143,11 +146,11 @@ public partial class ItemsListControl : UserControl
         if (e.Source is Control src && (src is Button || src.GetVisualAncestors().OfType<Button>().Any()))
             return;
 
-        _isMultiSelecting = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        IsMultiSelecting = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control);
         // 2) Seleção “lógica”
         if (sender is Grid g && g.Tag is Item item)
         {
-            if (!_isMultiSelecting)
+            if (!IsMultiSelecting)
             {
                 SelectedItems.Clear();
                 var list = ItemList.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "CardBorder");
@@ -394,6 +397,21 @@ public partial class ItemsListControl : UserControl
     {
         if (sender is Button b && b.Tag is Item item)
             DeleteRequested?.Invoke(this, item);
+    }
+
+    private void MultipleClone_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleCloneRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultipleEdit_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleEditRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultipleDelete_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleDeleteRequested?.Invoke(this, SelectedItems);
     }
 
     private static void ApplyGoldShadow(Border border) =>

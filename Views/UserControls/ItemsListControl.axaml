@@ -92,6 +92,14 @@
 								</Grid>
 							</Button>
 
+							<Grid.ContextMenu>
+								<ContextMenu>
+									<MenuItem Header="Clone Multiple" Click="MultipleClone_Click"/>
+									<MenuItem Header="Edit Multiple" Click="MultipleEdit_Click"/>
+									<MenuItem Header="Delete Multiple" Click="MultipleDelete_Click"/>
+								</ContextMenu>
+							</Grid.ContextMenu>
+
 						</Grid>
 					</Border>
 				</DataTemplate>

@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using Ultimate_Gshop.Categories;
@@ -167,6 +168,51 @@ namespace Ultimate_Gshop
                 ItemsList.SelectByPlace(moving.Place);
                 SelectItem(moving.Clone());
             };
+
+            ItemsList.MultipleCloneRequested += async (_, itens) => {
+
+                if (!await ConfirmDiscardChanges()) return;
+                if (itens is null || itens.Count == 0) return;
+
+                foreach (var item in itens)
+                {
+                    if(item is null) continue;
+
+                    var cloned = item.Clone();
+                    var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
+                    cloned.Place = maxPlace + 1;
+
+                    InsertItem.Handle(_shop.Itens, item, _tracking);
+                    _shop.ItemAmount++;
+                }
+
+                UpdateGrid();
+
+            };
+
+            ItemsList.MultipleEditRequested += (_, args) => { };
+
+            ItemsList.MultipleDeleteRequested += async (_, itens) => {
+
+                if (!await ConfirmDiscardChanges()) return;
+                if (itens is null || itens.Count == 0) return;
+
+                foreach (var item in itens)
+                {
+                    if (item is null) continue;
+
+                    var index = _shop.Itens.IndexOf(item);
+
+                    if (_shop.Itens.Remove(item))
+                    {
+                        _tracking.ItemDeleted(index, item);
+                    }
+                }
+
+                UpdateGrid();
+
+            };
+
         }
 
         private async void InitializeShopSources()
