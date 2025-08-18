@@ -12,7 +12,7 @@ namespace Ultimate_Gshop.Itens.Services
     {
         public static void Handle(List<Item> itens, Item item, ShopTracking tracking)
         {
-            if (itens.Exists(i => i.ID == item.ID)) throw new InvalidOperationException("Item ID already exists");
+            //if (itens.Exists(i => i.ID == item.ID)) throw new InvalidOperationException("Item ID already exists");
             itens.Add(item);
             tracking.ItemCreated(itens.Count - 1, item);
         }
