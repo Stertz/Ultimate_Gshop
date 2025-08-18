@@ -169,14 +169,15 @@ namespace Ultimate_Gshop
                 SelectItem(moving.Clone());
             };
 
-            ItemsList.MultipleCloneRequested += async (_, itens) => {
+            ItemsList.MultipleCloneRequested += async (_, itens) =>
+            {
 
                 if (!await ConfirmDiscardChanges()) return;
                 if (itens is null || itens.Count == 0) return;
 
                 foreach (var item in itens)
                 {
-                    if(item is null) continue;
+                    if (item is null) continue;
 
                     var cloned = item.Clone();
                     var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
@@ -192,7 +193,72 @@ namespace Ultimate_Gshop
 
             ItemsList.MultipleEditRequested += (_, args) => { };
 
-            ItemsList.MultipleDeleteRequested += async (_, itens) => {
+            ItemsList.MultipleMoveRequested += async (_, selectedItems) =>
+            {
+                if (!await ConfirmDiscardChanges()) return;
+                if (selectedItems is null || selectedItems.Count == 0) return;
+
+                var categories = _shop.Categories;
+
+                IEnumerable<string> SubCategoriesResolver(object? categoryTitle)
+                {
+                    if (categoryTitle is string title)
+                    {
+                        var cat = categories.FirstOrDefault(c => c.Title == title);
+                        return cat?.SubCategories ?? [];
+                    }
+                    return [];
+                }
+
+                var combo1Items = categories.Select(c => c.Title).ToList();
+
+                var dlg = new CustomMessageBox(
+                    title: "Trocar Categoria",
+                    message: "Escolha a categoria e a subcategoria",
+                    icon: CustomMessageBox.MessageBoxIcon.Information,
+                    combo1Label: "Category",
+                    combo1Items: combo1Items,
+                    selected1: combo1Items.FirstOrDefault(),
+                    combo2Label: "SubCategory",
+                    combo2Resolver: SubCategoriesResolver,
+                    selected2: null,
+                    buttons: ["OK", "Cancelar"]
+                );
+
+                var res = await dlg.ShowComboDialogAsync(this);
+                if (res.Button != "OK") return; // Clicou em Cancelar
+
+                var categoryTitle = res.Selected1 as string;
+                var subcategory = res.Selected2 as string;
+
+                if (string.IsNullOrWhiteSpace(categoryTitle) || string.IsNullOrWhiteSpace(subcategory))
+                    return;
+
+                var categoryIndex = categories.FindIndex(c => string.Equals(c.Title, categoryTitle));
+                var subCategoryIndex = categories[categoryIndex].SubCategories.IndexOf(subcategory);
+
+                if (categoryIndex < 0) return; // categoria não encontrada
+                if (subCategoryIndex < 0) return; // subcategoria não encontrada
+
+                foreach (var item in selectedItems)
+                {
+                    if (item is null) continue;
+
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue; // item não está na lista base
+
+                    var updated = _shop.Itens[index].Clone();
+                    updated.CategoryIndex = categoryIndex;
+                    updated.SubCategoryIndex = subCategoryIndex;
+
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+
+                UpdateGrid();
+            };
+
+            ItemsList.MultipleDeleteRequested += async (_, itens) =>
+            {
 
                 if (!await ConfirmDiscardChanges()) return;
                 if (itens is null || itens.Count == 0) return;
@@ -215,51 +281,11 @@ namespace Ultimate_Gshop
 
         }
 
-        private async void InitializeShopSources()
+        private void InitializeShopSources()
         {
             CategoryList.ItemsSource = _shop.Categories;
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
-
-            var categories = _shop.Categories;
-            var SubCategoriesResolver = new Func<object?, IEnumerable<string>>(categoryTitle =>
-            {
-                if (categoryTitle is string title)
-                {
-                    var category = categories.FirstOrDefault(c => c.Title == title);
-                    return category?.SubCategories ?? [];
-                }
-                return [];
-            });
-
-            // Itens do primeiro combo
-            var combo1Items = categories.Select(c => c.Title).ToList();
-
-            var dlg = new CustomMessageBox(
-                title: "Trocar Categoria",
-                message: "Escolha a categoria e a subcategoria",
-                icon: CustomMessageBox.MessageBoxIcon.Information,
-                combo1Label: "Category",
-                combo1Items: combo1Items,
-                selected1: combo1Items.FirstOrDefault(),
-                combo2Label: "SubCategory",
-                combo2Resolver: SubCategoriesResolver,
-                selected2: null,
-                buttons: ["OK", "Cancelar"]
-            );
-
-            var res = await dlg.ShowComboDialogAsync(this);
-
-            if (res.Button == "OK")
-            {
-                var categoryTitle = res.Selected1 as string;
-                var subcategory = res.Selected2 as string;
-
-                // Exemplo de uso:
-                // - recuperar a Category pelo título
-                var category = categories.FirstOrDefault(c => c.Title == categoryTitle);
-                // - aplicar sua lógica (ex.: salvar filtro, atualizar lista, etc.)
-            }
 
             if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e primeira subcategoria
                 SelectCategoryAndSubCategory(0, 0);
@@ -1242,7 +1268,6 @@ namespace Ultimate_Gshop
             UndoButton.Opacity = _tracking.CanUndo ? 0.95 : 0.25;
             RedoButton.Opacity = _tracking.CanRedo ? 0.95 : 0.25;
         }
-
 
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {

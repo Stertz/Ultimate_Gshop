@@ -96,6 +96,7 @@
 								<ContextMenu>
 									<MenuItem Header="Clone Multiple" Click="MultipleClone_Click"/>
 									<MenuItem Header="Edit Multiple" Click="MultipleEdit_Click"/>
+									<MenuItem Header="Move Multiple" Click="MultipleMove_Click"/>
 									<MenuItem Header="Delete Multiple" Click="MultipleDelete_Click"/>
 								</ContextMenu>
 							</Grid.ContextMenu>

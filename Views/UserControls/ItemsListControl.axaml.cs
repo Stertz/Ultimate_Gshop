@@ -30,6 +30,7 @@ public partial class ItemsListControl : UserControl
     public event EventHandler<Item>? DeleteRequested;
     public event EventHandler<List<Item>>? MultipleCloneRequested;
     public event EventHandler<List<Item>>? MultipleEditRequested;
+    public event EventHandler<List<Item>>? MultipleMoveRequested;
     public event EventHandler<List<Item>>? MultipleDeleteRequested;
 
     // Timer para auto‑scroll enquanto um item arrastado está perto das bordas
@@ -407,6 +408,11 @@ public partial class ItemsListControl : UserControl
     private void MultipleEdit_Click(object? sender, RoutedEventArgs e)
     {
         MultipleEditRequested?.Invoke(this, SelectedItems);
+    }
+
+    public void MultipleMove_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleMoveRequested?.Invoke(this, SelectedItems);
     }
 
     private void MultipleDelete_Click(object? sender, RoutedEventArgs e)
