@@ -43,7 +43,7 @@ namespace Ultimate_Gshop.Views.UserControls
             set => SetValue(SelectedItemProperty, value);
         }
 
-        private TextBlock? _label;
+        private readonly TextBlock? _label;
 
         public StyledComboBox()
         {

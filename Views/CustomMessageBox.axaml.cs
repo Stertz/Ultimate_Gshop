@@ -13,7 +13,7 @@ namespace Ultimate_Gshop.Views
         public sealed record ComboBoxResult(string Button, object? Selected1, object? Selected2);
 
         // ---------------- Internal State ----------------
-        private TaskCompletionSource<MessageBoxResult>? _tcsWithInput;
+        private readonly TaskCompletionSource<MessageBoxResult>? _tcsWithInput;
         private TaskCompletionSource<ComboBoxResult>? _tcsWithCombo;
 
         private enum DialogMode { ButtonsOnly, Input, Combo }
@@ -21,7 +21,7 @@ namespace Ultimate_Gshop.Views
 
         // Modo combo
         private bool _hasSecondCombo;
-        private Func<object?, System.Collections.IEnumerable>? _combo2Resolver; // resolver cascata
+        private readonly Func<object?, System.Collections.IEnumerable>? _combo2Resolver;
 
         // ---------------- Icon Enum ----------------
         public enum MessageBoxIcon

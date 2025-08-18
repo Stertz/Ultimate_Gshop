@@ -7,6 +7,12 @@ namespace Ultimate_Gshop.Views;
 public partial class OptionsWindow : Window
 {
     public GshopSettings Settings { get; set; }
+    public OptionsWindow()
+    {
+        InitializeComponent();
+        Settings = GshopSettings.Load();
+        DataContext = null;
+    }
     public OptionsWindow(GshopSettings settings)
     {
         InitializeComponent();

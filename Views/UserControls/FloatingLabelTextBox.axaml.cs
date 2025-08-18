@@ -31,9 +31,13 @@ namespace Ultimate_Gshop.Views.UserControls
         // ajuste aqui se quiser outra quantidade de casas decimais
         private const int DecimalPlaces = 2;
 
-        private static readonly Regex IntRegex = new(@"^\d*$");
-        private static readonly Regex DecRegex =
-            new($@"^\d*([.,]\d{{0,{DecimalPlaces}}})?$");
+        private const string INT_REGEX_PATTERN = @"^\d*$";
+        private const string DEC_REGEX_PATTERN = @"^\d*([.,]\d{0,2})?$";
+
+        [GeneratedRegex(INT_REGEX_PATTERN, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
+        private static partial Regex IntRegex();
+        [GeneratedRegex(DEC_REGEX_PATTERN, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
+        private static partial Regex DecRegex();
 
         private bool _coercing;
 
@@ -158,7 +162,7 @@ namespace Ultimate_Gshop.Views.UserControls
                     else if ((c == '.' || c == ',') && !sep) { buf.Add(','); sep = true; }
                 }
 
-                var r = new string(buf.ToArray());
+                var r = new string([.. buf]);
                 // limita casas decimais
                 var idx = r.IndexOf(',');
                 if (idx >= 0 && r.Length > idx + 1 + DecimalPlaces)
@@ -178,12 +182,12 @@ namespace Ultimate_Gshop.Views.UserControls
             switch (InputMode)
             {
                 case InputMode.Number:
-                    if (!IntRegex.IsMatch(t))
+                    if (!IntRegex().IsMatch(t))
                         TextField.Text = Filter(t);
                     break;
 
                 case InputMode.Decimal:
-                    if (!DecRegex.IsMatch(t))
+                    if (!DecRegex().IsMatch(t))
                         TextField.Text = Filter(t);
 
                     TextField.Text = TextField.Text?.Replace(',', '.');

@@ -257,7 +257,7 @@ public partial class ItemsListControl : UserControl
     }
 
     // --- Helpers para calcular alvo quando solta no "vão" ---
-    private Rect GetRectRelativeTo(Border b, Visual relativeTo)
+    private static Rect GetRectRelativeTo(Border b, Visual relativeTo)
     {
         var topLeft = b.TranslatePoint(new Point(0, 0), relativeTo) ?? new Point(0, 0);
         return new Rect(topLeft, b.Bounds.Size);

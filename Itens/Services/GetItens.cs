@@ -15,28 +15,30 @@ namespace Ultimate_Gshop.Itens.Services
             for (int i = 0; i < itemAmount; i++)
             {
 
-                var item = new Item();
+                var item = new Item
+                {
+                    Place = br.ReadInt32(),
 
-                item.Place = br.ReadInt32();
-
-                item.CategoryIndex = br.ReadInt32();
-                item.SubCategoryIndex = br.ReadInt32();
-                item.Icon = Encoding.GetEncoding(936).GetString(br.ReadBytes(128)).Split('\0')[0];
-                item.ID = br.ReadInt32();
-                item.Amount = br.ReadInt32();
-                item.Sales = new List<Sale>(Variables.MaxSalesPerItem);
+                    CategoryIndex = br.ReadInt32(),
+                    SubCategoryIndex = br.ReadInt32(),
+                    Icon = Encoding.GetEncoding(936).GetString(br.ReadBytes(128)).Split('\0')[0],
+                    ID = br.ReadInt32(),
+                    Amount = br.ReadInt32(),
+                    Sales = new List<Sale>(Variables.MaxSalesPerItem)
+                };
 
                 for (int g = 0; g < item.Sales.Capacity; g++)
                 {
-                    var sale = new Sale();
-
-                    sale.Price = br.ReadInt32();
-                    sale.SellingEndTime = br.ReadInt32();
-                    sale.During = br.ReadInt32();
-                    sale.SellingStartTime = br.ReadInt32();
-                    sale.Control = br.ReadInt32();
-                    sale.Day = br.ReadInt32();
-                    sale.Status = br.ReadInt32();
+                    var sale = new Sale
+                    {
+                        Price = br.ReadInt32(),
+                        SellingEndTime = br.ReadInt32(),
+                        During = br.ReadInt32(),
+                        SellingStartTime = br.ReadInt32(),
+                        Control = br.ReadInt32(),
+                        Day = br.ReadInt32(),
+                        Status = br.ReadInt32()
+                    };
                     if (sale.Status > 19) sale.Status = 0;
                     sale.Flags = br.ReadInt32();
                     sale.VipLevelRequired = br.ReadInt32();

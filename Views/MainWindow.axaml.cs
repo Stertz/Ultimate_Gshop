@@ -742,7 +742,7 @@ namespace Ultimate_Gshop
                     var name = i.Name ?? string.Empty;
 
                     bool nameMatch = searchTerms.All(term =>
-                        name.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0);
+                    name.Contains(term, StringComparison.OrdinalIgnoreCase));
 
                     bool idMatch = isDigitsOnly && i.ID.ToString().Contains(query);
 

@@ -16,12 +16,5 @@ namespace Ultimate_Gshop.Itens.Services
             itens.Add(item);
             tracking.ItemCreated(itens.Count - 1, item);
         }
-
-        public static void Validate(Item item)
-        {
-
-        }
-
-
     }
 }

@@ -10,8 +10,8 @@ namespace Ultimate_Gshop.Views
 {
     public partial class ColorPickerWindow : Window
     {
-        private readonly List<Color> _palette = new()
-        {
+        private readonly List<Color> _palette =
+        [
             // paleta com 50 cores baseada na imagem
             Color.Parse("#FFF1F1"), Color.Parse("#F1E7F8"), Color.Parse("#EAF6F9"), Color.Parse("#ECF7F1"), Color.Parse("#FFF9DC"),
             Color.Parse("#FFF0E6"), Color.Parse("#F5F5F5"), Color.Parse("#E1E3E8"), Color.Parse("#D9D9D9"), Color.Parse("#F2F2F2"),
@@ -23,7 +23,7 @@ namespace Ultimate_Gshop.Views
             Color.Parse("#E67E22"), Color.Parse("#7F8C8D"), Color.Parse("#616A6B"), Color.Parse("#34495E"), Color.Parse("#2C3E50"),
             Color.Parse("#7B241C"), Color.Parse("#512E5F"), Color.Parse("#1B4F72"), Color.Parse("#0E6251"), Color.Parse("#196F3D"),
             Color.Parse("#9A7D0A"), Color.Parse("#784212"), Color.Parse("#424949"), Color.Parse("#2E4053"), Color.Parse("#1C2833")
-        };
+        ];
 
         public ColorPickerWindow()
         {
