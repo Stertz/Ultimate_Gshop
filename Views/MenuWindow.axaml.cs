@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Threading.Tasks;
@@ -23,7 +24,6 @@ namespace Ultimate_Gshop
             btnExportServer.IsEnabled = false;
             btnExportClient.IsEnabled = false;
             btnContinue.IsEnabled = ApplicationSettings.GshopExists;
-            InitializeDesign();
         }
 
         public MenuWindow(Shop shop, GshopSettings settings, ShopTracking tracking)
@@ -33,24 +33,6 @@ namespace Ultimate_Gshop
             _shop = shop;
             _settings = settings;
             _tracking = tracking;
-            InitializeDesign();
-        }
-
-        private void InitializeDesign()
-        {
-            this.Opacity = 0;
-
-            this.KeyDown += MenuWindow_KeyDown;
-
-            this.Opened += async (_, __) =>
-            {
-                for (double i = 0; i <= 1; i += 0.05)
-                {
-                    this.Opacity = i;
-                    await Task.Delay(7);
-                }
-                this.Opacity = 1;
-            };
         }
         
         private void MenuWindow_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -143,13 +125,19 @@ namespace Ultimate_Gshop
 
         private void OnOptionsClicked(object sender, RoutedEventArgs e)
         {
-            var options_window = new OptionsWindow(_settings!)
+            var optionsWindow = new OptionsWindow(_settings!)
             {
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                SystemDecorations = SystemDecorations.None,
-                CanResize = false
+                WindowStartupLocation = WindowStartupLocation.Manual
             };
-            options_window.Show();
+
+            // Pega tamanho do MainWindow e do MenuWindow
+            var mainBounds = this.Bounds;
+
+            optionsWindow.Position = new PixelPoint(
+                (int)(Position.X + (mainBounds.Width - optionsWindow.Width) / 2),
+                (int)(Position.Y + (mainBounds.Height - optionsWindow.Height) / 2)
+            );
+            optionsWindow.Show();
         }
 
         private void SaveGshopIfExists()

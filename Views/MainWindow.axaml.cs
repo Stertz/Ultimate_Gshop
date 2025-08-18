@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using DynamicData;
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -36,7 +37,7 @@ namespace Ultimate_Gshop
         private Border? _lastSelectedSubCategory;
 
         private IQueryable<Item>? _currentItems;
-        private List<Item> _currentSelectedItems = [];
+        private readonly List<Item> _currentSelectedItems = [];
         private Item? _currentSelectedItem;
         private int _selectedCategory = -1;
         private int _selectedSubCategory = -1;
@@ -169,13 +170,20 @@ namespace Ultimate_Gshop
                 SelectItem(moving.Clone());
             };
 
-            ItemsList.MultipleCloneRequested += async (_, itens) =>
+            ItemsList.MultipleCloneRequested += async (_, selectedItems) =>
             {
+                if (selectedItems is null || selectedItems.Count == 0) return;
 
-                if (!await ConfirmDiscardChanges()) return;
-                if (itens is null || itens.Count == 0) return;
+                var dlg = new CustomMessageBox(
+                    title: "Clonar Itens",
+                    message: "Deseja clonar os itens selecionados?",
+                    icon: CustomMessageBox.MessageBoxIcon.Question,
+                    buttons: ["Sim", "Não"]
+                );
 
-                foreach (var item in itens)
+                if (await dlg.ShowDialogAsync(this) == "Não") return;
+
+                foreach (var item in selectedItems)
                 {
                     if (item is null) continue;
 
@@ -186,16 +194,187 @@ namespace Ultimate_Gshop
                     InsertItem.Handle(_shop.Itens, item, _tracking);
                     _shop.ItemAmount++;
                 }
-
                 UpdateGrid();
-
             };
 
-            ItemsList.MultipleEditRequested += (_, args) => { };
+            ItemsList.MultipleAmountRequested += async (_, selectedItems) =>
+            {
+                if (selectedItems is null || selectedItems.Count == 0) return;
+
+                var dlg = new CustomMessageBox(
+                    title: "Alterar Quantidade",
+                    message: "Informe a nova quantidade para os itens selecionados:",
+                    icon: CustomMessageBox.MessageBoxIcon.Information,
+                    withInput: true,
+                    inputLabel: "Amount",
+                    initialText: selectedItems.FirstOrDefault()?.Amount.ToString() ?? "0",
+                    buttons: ["OK", "Cancelar"]
+                );
+                var res = await dlg.ShowInputDialogAsync(this);
+
+                if (res.Button != "OK" || !int.TryParse(res.Text, out int newAmount) || newAmount < 0) return;
+
+                foreach (var item in selectedItems)
+                {
+                    if (item is null) continue;
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue;
+                    var updated = _shop.Itens[index].Clone();
+                    updated.Amount = newAmount;
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+                UpdateGrid();
+            };
+
+            ItemsList.MultipleLimitPeriodRequested += async (_, selectedItems) =>
+            {
+                if (selectedItems is null || selectedItems.Count == 0) return;
+
+                var dlg = new CustomMessageBox(
+                    title: "Alterar Período",
+                    message: "Informe o novo período de validade para os itens selecionados:",
+                    icon: CustomMessageBox.MessageBoxIcon.Information,
+                    withInput: true,
+                    inputLabel: "Limit Period",
+                    initialText: selectedItems.FirstOrDefault()?.LimitPeriod.ToString() ?? "0",
+                    buttons: ["OK", "Cancelar"]
+                );
+                var res = await dlg.ShowInputDialogAsync(this);
+
+                if (res.Button != "OK" || !int.TryParse(res.Text, out int newLimit) || newLimit < 0) return;
+
+                foreach (var item in selectedItems)
+                {
+                    if (item is null) continue;
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue;
+                    var updated = _shop.Itens[index].Clone();
+                    updated.LimitPeriod = newLimit;
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+                UpdateGrid();
+            };
+
+            ItemsList.MultipleAvailFrequencyRequested += async (_, selectedItems) =>
+            {
+                if (selectedItems is null || selectedItems.Count == 0) return;
+
+                var dlg = new CustomMessageBox(
+                    title: "Alterar Frequência",
+                    message: "Informe a nova frequência de disponibilidade para os itens selecionados:",
+                    icon: CustomMessageBox.MessageBoxIcon.Information,
+                    withInput: true,
+                    inputLabel: "Avail Frequency",
+                    initialText: selectedItems.FirstOrDefault()?.AvailFrequency.ToString() ?? "0",
+                    buttons: ["OK", "Cancelar"]
+                );
+                var res = await dlg.ShowInputDialogAsync(this);
+
+                if (res.Button != "OK" || !int.TryParse(res.Text, out int newFreq) || newFreq < 0) return;
+
+                foreach (var item in selectedItems)
+                {
+                    if (item is null) continue;
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue;
+                    var updated = _shop.Itens[index].Clone();
+                    updated.AvailFrequency = newFreq;
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+                UpdateGrid();
+            };
+
+            ItemsList.MultiplePriceRequested += async (_, _currentSelectedItems) =>
+            {
+                if (_currentSelectedItems is null || _currentSelectedItems.Count == 0) return;
+
+                var dlg = new CustomMessageBox(
+                    title: "Alterar Preço",
+                    message: "Informe o novo preço para os itens selecionados:",
+                    icon: CustomMessageBox.MessageBoxIcon.Information,
+                    withInput: true,
+                    inputLabel: "Price",
+                    initialText: ((_currentSelectedItems.FirstOrDefault()?.Sales[0].Price ?? 0) / 100m).ToString("F2", CultureInfo.InvariantCulture),
+                    buttons: ["OK", "Cancelar"]
+                );
+
+                var res = await dlg.ShowInputDialogAsync(this);
+                if (res.Button != "OK") return;
+
+                static int NonNeg(int v) => v < 0 ? 0 : v;
+                var priceText = (res.Text?.Trim() ?? "0").Replace(',', '.');
+                var priceCents = decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var priceDec)
+                    ? (int)Math.Round(priceDec * 100m, MidpointRounding.AwayFromZero)
+                    : 0;
+                priceCents = NonNeg(priceCents);
+
+                foreach (var item in _currentSelectedItems)
+                {
+                    if (item is null) continue;
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue;
+                    var updated = _shop.Itens[index].Clone();
+                    updated.Sales[0].Price = priceCents;
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+                UpdateGrid();
+            };
+
+            ItemsList.MultipleAdvancedPriceRequested += async (_, selectedItems) =>
+            {
+                if (selectedItems is null || selectedItems.Count == 0) return;
+
+                var editorWindow = new SaleEditorWindow(selectedItems.FirstOrDefault())
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual
+                };
+                var mainBounds = this.Bounds;
+
+                editorWindow.Position = new PixelPoint(
+                    (int)(Position.X + (mainBounds.Width - editorWindow.Width) / 2),
+                    (int)(Position.Y + (mainBounds.Height - editorWindow.Height) / 2)
+                );
+
+                var sales = await editorWindow.ShowDialog<List<Sale>>(this);
+
+                var dlg = new CustomMessageBox(
+                    title: "Alterar Preços",
+                    message: "Deseja aplicar os preços editados para os itens selecionados?",
+                    icon: CustomMessageBox.MessageBoxIcon.Question,
+                    buttons: ["Sim", "Não"]
+                );
+                var res = await dlg.ShowDialogAsync(this);
+                if (res != "Sim") return;
+
+                // Sempre cria lista a partir do existente ou vazia
+                sales = (sales?.Count > 0)
+                    ? [.. sales]
+                    : [];
+
+                // Ajusta para ter exatamente 4 itens
+                while (sales.Count < 4)
+                    sales.Add(new Sale()); // zerado
+
+                if (sales.Count > 4)
+                    sales = [.. sales
+                    .OrderByDescending(s => s.Price) // maiores preços primeiro
+                    .Take(4)];
+
+                foreach (var item in selectedItems)
+                {
+                    if (item is null) continue;
+                    var index = _shop.Itens.IndexOf(item);
+                    if (index < 0) continue;
+                    var updated = _shop.Itens[index].Clone();
+                    updated.Sales = sales;
+                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
+                }
+
+                UpdateGrid();
+            };
 
             ItemsList.MultipleMoveRequested += async (_, selectedItems) =>
             {
-                if (!await ConfirmDiscardChanges()) return;
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
                 var categories = _shop.Categories;
@@ -212,16 +391,27 @@ namespace Ultimate_Gshop
 
                 var combo1Items = categories.Select(c => c.Title).ToList();
 
+                string? selected2 = null;
+
+                if (_selectedCategory >= 0 && _selectedCategory < categories.Count)
+                {
+                    var subs = categories[_selectedCategory].SubCategories;
+                    if (_selectedSubCategory >= 0 && _selectedSubCategory < subs.Count)
+                    {
+                        selected2 = subs[_selectedSubCategory];
+                    }
+                }
+
                 var dlg = new CustomMessageBox(
                     title: "Trocar Categoria",
                     message: "Escolha a categoria e a subcategoria",
                     icon: CustomMessageBox.MessageBoxIcon.Information,
                     combo1Label: "Category",
                     combo1Items: combo1Items,
-                    selected1: combo1Items.FirstOrDefault(),
+                    selected1: categories[_selectedCategory].Title ?? combo1Items.FirstOrDefault(),
                     combo2Label: "SubCategory",
                     combo2Resolver: SubCategoriesResolver,
-                    selected2: null,
+                    selected2: selected2,
                     buttons: ["OK", "Cancelar"]
                 );
 
@@ -243,27 +433,24 @@ namespace Ultimate_Gshop
                 foreach (var item in selectedItems)
                 {
                     if (item is null) continue;
-
                     var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue; // item não está na lista base
-
+                    if (index < 0) continue;
                     var updated = _shop.Itens[index].Clone();
                     updated.CategoryIndex = categoryIndex;
                     updated.SubCategoryIndex = subCategoryIndex;
-
                     UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
                 }
 
                 UpdateGrid();
             };
 
-            ItemsList.MultipleDeleteRequested += async (_, itens) =>
+            ItemsList.MultipleDeleteRequested += async (_, selectedItems) =>
             {
 
                 if (!await ConfirmDiscardChanges()) return;
-                if (itens is null || itens.Count == 0) return;
+                if (selectedItems is null || selectedItems.Count == 0) return;
 
-                foreach (var item in itens)
+                foreach (var item in selectedItems)
                 {
                     if (item is null) continue;
 
@@ -306,10 +493,14 @@ namespace Ultimate_Gshop
         {
             var menuWindow = new MenuWindow()
             {
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                SystemDecorations = SystemDecorations.None,
-                CanResize = false
+                WindowStartupLocation = WindowStartupLocation.Manual
             };
+            var mainBounds = this.Bounds;
+
+            menuWindow.Position = new PixelPoint(
+                (int)(Position.X + (mainBounds.Width - menuWindow.Width) / 2),
+                (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
+            );
             return await menuWindow.ShowDialog<Shop>(this);
         }
 
@@ -422,9 +613,7 @@ namespace Ultimate_Gshop
             {
                 var editorWindow = new SaleEditorWindow(item)
                 {
-                    WindowStartupLocation = WindowStartupLocation.Manual,
-                    SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
-                    CanResize = false
+                    WindowStartupLocation = WindowStartupLocation.Manual
                 };
 
                 // Pega tamanho do MainWindow e do MenuWindow
@@ -1224,9 +1413,7 @@ namespace Ultimate_Gshop
         {
             var menuWindow = new MenuWindow(_shop, _settings, _tracking)
             {
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                SystemDecorations = SystemDecorations.None, // mantém estilo modal sem barra
-                CanResize = false
+                WindowStartupLocation = WindowStartupLocation.Manual
             };
 
             // Pega tamanho do MainWindow e do MenuWindow

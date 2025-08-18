@@ -28,6 +28,7 @@
 
 					<!-- Cabeçalho: Título e valor Padrão -->
 					<Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+						<Grid ColumnDefinitions="Auto,*,*">
 						<StackPanel Grid.Column="0" Spacing="4">
 							<TextBlock Text="Sales"
                                        FontWeight="Bold"
@@ -39,6 +40,9 @@
                                        FontSize="18"
                                        Margin="0,-7,0,0"/>
 						</StackPanel>
+							<controls:StyledComboBox Grid.Column="1" x:Name="TypeValueComboBox" LabelText="Type" Margin="20,0,0,0"/>
+							<controls:FloatingLabelTextBox Grid.Column="2" x:Name="ValueTextBox" Label="Value" InputMode="Decimal" Height="40" Margin="10,10,0,0"/>
+						</Grid>
 
 						<!-- Botão para Sale -->
 						<Button Grid.Column="1"

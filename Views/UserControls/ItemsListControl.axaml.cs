@@ -29,7 +29,11 @@ public partial class ItemsListControl : UserControl
     public event EventHandler<Item>? EditRequested;
     public event EventHandler<Item>? DeleteRequested;
     public event EventHandler<List<Item>>? MultipleCloneRequested;
-    public event EventHandler<List<Item>>? MultipleEditRequested;
+    public event EventHandler<List<Item>>? MultipleAmountRequested;
+    public event EventHandler<List<Item>>? MultipleLimitPeriodRequested;
+    public event EventHandler<List<Item>>? MultipleAvailFrequencyRequested;
+    public event EventHandler<List<Item>>? MultiplePriceRequested;
+    public event EventHandler<List<Item>>? MultipleAdvancedPriceRequested;
     public event EventHandler<List<Item>>? MultipleMoveRequested;
     public event EventHandler<List<Item>>? MultipleDeleteRequested;
 
@@ -405,9 +409,29 @@ public partial class ItemsListControl : UserControl
         MultipleCloneRequested?.Invoke(this, SelectedItems);
     }
 
-    private void MultipleEdit_Click(object? sender, RoutedEventArgs e)
+    private void MultipleAmount_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleEditRequested?.Invoke(this, SelectedItems);
+        MultipleAmountRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultipleLimitPeriod_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleLimitPeriodRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultipleAvailFrequency_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleAvailFrequencyRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultiplePrice_Click(object? sender, RoutedEventArgs e)
+    {
+        MultiplePriceRequested?.Invoke(this, SelectedItems);
+    }
+
+    private void MultipleAdvancedPrice_Click(object? sender, RoutedEventArgs e)
+    {
+        MultipleAdvancedPriceRequested?.Invoke(this, SelectedItems);
     }
 
     public void MultipleMove_Click(object? sender, RoutedEventArgs e)
