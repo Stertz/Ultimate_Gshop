@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using System.Globalization;
 using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Misc;
 using Ultimate_Gshop.Views;

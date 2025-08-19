@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ultimate_Gshop.Categories
+﻿namespace Ultimate_Gshop.Categories
 {
     public static class CategoryValidator
     {
@@ -17,7 +11,7 @@ namespace Ultimate_Gshop.Categories
 
             if (category.SubCategories.Count > 11) throw new InvalidOperationException("Máximo 11 sub-categorias");
 
-        }  
+        }
 
     }
 }

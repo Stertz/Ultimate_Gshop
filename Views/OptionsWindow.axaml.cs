@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using System.Threading.Tasks;
 using Ultimate_Gshop.Gshop;
 namespace Ultimate_Gshop.Views;
 

@@ -1,11 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ultimate_Gshop.Views;
 
 namespace Ultimate_Gshop.Misc
 {

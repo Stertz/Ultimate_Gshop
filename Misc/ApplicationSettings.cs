@@ -2,13 +2,7 @@
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Ultimate_Gshop.Gshop;
 
 namespace Ultimate_Gshop.Misc
 {

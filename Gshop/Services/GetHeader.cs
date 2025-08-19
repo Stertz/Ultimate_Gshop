@@ -1,7 +1,7 @@
 ﻿namespace Ultimate_Gshop.Gshop.Services
 {
     internal static class GetHeader
-    {    
+    {
         public static (DateTime, int) Handle(BinaryReader br)
         {
             DateTime timestamp;

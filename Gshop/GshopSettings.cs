@@ -1,5 +1,4 @@
-﻿using System.Runtime;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Gshop
@@ -8,7 +7,7 @@ namespace Ultimate_Gshop.Gshop
     {
         public string? LastGshopLoadedFrom { get; set; }
         public string? LastBackupFrom { get; set; }
-        public bool AutoSave {  get; set; }
+        public bool AutoSave { get; set; }
         public int? SaveFromSeconds { get; set; }
 
         private static readonly string _settings = Path.Combine(ApplicationSettings.AppFolder, "settings.json");

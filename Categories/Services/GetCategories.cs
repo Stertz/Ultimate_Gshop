@@ -1,5 +1,4 @@
 ﻿using Ultimate_Gshop.Misc;
-using System.IO;
 namespace Ultimate_Gshop.Categories.Services
 {
     public static class GetCategories
@@ -13,11 +12,13 @@ namespace Ultimate_Gshop.Categories.Services
 
             fs.Seek(itemAmount * Variables.BytesPerItem + 8, SeekOrigin.Begin);
 
-            for (byte x = 0; x < 8; x++) {
+            for (byte x = 0; x < 8; x++)
+            {
 
                 var title = GetCategoryTitle.Handle(br);
 
-                var category = new Category() { 
+                var category = new Category()
+                {
                     Title = title
                 };
 

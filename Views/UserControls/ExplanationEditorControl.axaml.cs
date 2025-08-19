@@ -5,7 +5,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -43,7 +42,7 @@ namespace Ultimate_Gshop.Views.UserControls
             set => SetValue(IsPreviewingProperty, value);
         }
 
-        [GeneratedRegex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>.*?)(?=(\^[0-9A-Fa-f]{6})|$)", RegexOptions.Singleline)]
+        [GeneratedRegex(@"\^(?<color>[0-9A-Fa-f]{6})(?<content>[^^]*)", RegexOptions.Singleline)]
         private static partial Regex ColorTagRegex();
 
         public ExplanationEditorControl()

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using System.Threading.Tasks;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Misc;
@@ -34,7 +33,7 @@ namespace Ultimate_Gshop
             _settings = settings;
             _tracking = tracking;
         }
-        
+
         private void MenuWindow_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
             if (e.Key == Avalonia.Input.Key.Escape)
@@ -87,7 +86,7 @@ namespace Ultimate_Gshop
 
             if (File.Exists(export_filepath))
             {
-                var result = 
+                var result =
                     await new CustomMessageBox("Substituir arquivos?", "Já existe um arquivo gshop na pasta, esta ação irá substituí-lo", "Ok", "Cancelar")
                     .ShowDialogAsync(this);
 
@@ -99,7 +98,7 @@ namespace Ultimate_Gshop
                 throw new InvalidOperationException("Shop is not initialized.");
 
             SaveGshop.Handle(_shop, _tracking!, _settings!);
-            
+
             bw.Close();
         }
 
