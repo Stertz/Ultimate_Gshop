@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Itens
 {
@@ -79,28 +80,12 @@ namespace Ultimate_Gshop.Itens
 
         public Bitmap LoadImage()
         {
-            try
-            {
-                var path = this.Icon;
-                if (string.IsNullOrWhiteSpace(path))
-                    throw new Exception("Empty image path.");
+            return ImageUtils.LoadImage(Icon);
+        }
 
-                if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
-                    path = Path.ChangeExtension(path, ".png");
-
-                var fullPath = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
-
-                if (!File.Exists(fullPath))
-                    throw new FileNotFoundException($"Image not found: {fullPath}");
-
-                using var fileStream = File.OpenRead(fullPath);
-                return new Bitmap(fileStream);
-            }
-            catch
-            {
-                using var fallback = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
-                return new Bitmap(fallback);
-            }
+        public Bitmap LoadImageReduced()
+        {
+            return ImageUtils.LoadImageReduced(Icon, 32, 32);
         }
 
         /// <summary>
