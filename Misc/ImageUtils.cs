@@ -6,9 +6,10 @@ namespace Ultimate_Gshop.Misc
 {
     public static class ImageUtils
     {
-        private static readonly ConcurrentDictionary<string, Bitmap> _cache = new();
+        private static readonly ConcurrentDictionary<string, Bitmap> _cacheOriginal = new();
+        private static readonly ConcurrentDictionary<string, Bitmap> _cacheReduced = new();
 
-        private static Bitmap LoadFromDiskOrFallback(string path)
+        private static Stream OpenStreamOrFallback(string path)
         {
             try
             {
@@ -18,33 +19,36 @@ namespace Ultimate_Gshop.Misc
                 if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
                     path = Path.ChangeExtension(path, ".png");
 
-                var fullPath = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
+                path = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
 
-                if (!File.Exists(fullPath))
-                    throw new FileNotFoundException($"Image not found: {fullPath}");
+                if (!File.Exists(path))
+                    throw new FileNotFoundException($"Image not found: {path}");
 
-                using var fileStream = File.OpenRead(fullPath);
-                return new Bitmap(fileStream);
+                return File.OpenRead(path); // caller fecha
             }
             catch
             {
-                using var fallback = AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
-                return new Bitmap(fallback);
+                // fallback embutido
+                return AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
             }
         }
 
         public static Bitmap LoadImage(string iconPath)
         {
-            return _cache.GetOrAdd(iconPath, LoadFromDiskOrFallback);
+            // Nunca descarte os bitmaps que vão para este cache
+            return _cacheOriginal.GetOrAdd(iconPath, key =>
+            {
+                using var s = OpenStreamOrFallback(key);
+                return new Bitmap(s);
+            });
         }
 
         public static Bitmap LoadImageReduced(string iconPath, int width = 32, int height = 32)
         {
-            string cacheKey = $"{iconPath}_{width}x{height}";
-
-            return _cache.GetOrAdd(cacheKey, _ =>
+            var cacheKey = $"{iconPath}|{width}x{height}";
+            return _cacheReduced.GetOrAdd(cacheKey, _ =>
             {
-                using var original = LoadImage(iconPath);
+                var original = LoadImage(iconPath); // vem do _cacheOriginal
                 return original.CreateScaledBitmap(new Avalonia.PixelSize(width, height));
             });
         }

@@ -1200,7 +1200,7 @@ namespace Ultimate_Gshop
             }
 
             // Atualiza preview
-            DetailGiftIcon.Source = gift.LoadImage();
+            DetailGiftIcon.Source = gift.LoadImageReduced();
             DetailGiftName.Text = gift.Name;
         }
 
@@ -1339,7 +1339,7 @@ namespace Ultimate_Gshop
             DetailClassComboBox.SelectedIndex = item.Class + 1;
             // Gift
             DetailGiftIcon.Source = _shop.Itens
-                .FirstOrDefault(i => i.ID == item.GiftID)?.LoadImage() ?? null;
+                .FirstOrDefault(i => i.ID == item.GiftID)?.LoadImageReduced() ?? null;
             DetailGiftName.Text = _shop.Itens
                 .FirstOrDefault(i => i.ID == item.GiftID)?.Name ?? "";
             DetailGiftID.Text = item.GiftID.ToString();

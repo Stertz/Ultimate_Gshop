@@ -93,7 +93,7 @@ public partial class ItemsListControl : UserControl
                 Amount = i.Amount,
                 LimitPeriod = i.LimitPeriod == 0 ? "Perm." : $"{i.LimitPeriod} dias",
                 Price = i.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture),
-                IconBitmap = i.LoadImage(),
+                IconBitmap = i.LoadImageReduced(),
                 Place = i.Place
             })
             .ToList()) ?? [];
