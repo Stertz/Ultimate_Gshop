@@ -172,6 +172,7 @@ namespace Ultimate_Gshop
 
             ItemsList.MultipleCloneRequested += async (_, selectedItems) =>
             {
+                if (!await ConfirmDiscardChanges()) return;
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
                 var dlg = new CustomMessageBox(
@@ -191,7 +192,7 @@ namespace Ultimate_Gshop
                     var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
                     cloned.Place = maxPlace + 1;
 
-                    InsertItem.Handle(_shop.Itens, item, _tracking);
+                    InsertItem.Handle(_shop.Itens, cloned, _tracking);
                     _shop.ItemAmount++;
                 }
                 UpdateGrid();
@@ -450,6 +451,16 @@ namespace Ultimate_Gshop
                 if (!await ConfirmDiscardChanges()) return;
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
+                var dlg = new CustomMessageBox(
+                    title: "Deletar Itens",
+                    message: "Deseja deletar os itens selecionados?",
+                    icon: CustomMessageBox.MessageBoxIcon.Question,
+                    buttons: ["Sim", "Não"]
+);
+
+                if (await dlg.ShowDialogAsync(this) == "Não") return;
+
+
                 foreach (var item in selectedItems)
                 {
                     if (item is null) continue;
@@ -460,6 +471,9 @@ namespace Ultimate_Gshop
                     {
                         _tracking.ItemDeleted(index, item);
                     }
+
+                    _shop.ItemAmount--;
+
                 }
 
                 UpdateGrid();

@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
 using Ultimate_Gshop.Itens;
+using DynamicData;
 
 namespace Ultimate_Gshop.Views.UserControls;
 
@@ -50,6 +51,7 @@ public partial class ItemsListControl : UserControl
     public event EventHandler<ReorderRequestEventArgs>? ReorderRequested;
 
     private Border? _lastSelectedBorder;
+    private int _lastSourceIndex;
     private List<ItemRow> _rows = [];
 
     public List<Item> SelectedItems { get; set; } = [];
@@ -125,6 +127,8 @@ public partial class ItemsListControl : UserControl
 
     private void HighlightByPlace(int? place)
     {
+        if (ItemsSource is null) return;
+
         if (!IsMultiSelecting)
         {
             RemoveShadow(_lastSelectedBorder);
@@ -138,6 +142,7 @@ public partial class ItemsListControl : UserControl
             {
                 ApplyGoldShadow(border);
                 _lastSelectedBorder = border;
+                _lastSourceIndex = ItemsSource.IndexOf(it);
                 border.BringIntoView();
                 break;
             }
@@ -147,9 +152,14 @@ public partial class ItemsListControl : UserControl
     // ---------- Armado do DnD (segurar/mover) ----------
     private void OnItemCard_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
+
+        if (ItemsSource is null) return;
+
         // 1) Se veio de um Button, não armar drag nem capturar:
         if (e.Source is Control src && (src is Button || src.GetVisualAncestors().OfType<Button>().Any()))
             return;
+
+        if (SelectedItems.Count > 1 && e.Properties.IsRightButtonPressed) return;
 
         IsMultiSelecting = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control);
         // 2) Seleção “lógica”
@@ -171,9 +181,38 @@ public partial class ItemsListControl : UserControl
                 }
             }
 
-            ItemPressed?.Invoke(this, item);
-            SelectByPlace(item.Place);
-            SelectedItems.Add(item);
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) 
+            {
+                var targetIndex = ItemsSource.IndexOf(item);
+
+                if (targetIndex > _lastSourceIndex)
+                {
+                    for (int i = _lastSourceIndex; i <= targetIndex; i++)
+                    {
+                        var aux = ItemsSource.ToList()[i];
+                        ItemPressed?.Invoke(this, aux);
+                        SelectByPlace(aux.Place);
+                        SelectedItems.Add(aux);
+                    }
+                }
+                else
+                {
+                    for (int i = _lastSourceIndex; i >= targetIndex; i--)
+                    {
+                        var aux = ItemsSource.ToList()[i];
+                        ItemPressed?.Invoke(this, aux);
+                        SelectByPlace(aux.Place);
+                        SelectedItems.Add(aux);
+                    }
+                }
+            }
+            else
+            {
+                ItemPressed?.Invoke(this, item);
+                SelectByPlace(item.Place);
+                SelectedItems.Add(item);
+            }
+
         }
 
         var pt = e.GetCurrentPoint(this);
@@ -406,6 +445,7 @@ public partial class ItemsListControl : UserControl
 
     private void MultipleClone_Click(object? sender, RoutedEventArgs e)
     {
+        if (ItemsSource is null) return;
         MultipleCloneRequested?.Invoke(this, SelectedItems);
     }
 
@@ -441,9 +481,9 @@ public partial class ItemsListControl : UserControl
 
     private void MultipleDelete_Click(object? sender, RoutedEventArgs e)
     {
+        if (ItemsSource is null) return;
         MultipleDeleteRequested?.Invoke(this, SelectedItems);
     }
-
     private static void ApplyGoldShadow(Border border) =>
         border.BoxShadow = new BoxShadows(new BoxShadow { Color = Color.Parse("#ebb935"), Blur = 15, OffsetX = 0, OffsetY = 0 });
 
