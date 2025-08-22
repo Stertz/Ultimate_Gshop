@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Views

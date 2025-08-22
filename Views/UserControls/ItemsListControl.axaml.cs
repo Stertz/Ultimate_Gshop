@@ -1,14 +1,13 @@
-﻿using System.Globalization;
-using System.Linq;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 using Avalonia.Threading;
-using Ultimate_Gshop.Itens;
+using Avalonia.VisualTree;
 using DynamicData;
+using System.Globalization;
+using Ultimate_Gshop.Itens;
 
 namespace Ultimate_Gshop.Views.UserControls;
 
@@ -181,7 +180,7 @@ public partial class ItemsListControl : UserControl
                 }
             }
 
-            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) 
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
                 var targetIndex = ItemsSource.IndexOf(item);
 

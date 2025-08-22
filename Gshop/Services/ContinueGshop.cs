@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using Ultimate_Gshop.Misc;
+﻿using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Gshop.Services
 {
     public static class ContinueGshop

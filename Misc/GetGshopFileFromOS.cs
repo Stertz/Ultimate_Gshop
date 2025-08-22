@@ -27,7 +27,7 @@ namespace Ultimate_Gshop.Misc
                 var result = await new CustomMessageBox("No valid file provided", "Try again?", "Yes", "No").ShowDialogAsync(window);
                 if (result == "Yes")
                 {
-                   return await Handle(window);
+                    return await Handle(window);
                 }
             }
 

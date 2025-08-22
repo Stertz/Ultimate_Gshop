@@ -1,5 +1,4 @@
 ﻿using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Itens
@@ -23,9 +22,9 @@ namespace Ultimate_Gshop.Itens
         public int LimitPeriod { get; set; }
         public int AvailFrequency { get; set; }
         public int Class { get; set; }
-        public int Reserve1 { get; set; } 
-        public int Reserve2 { get; set; } 
-        public int Reserve3 { get; set; } 
+        public int Reserve1 { get; set; }
+        public int Reserve2 { get; set; }
+        public int Reserve3 { get; set; }
         public int Reserve4 { get; set; }
         public int Reserve5 { get; set; }
         public int Reserve6 { get; set; }

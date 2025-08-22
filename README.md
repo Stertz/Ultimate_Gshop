@@ -24,7 +24,7 @@ Ultimate Gshop is a modern and lightweight editor for **Gshop** files used in *P
 
 | Main Window | Menu | Sales Editor |
 |-------------|------|--------------|
-| <img src="docs/main.png" alt="Main Window"/> | <img src="docs/menu.png" alt="Menu"/> | <img src="docs/edit_sales.png" alt="Sales Editor"/> |
+| <img src="Docs/main.png" alt="Main Window"/> | <img src="Docs/menu.png" alt="Menu"/> | <img src="Docs/edit_sales.png" alt="Sales Editor"/> |
 
 ---
 

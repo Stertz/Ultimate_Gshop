@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ultimate_Gshop.Gshop.Services
+﻿namespace Ultimate_Gshop.Gshop.Services
 {
     public static class ExportGshopServer
     {
@@ -26,12 +19,12 @@ namespace Ultimate_Gshop.Gshop.Services
                     bw.Write(itens[i].Sales[f].Price);
                     bw.Write(itens[i].Sales[f].SellingEndTime);
                     bw.Write(itens[i].Sales[f].During);
-                        bw.Write(itens[i].Sales[f].SellingStartTime);
-                        bw.Write(itens[i].Sales[f].Control);
-                        bw.Write(itens[i].Sales[f].Day);
-                        bw.Write(itens[i].Sales[f].Status);
-                        bw.Write(itens[i].Sales[f].Flags);
-                            bw.Write(itens[i].Sales[f].VipLevelRequired);
+                    bw.Write(itens[i].Sales[f].SellingStartTime);
+                    bw.Write(itens[i].Sales[f].Control);
+                    bw.Write(itens[i].Sales[f].Day);
+                    bw.Write(itens[i].Sales[f].Status);
+                    bw.Write(itens[i].Sales[f].Flags);
+                    bw.Write(itens[i].Sales[f].VipLevelRequired);
                 }
                 bw.Write(itens[i].GiftID);
                 bw.Write(itens[i].GiftAmount);

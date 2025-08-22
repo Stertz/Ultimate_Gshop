@@ -5,8 +5,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using DynamicData;
-using System;
 using System.ComponentModel;
 using System.Globalization;
 using Ultimate_Gshop.Categories;

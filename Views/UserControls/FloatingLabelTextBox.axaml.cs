@@ -1,11 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using System.Text.RegularExpressions;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Ultimate_Gshop.Views.UserControls
 {

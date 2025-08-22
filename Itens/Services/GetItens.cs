@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Itens.Services
 {
