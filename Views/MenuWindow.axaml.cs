@@ -72,6 +72,8 @@ namespace Ultimate_Gshop
 
             SaveGshop.Handle(_shop, _tracking!, _settings!);
 
+            ExportGshopClient.Handle(bw, _shop);
+
             bw.Close();
 
         }
@@ -99,6 +101,8 @@ namespace Ultimate_Gshop
                 throw new InvalidOperationException("Shop is not initialized.");
 
             SaveGshop.Handle(_shop, _tracking!, _settings!);
+
+            ExportGshopClient.Handle(bw, _shop);
             
             bw.Close();
         }

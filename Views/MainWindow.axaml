@@ -16,11 +16,9 @@
 
 
 	<Grid>
-		<!-- Sua imagem de fundo -->
 		<Image Source="avares://Ultimate_Gshop/Resources/bg.png"
                Stretch="Fill"/>
 
-		<!-- Nav Button -->
 		<Button Width="45" Height="45"
 				Margin="80,90,0,0" Padding="0"
 				Background="Transparent"
@@ -32,8 +30,7 @@
 			<Image Source="avares://Ultimate_Gshop/Resources/menu.png"
 				   Stretch="Uniform"/>
 		</Button>
-
-		<!-- Undo Arrow -->
+		
 		<Button x:Name="UndoButton"
 				Width="42" Height="42"
 				Margin="130,92,0,0" Padding="0"
@@ -47,7 +44,6 @@
 				   Stretch="Uniform"/>
 		</Button>
 
-		<!-- Redo Arrow -->
 		<Button x:Name="RedoButton"
 				Width="42" Height="42"
 				Margin="170,92,0,0" Padding="0"
@@ -61,7 +57,6 @@
 				   Stretch="Uniform"/>
 		</Button>
 
-		<!-- Category Panel -->
 		<Grid>
 			<ItemsControl x:Name="CategoryList"
 						  HorizontalAlignment="Center"
