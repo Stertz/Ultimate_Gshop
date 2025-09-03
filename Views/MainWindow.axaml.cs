@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using System.ComponentModel;
 using System.Globalization;
+using System.Collections.ObjectModel;
 using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
@@ -26,9 +27,11 @@ namespace Ultimate_Gshop
 
         private static readonly List<string> ItemClass = ["All", "Blademaster", "Wizard", "Psychic", "Venomancer", "Barbarian", "Assassin", "Archer", "Cleric", "Seeker", "Mystic", "Duskblade", "Stormbringer"];
 
-        private Shop _shop = new();
+        public Shop _shop = new();
         private ShopTracking _tracking = new();
         private GshopSettings _settings = new();
+
+        public ObservableCollection<string> Items { get; set; } = [];
 
         private Border? _lastSelectedBorder;
         private Border? _lastSelectedCategory;
@@ -1441,6 +1444,12 @@ namespace Ultimate_Gshop
             InitializeShopSources();
             UpdateGrid();
 
+        }
+
+        private async void GridButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var gridWindow = new GridWindow(_shop.Itens);
+            await gridWindow.ShowDialog(this);
         }
 
         private void Undo_Click(object? sender, RoutedEventArgs e)

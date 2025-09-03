@@ -21,7 +21,7 @@ public partial class OptionsWindow : Window
     private async void CloseButton_Click(object? sender, RoutedEventArgs e)
     {
 
-        if (Settings.SaveFromSeconds < 30)
+        if (Settings?.SaveFromSeconds < 30)
         {
             await new CustomMessageBox("Intervalo de gravação", "Tempo mínimo de 30 segundos", "Ok").ShowDialogAsync(this);
             return;

@@ -14,7 +14,6 @@
         Background="Transparent"
 		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 
-
 	<Grid>
 		<Image Source="avares://Ultimate_Gshop/Resources/bg.png"
                Stretch="Fill"/>
@@ -57,7 +56,21 @@
 				   Stretch="Uniform"/>
 		</Button>
 
+		<Button Width="45" Height="45"
+				Margin="210,90,0,0" Padding="0"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				HorizontalAlignment="Left"
+				Opacity="0.95"
+				VerticalAlignment="Top"
+				IsVisible="False"
+				Click="GridButton_Click">
+			<Image Source="avares://Ultimate_Gshop/Resources/menu.png"
+				   Stretch="Uniform"/>
+		</Button>
+
 		<Grid>
+			
 			<ItemsControl x:Name="CategoryList"
 						  HorizontalAlignment="Center"
 						  VerticalAlignment="Top"
@@ -190,7 +203,9 @@
                            Width="460" Height="370"
                            Margin="0,80,0,0"
                            VerticalAlignment="Top"/>
+	
 		</Grid>
+
 
 		<!-- Detalhe de Itens -->
 		<Grid HorizontalAlignment="Right"

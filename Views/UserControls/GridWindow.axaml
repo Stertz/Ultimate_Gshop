@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Ultimate_Gshop.ViewModels"
+		mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+        x:Class="Ultimate_Gshop.GridWindow"
+		x:DataType="vm:GridViewModel"
+        Title="GridWindow">
+
+	<Grid>
+
+		<Button VerticalAlignment="Top" Margin="20" Content="{Binding Teste}"></Button>
+
+
+		<ScrollViewer>
+			<DataGrid Margin="20"
+			  ItemsSource="{Binding Items}"
+			  AutoGenerateColumns="True"
+			  GridLinesVisibility="All"
+			  BorderThickness="1"
+			  VerticalAlignment="Top"
+			  Background="White"
+			  Foreground="Black">
+
+			</DataGrid>
+		</ScrollViewer>
+
+	</Grid>
+
+
+
+</Window>
