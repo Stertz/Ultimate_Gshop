@@ -1,9 +1,9 @@
 # Stack Update Status
 
 Updated: 2026-10-15.
-Branch: `chore/stack-update`.
+Branch: `main` (modernization originally prepared on `chore/stack-update`).
 Starting commit: `ef1aa7762b2c3bfcc2e0444bc214f76c7c2dea7f`.
-Public destination: `https://github.com/Stertz/Ultimate_Gshop` (created by the user; first push pending). Original source is retained as `upstream`.
+Public repository: `https://github.com/Stertz/Ultimate_Gshop`. Original source is retained as `upstream`.
 
 ## Changes prepared
 
@@ -68,7 +68,9 @@ Each fix followed a failing regression scenario. Serialized widths/order/encodin
 
 The earlier NuGet socket blocker was resolved by the user's restore outside the restricted executor and subsequent cache-only restoration here. Compilation is now verified. Native window startup, pointer/clipboard behavior, UI bindings, and independent known-good game files still need validation. Raster tests do not start a desktop window.
 
-The workflow in `.github/workflows/ci.yml` prepares separate hosted desktop-build and format-test jobs for Linux, Windows, and macOS. It has not been executed on GitHub. It uses read-only repository permissions and requires no deployment server or secrets for normal checks. Dependabot configuration covers NuGet and GitHub Actions.
+Hosted builds and all 149 tests passed on Linux, Windows, and macOS in [CI run 38798147466](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466). Linux coverage matched the Windows baseline. The first run exposed a missing policy file: `coverage*.json` had ignored `tests/coverage-policy.json`. Commit `84a9520` tracks the policy and adds a narrow ignore exception; all six checks then passed. Dependabot configuration covers NuGet and GitHub Actions.
+
+Normal checks retain read-only permissions and require no deployment server. A separate default-branch job is prepared to update only the README badge blocks after successful checks; it has scoped contents-write permission. Coverage and stack versions come from the report/project, while release/CI badges read GitHub automatically. See [badge automation](testing.md#readme-badges).
 
 Reproduce the compiled-application checks:
 
@@ -78,7 +80,7 @@ dotnet build Ultimate_Gshop.sln --configuration Release --no-restore --warnaserr
 dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-restore
 ```
 
-Continue with delete identity, independent game fixtures, recovery error presentation, and broader backup/filesystem validation before broader refactoring. Native UI tests are deferred beyond this first phase per the user's direction. Contribution materials and the automatic prerelease pipeline are prepared locally. The pipeline targets Windows x64, Linux x64, and macOS Intel/ARM64, with native package smoke checks and checksums; it is disabled until the intended public repository enables `ENABLE_PRERELEASES`. See [releasing](releasing.md). Actual hosted execution, public destination/publication readiness, private-reporting activation, and About improvements remain pending. No public publication or remote workflow execution has occurred.
+Continue with delete identity, independent game fixtures, recovery error presentation, and broader backup/filesystem validation before broader refactoring. Native UI tests are deferred beyond this first phase per the user's direction. Contribution materials and the prerelease pipeline are present in the public repository. The pipeline targets Windows x64, Linux x64, and macOS Intel/ARM64, with native package smoke checks and checksums; it is disabled until `ENABLE_PRERELEASES` is enabled. See [releasing](releasing.md). Self-contained package execution, final publication notices, private-reporting activation, and remote About settings remain pending.
 
 ## Publisher references
 
