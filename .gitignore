@@ -147,6 +147,9 @@ coverage*.json
 coverage*.xml
 coverage*.info
 
+# Coverage thresholds are source configuration, not generated reports.
+!/tests/coverage-policy.json
+
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml

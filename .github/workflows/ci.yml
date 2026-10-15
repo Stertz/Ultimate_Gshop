@@ -94,3 +94,54 @@ jobs:
             TestResults/coverage/index.html
           if-no-files-found: error
           retention-days: 7
+
+  readme-badges:
+    name: Update README badges
+    needs: [desktop-build, format-tests]
+    if: >-
+      github.event_name == 'push' && github.repository == 'Stertz/Ultimate_Gshop' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: application-coverage
+          path: artifacts/coverage
+      - name: Refresh measured coverage and stack versions
+        shell: pwsh
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          CHECKED_COMMIT: ${{ github.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $remote = git ls-remote origin "refs/heads/$env:DEFAULT_BRANCH"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (($remote -split '\s+')[0] -ne $env:CHECKED_COMMIT) {
+            Write-Output 'A newer source commit exists; its CI run will update the badges.'
+            exit 0
+          }
+          ./scripts/Update-ReadmeBadges.ps1 -CoverageReportPath artifacts/coverage/application-coverage.cobertura.xml -Repository $env:GITHUB_REPOSITORY
+          git diff --quiet -- README.md
+          if ($LASTEXITCODE -eq 0) { exit 0 }
+          if ($LASTEXITCODE -ne 1) { exit $LASTEXITCODE }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git commit -m 'docs: refresh measured README badges [skip ci]'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git push origin "HEAD:refs/heads/$env:DEFAULT_BRANCH"
+          if ($LASTEXITCODE -ne 0) {
+            $remote = git ls-remote origin "refs/heads/$env:DEFAULT_BRANCH"
+            if ($LASTEXITCODE -eq 0 -and ($remote -split '\s+')[0] -ne $env:CHECKED_COMMIT) {
+              Write-Output 'The branch advanced during the update; retaining its newer content.'
+              exit 0
+            }
+            throw 'Could not publish the README badge update.'
+          }

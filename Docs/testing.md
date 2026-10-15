@@ -2,6 +2,8 @@
 
 The suite uses xUnit.net v3 with Microsoft.Testing.Platform v2 on .NET 10. Its project references the compiled desktop application; production source is not copied or linked into a substitute test assembly. The original application folders and assets are preserved.
 
+The existing test project groups its unchanged test files under `Assets`, `Serialization`, `Editing`, and `Persistence`. Shared fixture helpers stay at the test-project root; project names, namespaces, assembly references, and commands are unchanged.
+
 ## Run the suite
 
 From the repository root, with the SDK selected by `global.json`:
@@ -54,7 +56,21 @@ The configuration includes the compiled `Ultimate_Gshop` assembly, including unt
 
 [coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 18.0% lines and 20.0% branches, raised after the parser/history/import/export checks, with end-of-stage targets of 80% and 70%. The targets have not been reached. Keep untested application code in the denominator and raise floors as tests expand; validate platform differences when hosted Linux collection first runs.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The workflow is prepared but has not run on GitHub.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux, uploads Cobertura/HTML artifacts with seven-day retention, and passes builds/tests on all three operating systems. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) measured the same coverage as the local baseline.
+
+## README badges
+
+The default-branch push workflow refreshes the README after every build/test job succeeds. `scripts/Update-ReadmeBadges.ps1` reads executable-line coverage from that run's whole-application Cobertura artifact and reads .NET/Avalonia versions from the project. It replaces only the marked badge blocks; percentages and stack versions are not maintained by hand.
+
+CI status uses GitHub's workflow badge. The release badge reads published GitHub releases, including previews. It does not advertise an unpublished local version as an available download. Coverage describes the latest successful measurement, not a promise that the current build is passing.
+
+The badge job receives write permission only on default-branch pushes in this repository. Pull requests cannot publish README changes. A newer source commit causes an older badge update to be skipped; pushes use no force. Badge-only commits use `GITHUB_TOKEN` and `[skip ci]` to avoid a recursive build/release loop. See [GitHub token event behavior](https://docs.github.com/en/actions/concepts/security/github_token).
+
+Refresh the marked blocks locally after generating a report:
+
+```powershell
+./scripts/Update-ReadmeBadges.ps1
+```
 
 ## Remaining coverage before broader improvements
 

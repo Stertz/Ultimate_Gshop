@@ -1,32 +1,27 @@
-# Public Repository Setup
+# Repository Settings
 
-Destination: [Stertz/Ultimate_Gshop](https://github.com/Stertz/Ultimate_Gshop), created by the user with `main` as its default branch. The original repository remains the local `upstream`; `origin` targets the new destination. Existing commits, authorship, tags, license, and João's explicit README credit are retained.
+Repository: [Stertz/Ultimate_Gshop](https://github.com/Stertz/Ultimate_Gshop).
 
-The GitHub connector confirmed administrator/push access and an empty public destination. The local Git transport cannot connect to `github.com:443` inside this executor. The reviewed local commits can be pushed from a normal PowerShell terminal with network access:
+## About
 
-```powershell
-cd C:\Users\LucasStertz\Documents\Ultimate_Gshop
-git push -u origin main
-```
-
-Push existing historical tags separately when wanted; no force push or history rewrite is needed. CI should start on the first `main` push. The prerelease workflow stays disabled until publication readiness is complete and `ENABLE_PRERELEASES` is configured.
-
-## About settings
-
-Prepared description: `Preview desktop editor for Perfect World Gshop files, built with .NET and Avalonia for Windows, macOS, and Linux.`
-
-Prepared topics: `perfect-world`, `gshop`, `editor`, `avalonia`, `dotnet`, `csharp`, `cross-platform`, `open-source`.
+Description: `Desktop editor for Perfect World Gshop files, built with .NET and Avalonia.`
 
 Homepage: `https://github.com/Stertz/Ultimate_Gshop/releases`.
 
-After authenticating GitHub CLI in a terminal with network access, apply these prepared settings:
+Topics: `perfect-world`, `gshop`, `editor`, `avalonia`, `dotnet`, `csharp`.
+
+Maintainers can apply these settings through the repository's About panel or authenticated GitHub CLI:
 
 ```powershell
-gh repo edit Stertz/Ultimate_Gshop --description "Preview desktop editor for Perfect World Gshop files, built with .NET and Avalonia for Windows, macOS, and Linux." --homepage "https://github.com/Stertz/Ultimate_Gshop/releases" --add-topic perfect-world --add-topic gshop --add-topic editor --add-topic avalonia --add-topic dotnet --add-topic csharp --add-topic cross-platform --add-topic open-source
+gh repo edit Stertz/Ultimate_Gshop --description "Desktop editor for Perfect World Gshop files, built with .NET and Avalonia." --homepage "https://github.com/Stertz/Ultimate_Gshop/releases" --add-topic perfect-world --add-topic gshop --add-topic editor --add-topic avalonia --add-topic dotnet --add-topic csharp
 ```
 
-These About settings have not been applied remotely. Enable private vulnerability reporting and appropriate branch checks after validating actual CI runs. Do not advertise packaged platform support or coverage badges as successfully hosted until the corresponding checks execute.
+These settings are prepared but have not been applied remotely. The available connector does not expose repository-settings writes, and the local CLI cannot connect to GitHub from the current executor.
 
-## Review performed
+## Branch checks and releases
 
-The prepublication pattern scan inspected 363 historical text blobs across 90 existing commits and the current text publication set. It found no recognizable token/private-key patterns or sensitive-looking credential/key filenames. This is a limited automated scan, not a comprehensive secret/security or asset-license clearance. Game assets remain byte-identical; [third-party notices](../THIRD_PARTY_NOTICES.md) record the remaining provenance work before binary release activation.
+The public `main` branch preserves the original Git history and both authors' credits. Local `origin` points to this repository; `upstream` retains the original source repository.
+
+Require the three desktop-build and three compatibility-test checks for pull requests after verifying their names on GitHub. The README badge job runs only on default-branch pushes and should not be required for PRs. Enable private vulnerability reporting through repository settings.
+
+The prerelease workflow is opt-in through `ENABLE_PRERELEASES=true`. Complete [third-party notices](../THIRD_PARTY_NOTICES.md) and validate the manual package workflow before activation; see [releasing](releasing.md). No deployment server is used.

@@ -1,8 +1,8 @@
 # Preview Releases
 
-The release pipeline is prepared locally and has not run on GitHub. No public downloads have been published by this modernization work.
+The release workflow is in the public repository. Its package jobs have not run on GitHub; automatic runs are skipped while activation is disabled. No downloadable release has been published by this modernization work.
 
-The intended destination now exists at [Stertz/Ultimate_Gshop](https://github.com/Stertz/Ultimate_Gshop). See [publication setup](publication.md) for remote configuration, first-push instructions, and prepared About settings.
+Source is published at [Stertz/Ultimate_Gshop](https://github.com/Stertz/Ultimate_Gshop). See [repository settings](publication.md) for About text, branch checks, and activation guidance.
 
 ## Version source
 
