@@ -1,5 +1,6 @@
 ﻿using Ultimate_Gshop.Categories;
 using Ultimate_Gshop.Itens;
+using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Gshop.Services
 {
     public static class NewEmptyGshop
@@ -31,6 +32,16 @@ namespace Ultimate_Gshop.Gshop.Services
                                new Item() { ID = 8, Name = "Item8",  Amount = 1, CategoryIndex = 7}
                 ]
             };
+
+            // Both binary formats require four sale slots and eight owner NPC slots.
+            for (var index = 0; index < shop.Itens.Count; index++)
+            {
+                var item = shop.Itens[index];
+                item.Place = index;
+                item.Sales = Enumerable.Range(0, Variables.MaxSalesPerItem)
+                    .Select(slot => new Sale { Control = slot == 0 ? -1 : 0 }).ToList();
+                item.OwnerNpcs = new int[8];
+            }
 
             return shop;
 

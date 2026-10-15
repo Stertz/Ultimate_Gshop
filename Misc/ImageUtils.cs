@@ -16,10 +16,7 @@ namespace Ultimate_Gshop.Misc
                 if (string.IsNullOrWhiteSpace(path))
                     throw new Exception("Empty image path.");
 
-                if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
-                    path = Path.ChangeExtension(path, ".png");
-
-                path = Path.Combine(AppContext.BaseDirectory, "resources", path.TrimStart('/', '\\'));
+                path = ResolveImagePath(path);
 
                 if (!File.Exists(path))
                     throw new FileNotFoundException($"Image not found: {path}");
@@ -31,6 +28,17 @@ namespace Ultimate_Gshop.Misc
                 // fallback embutido
                 return AssetLoader.Open(new Uri("avares://Ultimate_Gshop/Resources/question_mark.png"));
             }
+        }
+
+        internal static string ResolveImagePath(string path)
+        {
+            if (path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+                path = Path.ChangeExtension(path, ".png");
+
+            var relative = path.TrimStart('/', '\\')
+                .Replace('\\', Path.DirectorySeparatorChar)
+                .Replace('/', Path.DirectorySeparatorChar);
+            return Path.Combine(AppContext.BaseDirectory, "Resources", relative);
         }
 
         public static Bitmap LoadImage(string iconPath)

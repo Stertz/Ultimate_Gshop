@@ -6,7 +6,7 @@
         SizeToContent="Height"
         Background="Transparent"
         WindowStartupLocation="CenterOwner"
-        SystemDecorations="None"
+        WindowDecorations="None"
         CanResize="False"
 		Icon="avares://Ultimate_Gshop/Resources/icon_gshop.ico">
 

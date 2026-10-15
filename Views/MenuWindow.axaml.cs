@@ -64,16 +64,16 @@ namespace Ultimate_Gshop
                 if (result != "Ok") return;
             }
 
-            using var bw = new BinaryWriter(File.Create(export_filepath));
+
 
             if (_shop == null)
                 throw new InvalidOperationException("Shop is not initialized.");
 
             SaveGshop.Handle(_shop, _tracking!, _settings!);
 
-            ExportGshopClient.Handle(bw, _shop);
+            ExportGshopFile.Handle(_shop, export_filepath, GshopExportTarget.Server);
 
-            bw.Close();
+
 
         }
 
@@ -95,22 +95,23 @@ namespace Ultimate_Gshop
                 if (result != "Ok") return;
             }
 
-            using var bw = new BinaryWriter(File.Create(export_filepath));
+
             if (_shop == null)
                 throw new InvalidOperationException("Shop is not initialized.");
 
             SaveGshop.Handle(_shop, _tracking!, _settings!);
 
-            ExportGshopClient.Handle(bw, _shop);
+            ExportGshopFile.Handle(_shop, export_filepath, GshopExportTarget.Client);
             
-            bw.Close();
+
         }
 
         private async void OnImportGshopClicked(object sender, RoutedEventArgs e)
         {
             SaveGshopIfExists();
-            var gshop = await ImportGshop.Handle(this);
+            var gshop = await ImportGshop.Handle(this, _settings);
             if (gshop == null) return;
+            _tracking?.Clear();
             Close(gshop);
         }
 
@@ -123,6 +124,8 @@ namespace Ultimate_Gshop
         {
             SaveGshopIfExists();
             var gshop = NewEmptyGshop.Handle();
+            StartGshopSession.Handle(gshop, _settings ?? GshopSettings.Load(), ApplicationSettings.AppFolder);
+            _tracking?.Clear();
             Close(gshop);
         }
 

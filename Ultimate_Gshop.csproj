@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- Configuração básica do app -->
+	<!-- Application build settings. -->
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>False</UseWPF>
 		<LangVersion>latest</LangVersion>
+		<!-- Preserve reflection bindings during the Avalonia 12 migration. -->
+		<AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
 	</PropertyGroup>
 
 	<!-- Metadados do produto / assembly -->
@@ -21,15 +23,14 @@
 		<NeutralLanguage>en-US</NeutralLanguage>
 
 		<!-- Versões -->
-		<Version>1.0.0</Version>
-		<FileVersion>1.0.0.0</FileVersion>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<VersionPrefix>1.1.0</VersionPrefix>
+		<VersionSuffix Condition="'$(VersionSuffix)' == ''">alpha.local</VersionSuffix>
 
 		<!-- Informações de licença e repositório -->
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/joaocib/Ultimate_Gshop</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/joaocib/Ultimate_Gshop</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Stertz/Ultimate_Gshop</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Stertz/Ultimate_Gshop</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>PerfectWorld;Gshop;Editor;Avalonia</PackageTags>
 
@@ -115,16 +116,27 @@
 		<AvaloniaResource Include="Resources\unpreview.png" />
 	</ItemGroup>
 
-	<!-- Dependências -->
+	<!-- Control packages have independent release versions. -->
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.3.4" />
-		<PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.4" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.4" />
-		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.3.4" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.4" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="11.3.4" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.4" />
+		<PackageReference Include="Avalonia" Version="12.1.4" />
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
+		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.6" />
+		<!-- These APIs are used directly instead of relying on ReactiveUI's former dependency graph. -->
+		<PackageReference Include="DynamicData" Version="9.4.33" />
+		<PackageReference Include="System.Reactive" Version="7.0.0" />
+	</ItemGroup>
+
+	<!-- Keep test sources and fixtures out of the root application project. -->
+	<ItemGroup>
+		<Compile Remove="tests\**" />
+		<AvaloniaXaml Remove="tests\**" />
+		<AvaloniaResource Remove="tests\**" />
+		<EmbeddedResource Remove="tests\**" />
+		<None Remove="tests\**" />
+		<InternalsVisibleTo Include="Ultimate_Gshop.Format.Tests" />
 	</ItemGroup>
 
 	<!-- Mantém relação XAML/Code-behind -->
@@ -137,7 +149,7 @@
 	<!-- Empacotar README e LICENSE em caso de publicação NuGet (opcional, mas completo) -->
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="\" />
-		<None Include="LICENSE" Pack="true" PackagePath="\" />
+		<None Include="LICENSE" Pack="true" PackagePath="\" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

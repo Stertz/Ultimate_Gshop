@@ -1439,7 +1439,18 @@ namespace Ultimate_Gshop
                 (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
             );
 
-            _shop = await menuWindow.ShowDialog<Shop>(this);
+            var nextShop = await menuWindow.ShowDialog<Shop>(this);
+            if (nextShop is null) return;
+            if (!ReferenceEquals(_shop, nextShop))
+            {
+                _currentSelectedItem = null;
+                _currentSelectedItems.Clear();
+                _selectedCategory = -1;
+                _selectedSubCategory = -1;
+                _currentState = DetailState.Viewing;
+                SetItemDetailsEnabled();
+            }
+            _shop = nextShop;
 
             InitializeShopSources();
             UpdateGrid();

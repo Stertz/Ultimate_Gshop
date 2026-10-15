@@ -2,6 +2,7 @@
 using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Itens.Services
 {
+    using Ultimate_Gshop.Gshop.Misc;
     public static class GetItens
     {
         public static IEnumerable<Item> Handle(int itemAmount, BinaryReader br, FileStream fs)
@@ -9,7 +10,8 @@ namespace Ultimate_Gshop.Itens.Services
 
             var itens = new List<Item>();
 
-            fs.Seek(8, SeekOrigin.Begin);
+            BinaryFormat.GetCategoryOffset(fs, itemAmount);
+            fs.Seek(BinaryFormat.HeaderSize, SeekOrigin.Begin);
 
             for (int i = 0; i < itemAmount; i++)
             {
@@ -20,7 +22,7 @@ namespace Ultimate_Gshop.Itens.Services
 
                     CategoryIndex = br.ReadInt32(),
                     SubCategoryIndex = br.ReadInt32(),
-                    Icon = Encoding.GetEncoding(936).GetString(br.ReadBytes(128)).Split('\0')[0],
+                    Icon = Encoding.GetEncoding(936).GetString(BinaryFormat.ReadField(br, 128)).Split('\0')[0],
                     ID = br.ReadInt32(),
                     Amount = br.ReadInt32(),
                     Sales = new List<Sale>(Variables.MaxSalesPerItem)
@@ -45,8 +47,8 @@ namespace Ultimate_Gshop.Itens.Services
                     item.Sales.Add(sale);
                 }
 
-                item.Explanation = Encoding.Unicode.GetString(br.ReadBytes(1024)).TrimEnd('\0');
-                item.Name = Encoding.Unicode.GetString(br.ReadBytes(64)).Split('\0')[0];
+                item.Explanation = Encoding.Unicode.GetString(BinaryFormat.ReadField(br, 1024)).TrimEnd('\0');
+                item.Name = Encoding.Unicode.GetString(BinaryFormat.ReadField(br, 64)).Split('\0')[0];
 
                 item.GiftID = br.ReadInt32();
                 item.GiftAmount = br.ReadInt32();

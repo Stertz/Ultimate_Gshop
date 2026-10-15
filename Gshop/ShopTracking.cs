@@ -1,18 +1,30 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Ultimate_Gshop.Gshop.Misc;
 using Ultimate_Gshop.Itens;
 using Ultimate_Gshop.Misc;
 namespace Ultimate_Gshop.Gshop
 {
     public class ShopTracking : INotifyPropertyChanged
     {
+        [JsonConverter(typeof(ShopChangeStackConverter))]
         public Stack<ShopChange> UndoChanges { get; set; } = new();
+        [JsonConverter(typeof(ShopChangeStackConverter))]
         public Stack<ShopChange> RedoChanges { get; set; } = new();
 
         public bool CanUndo => UndoChanges.Count > 0;
         public bool CanRedo => RedoChanges.Count > 0;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public void Clear()
+        {
+            UndoChanges.Clear();
+            RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
+        }
 
         public void ItemDeleted(int index, Item item)
         {
@@ -146,26 +158,25 @@ namespace Ultimate_Gshop.Gshop
 
         private static readonly string _tracking = Path.Combine(ApplicationSettings.AppFolder, "tracking.json");
 
-        public static ShopTracking Load()
-        {
-            if (!File.Exists(_tracking))
-                return new ShopTracking();
+        public static ShopTracking Load() => Load(_tracking);
 
-            var json = File.ReadAllText(_tracking);
-            return JsonSerializer.Deserialize<ShopTracking>(json) ?? new ShopTracking();
-        }
+        public static ShopTracking Load(string path) => SessionTransaction.Read(Path.GetDirectoryName(Path.GetFullPath(path))!, () =>
+            File.Exists(path) ? JsonSerializer.Deserialize<ShopTracking>(File.ReadAllText(path)) ?? new ShopTracking()
+                : new ShopTracking());
 
         public static void Save(ShopTracking tracking)
         {
             Directory.CreateDirectory(ApplicationSettings.AppFolder);
-            var json = JsonSerializer.Serialize(tracking, ApplicationSettings.IdentedJson);
-            File.WriteAllText(_tracking, json);
+            Save(tracking, _tracking);
         }
 
         public static void Save(ShopTracking tracking, string path)
         {
-            var json = JsonSerializer.Serialize(tracking, ApplicationSettings.IdentedJson);
-            File.WriteAllText(path, json);
+            SessionTransaction.Read(Path.GetDirectoryName(Path.GetFullPath(path))!, () =>
+            {
+                ProtectedFile.Write(path, stream => JsonSerializer.Serialize(stream, tracking, ApplicationSettings.IdentedJson));
+                return true;
+            });
         }
 
 

@@ -1,0 +1,178 @@
+name: Build desktop prereleases
+
+on:
+  workflow_run:
+    workflows: ['Build and compatibility checks']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prerelease-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  metadata:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.ENABLE_PRERELEASES == 'true' && github.event.repository.private == false &&
+       github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == github.event.repository.default_branch &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Record the exact checked source
+        id: source
+        shell: pwsh
+        env:
+          SOURCE_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          if ($env:SOURCE_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'Invalid source commit.' }
+          "commit=$env:SOURCE_COMMIT" | Add-Content $env:GITHUB_OUTPUT
+      - name: Derive the prerelease version from the project
+        id: version
+        shell: pwsh
+        env:
+          CHECK_RUN_NUMBER: ${{ github.event.workflow_run.run_number || github.run_number }}
+        run: ./scripts/Get-ReleaseVersion.ps1 -RunNumber ([int]$env:CHECK_RUN_NUMBER)
+
+  package:
+    needs: metadata
+    name: Package (${{ matrix.runtime }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            runtime: win-x64
+          - os: ubuntu-24.04
+            runtime: linux-x64
+          - os: macos-15-intel
+            runtime: osx-x64
+          - os: macos-15
+            runtime: osx-arm64
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+      SOURCE_COMMIT: ${{ needs.metadata.outputs.commit }}
+      TARGET_RUNTIME: ${{ matrix.runtime }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ needs.metadata.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Verify source resources
+        run: ./scripts/Test-AssetBaseline.ps1
+      - name: Run compatibility tests on the native runner
+        run: |
+          dotnet restore Ultimate_Gshop.sln
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build Ultimate_Gshop.sln --configuration Release --no-restore --warnaserror
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-restore
+          exit $LASTEXITCODE
+      - name: Publish a self-contained preview
+        run: |
+          $suffix = $env:RELEASE_VERSION.Substring($env:RELEASE_VERSION.IndexOf('-') + 1)
+          dotnet publish Ultimate_Gshop.csproj --configuration Release --runtime $env:TARGET_RUNTIME --self-contained true --output artifacts/publish -p:VersionSuffix=$suffix -p:ContinuousIntegrationBuild=true -warnaserror
+          exit $LASTEXITCODE
+      - name: Verify and archive the installed payload
+        run: ./scripts/New-ReleasePackage.ps1 -PublishDirectory artifacts/publish -Runtime $env:TARGET_RUNTIME -Version $env:RELEASE_VERSION -Commit $env:SOURCE_COMMIT
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: package-${{ matrix.runtime }}
+          path: |
+            artifacts/releases/*.zip
+            artifacts/releases/*.tar.gz
+            artifacts/releases/*.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [metadata, package]
+    if: github.event_name == 'workflow_run' && vars.ENABLE_PRERELEASES == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+      RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
+      SOURCE_COMMIT: ${{ needs.metadata.outputs.commit }}
+      CHECK_URL: ${{ github.event.workflow_run.html_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: package-*
+          merge-multiple: true
+          path: downloads
+      - name: Verify every archive before publishing the prerelease
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @()
+          foreach ($runtime in @('win-x64', 'linux-x64', 'osx-x64', 'osx-arm64')) {
+            $extension = if ($runtime -eq 'win-x64') { '.zip' } else { '.tar.gz' }
+            $name = "UltimateGshop-$env:RELEASE_VERSION-$runtime$extension"
+            $archive = Join-Path 'downloads' $name
+            $checksum = "$archive.sha256"
+            $expected = (Get-Content -LiteralPath $checksum -Raw).Trim()
+            $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($expected -cne "$hash  $name") { throw "Checksum mismatch: $name" }
+            $files += @($archive, $checksum)
+          }
+          $notes = @"
+          Preview $env:RELEASE_VERSION from commit $env:SOURCE_COMMIT.
+
+          Checks: $env:CHECK_URL
+
+          Self-contained downloads: Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon.
+          Keep each extracted folder or .app bundle intact; Resources contains the original game assets.
+          These previews are unsigned and not notarized. Native UI interactions and independent game-file compatibility remain under review.
+          Each package passed resource hashing, native raster decoding, and a synthetic client/server save/export check. This does not certify every game variant.
+          "@
+          $notes | Set-Content -LiteralPath release-notes.md -Encoding utf8
+          $tagCommit = gh api "repos/$env:GH_REPO/commits/$env:RELEASE_TAG" --jq .sha 2>$null
+          if ($LASTEXITCODE -eq 0 -and $tagCommit -ne $env:SOURCE_COMMIT) { throw 'The existing tag targets a different commit.' }
+          $existing = gh release view $env:RELEASE_TAG --json isDraft,targetCommitish 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            $release = $existing | ConvertFrom-Json
+            if ($release.targetCommitish -ne $env:SOURCE_COMMIT) { throw 'The release tag targets a different source commit.' }
+            if (-not $release.isDraft) { Write-Output 'This source already has a published prerelease.'; exit 0 }
+          } else {
+            gh release create $env:RELEASE_TAG --target $env:SOURCE_COMMIT --title "Ultimate Gshop $env:RELEASE_VERSION" --draft --prerelease --latest=false --notes-file release-notes.md
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          gh release upload $env:RELEASE_TAG @files --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gh release edit $env:RELEASE_TAG --draft=false --prerelease --latest=false
+          exit $LASTEXITCODE

@@ -1,5 +1,5 @@
 using Avalonia;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using System.Text;
 
 namespace Ultimate_Gshop
@@ -10,12 +10,26 @@ namespace Ultimate_Gshop
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
         [STAThread]
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             // Registra suporte a encodings
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            BuildAvaloniaApp()
+            if (args is ["--verify-installation"])
+            {
+                try
+                {
+                    Misc.InstallationCheck.Run();
+                    return 0;
+                }
+                catch (Exception error)
+                {
+                    Console.Error.WriteLine(error);
+                    return 1;
+                }
+            }
+
+            return BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
 
@@ -23,7 +37,7 @@ namespace Ultimate_Gshop
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .UseReactiveUI()
+                .UseReactiveUI(static _ => { })
                 .LogToTrace();
     }
 }

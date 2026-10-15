@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible problem with the editor or a game file.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: Windows x64, macOS ARM64, or Linux distribution and architecture
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include the smallest sequence that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Diagnostics and fixture details
+      description: Include logs and game-format version when available. Only attach files you may redistribute; remove credentials and private server data.

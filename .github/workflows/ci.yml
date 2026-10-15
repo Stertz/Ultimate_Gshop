@@ -1,0 +1,96 @@
+name: Build and compatibility checks
+
+on:
+  push:
+    branches: [main, master, 'chore/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  desktop-build:
+    name: Desktop build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore desktop dependencies
+        run: dotnet restore Ultimate_Gshop.csproj
+      - name: Build the desktop application
+        run: dotnet build Ultimate_Gshop.csproj --configuration Release --no-restore --warnaserror
+      - name: Validate publish output
+        run: dotnet publish Ultimate_Gshop.csproj --configuration Release --no-restore --self-contained false --output artifacts/publish
+      - name: Verify published game assets
+        shell: pwsh
+        run: ./scripts/Test-AssetBaseline.ps1 -RepositoryRoot artifacts/publish -ManifestPath Docs/baseline/assets.json -Mode Published
+
+  format-tests:
+    name: Compatibility tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Verify original resource paths and bytes
+        run: ./scripts/Test-AssetBaseline.ps1
+      - name: Restore the application compatibility test suite
+        run: dotnet restore tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj
+      - name: Run compatibility tests
+        run: |
+          $arguments = @(
+            'test', '--project', 'tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj',
+            '--configuration', 'Release', '--no-restore'
+          )
+          if ('${{ runner.os }}' -eq 'Linux') {
+            $arguments += @(
+              '--coverage', '--coverage-output-format', 'cobertura',
+              '--coverage-output', (Join-Path $PWD 'TestResults/application-coverage.cobertura.xml'),
+              '--coverage-settings', 'tests/application-coverage.config'
+            )
+          }
+          & dotnet @arguments
+          exit $LASTEXITCODE
+      - name: Report and enforce application coverage baseline
+        if: runner.os == 'Linux'
+        run: ./scripts/Write-CoverageSummary.ps1
+      - name: Upload application coverage
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: application-coverage
+          path: |
+            TestResults/application-coverage.cobertura.xml
+            TestResults/coverage/index.html
+          if-no-files-found: error
+          retention-days: 7

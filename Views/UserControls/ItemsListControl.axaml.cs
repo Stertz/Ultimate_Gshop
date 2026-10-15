@@ -13,6 +13,10 @@ namespace Ultimate_Gshop.Views.UserControls;
 
 public partial class ItemsListControl : UserControl
 {
+    // The drag payload is internal to this process and retains the original integer place.
+    private static readonly DataFormat<object> ItemPlaceFormat =
+        DataFormat.CreateInProcessFormat<object>("application/x-item-place");
+
     // Fonte de dados (bind da lista)
     public static readonly StyledProperty<IEnumerable<Item>?> ItemsSourceProperty =
         AvaloniaProperty.Register<ItemsListControl, IEnumerable<Item>?>(nameof(ItemsSource));
@@ -61,6 +65,7 @@ public partial class ItemsListControl : UserControl
     private const double DragStartThreshold = 6.0; // distância mínima caso o tempo não tenha passado
     private bool _dragPending;   // estado armado, aguardando critério para começar
     private bool _dragActive;    // DnD em andamento
+    private PointerPressedEventArgs? _pressEvent;
     private Point _pressPos;     // posição inicial do press
     private DateTime _pressTime; // timestamp do press
     private Grid? _pressGrid;    // grid/card que recebeu o press (para captura)
@@ -219,6 +224,7 @@ public partial class ItemsListControl : UserControl
 
         // 3) Arma drag normalmente
         _pressGrid = sender as Grid;
+        _pressEvent = e;
         _pressPos = e.GetPosition(this);
         _pressTime = DateTime.UtcNow;
         _dragPending = true;
@@ -248,6 +254,9 @@ public partial class ItemsListControl : UserControl
 
         if (!canStart) return;
 
+        var pressEvent = _pressEvent;
+        if (pressEvent is null) { CancelPendingDrag(); return; }
+
         // Resolve o "place" do card origem (via Border com Name==CardBorder)
         var border = FindCardBorder(sender);
         if (border?.Tag is not int place) { CancelPendingDrag(); return; }
@@ -255,16 +264,23 @@ public partial class ItemsListControl : UserControl
         _dragActive = true;
         _dragPending = false;
 
-        // Cria payload do DnD com um formato interno (application/x-item-place)
-        var data = new DataObject();
-        data.Set("application/x-item-place", place);
+        // Keep the existing item place payload with Avalonia's typed transfer API.
+        var transferItem = new DataTransferItem();
+        transferItem.Set(ItemPlaceFormat, place);
+        using var data = new DataTransfer();
+        data.Add(transferItem);
 
         // Inicia a operação de arrastar‑mover; bloqueia até drop/cancel
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
-
-        // Ao retornar, a operação terminou (drop ou cancel)
-        _dragActive = false;
-        ReleasePointerCaptureSafe(e);
+        try
+        {
+            await DragDrop.DoDragDropAsync(pressEvent, data, DragDropEffects.Move);
+        }
+        finally
+        {
+            _dragActive = false;
+            _pressEvent = null;
+            ReleasePointerCaptureSafe(e);
+        }
     }
 
     private void OnItemCard_PointerReleased(object? sender, PointerReleasedEventArgs e)
@@ -278,6 +294,7 @@ public partial class ItemsListControl : UserControl
     {
         _dragPending = false;
         _pressGrid = null;
+        _pressEvent = null;
     }
 
     private static void ReleasePointerCaptureSafe(PointerEventArgs e)
@@ -290,7 +307,7 @@ public partial class ItemsListControl : UserControl
     private void OnItem_DragOver(object? sender, DragEventArgs e)
     {
         // Só aceitamos o nosso formato interno; caso contrário, cancela auto‑scroll
-        if (e.Data.Contains("application/x-item-place"))
+        if (e.DataTransfer.Contains(ItemPlaceFormat))
         {
             e.DragEffects = DragDropEffects.Move;
             e.Handled = true;
@@ -368,11 +385,7 @@ public partial class ItemsListControl : UserControl
 
     private void OnItem_Drop(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains("application/x-item-place")) return;
-
-        // Extrai o place de origem
-        var sourcePlace = e.Data.Get("application/x-item-place") as int? ?? -1;
-        if (sourcePlace < 0) return;
+        if (e.DataTransfer.TryGetValue(ItemPlaceFormat) is not int sourcePlace || sourcePlace < 0) return;
 
         int targetIndex;
 
@@ -538,7 +551,7 @@ public partial class ItemsListControl : UserControl
     private void OnRoot_DragOver(object? sender, DragEventArgs e)
     {
         // Versão para a área "vazia" do ScrollViewer (não sobre um card)
-        if (!e.Data.Contains("application/x-item-place")) { StopAutoScroll(); return; }
+        if (!e.DataTransfer.Contains(ItemPlaceFormat)) { StopAutoScroll(); return; }
 
         var pos = e.GetPosition(RootScroll);
         var h = RootScroll.Bounds.Height;

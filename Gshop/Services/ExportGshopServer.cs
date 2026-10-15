@@ -5,9 +5,10 @@
         public static void Handle(BinaryWriter bw, Shop shop)
         {
             var itens = shop.Itens;
+            var itemAmount = itens.Count;
             bw.Write((Int32)(shop.Timestamp.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
-            bw.Write(shop.ItemAmount);
-            for (int i = 0; i < shop.ItemAmount; i++)
+            bw.Write(itemAmount);
+            for (int i = 0; i < itemAmount; i++)
             {
                 bw.Write(itens[i].Place);
                 bw.Write(itens[i].CategoryIndex);

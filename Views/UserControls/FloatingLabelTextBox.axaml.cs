@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using System.Text.RegularExpressions;
@@ -120,7 +121,7 @@ namespace Ultimate_Gshop.Views.UserControls
             var clipboard = top?.Clipboard;
             if (clipboard is null) return;
 
-            var text = await clipboard.GetTextAsync();
+            var text = await clipboard.TryGetTextAsync();
             if (string.IsNullOrEmpty(text)) return;
 
             var filtered = Filter(text);

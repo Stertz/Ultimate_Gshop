@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.Text.Json;
+using Ultimate_Gshop.Gshop.Misc;
 
 namespace Ultimate_Gshop.Misc
 {
@@ -18,7 +19,8 @@ namespace Ultimate_Gshop.Misc
 
         public static JsonSerializerOptions IdentedJson { get; } = new() { WriteIndented = true };
 
-        public static bool GshopExists => File.Exists(GshopTemp);
+        public static bool GshopExists => Directory.Exists(AppFolder) &&
+            SessionTransaction.Read(AppFolder, () => File.Exists(GshopTemp));
 
         /// <summary>
         /// Define cursor personalizado

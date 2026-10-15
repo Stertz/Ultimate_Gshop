@@ -3,6 +3,7 @@ using Ultimate_Gshop.Misc;
 
 namespace Ultimate_Gshop.Gshop
 {
+    using Ultimate_Gshop.Gshop.Misc;
     public class GshopSettings
     {
         public string? LastGshopLoadedFrom { get; set; }
@@ -12,26 +13,25 @@ namespace Ultimate_Gshop.Gshop
 
         private static readonly string _settings = Path.Combine(ApplicationSettings.AppFolder, "settings.json");
 
-        public static GshopSettings Load()
-        {
-            if (!File.Exists(_settings))
-                return new GshopSettings();
+        public static GshopSettings Load() => Load(_settings);
 
-            var json = File.ReadAllText(_settings);
-            return JsonSerializer.Deserialize<GshopSettings>(json) ?? new GshopSettings();
-        }
+        public static GshopSettings Load(string path) => SessionTransaction.Read(Path.GetDirectoryName(Path.GetFullPath(path))!, () =>
+            File.Exists(path) ? JsonSerializer.Deserialize<GshopSettings>(File.ReadAllText(path)) ?? new GshopSettings()
+                : new GshopSettings());
 
         public static void Save(GshopSettings settings)
         {
             Directory.CreateDirectory(ApplicationSettings.AppFolder);
-            var json = JsonSerializer.Serialize(settings, ApplicationSettings.IdentedJson);
-            File.WriteAllText(_settings, json);
+            Save(settings, _settings);
         }
 
         public static void Save(GshopSettings settings, string path)
         {
-            var json = JsonSerializer.Serialize(settings, ApplicationSettings.IdentedJson);
-            File.WriteAllText(path, json);
+            SessionTransaction.Read(Path.GetDirectoryName(Path.GetFullPath(path))!, () =>
+            {
+                ProtectedFile.Write(path, stream => JsonSerializer.Serialize(stream, settings, ApplicationSettings.IdentedJson));
+                return true;
+            });
         }
 
     }

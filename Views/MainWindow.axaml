@@ -8,7 +8,7 @@
         x:Class="Ultimate_Gshop.MainWindow"
         Title="Ultimate_Gshop"
         Width="1024" Height="760"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
 		CanResize="False"
         Background="Transparent"

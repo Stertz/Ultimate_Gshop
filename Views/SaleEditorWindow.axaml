@@ -4,7 +4,7 @@
         x:Class="Ultimate_Gshop.SaleEditorWindow"
         Title="Item Editor"
         Width="640" Height="420"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         CanResize="False"

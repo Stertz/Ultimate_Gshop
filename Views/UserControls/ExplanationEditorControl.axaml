@@ -14,7 +14,7 @@
 					 FontSize="12"
 					 TextWrapping="Wrap"
 					 AcceptsReturn="True"
-					 Watermark="Descrição"
+					 PlaceholderText="Descrição"
 					 IsVisible="False"
 					 IsEnabled="False">
 				<TextBox.Styles>

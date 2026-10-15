@@ -3,7 +3,7 @@
         x:Class="Ultimate_Gshop.Views.OptionsWindow"
         xmlns:controls="clr-namespace:Ultimate_Gshop.Views.UserControls"
         Width="200" Height="200"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         CanResize="False"

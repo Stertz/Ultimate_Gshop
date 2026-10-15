@@ -1,0 +1,75 @@
+# Compatibility Tests
+
+The suite uses xUnit.net v3 with Microsoft.Testing.Platform v2 on .NET 10. Its project references the compiled desktop application; production source is not copied or linked into a substitute test assembly. The original application folders and assets are preserved.
+
+## Run the suite
+
+From the repository root, with the SDK selected by `global.json`:
+
+```sh
+dotnet restore Ultimate_Gshop.sln
+dotnet build Ultimate_Gshop.sln --configuration Release --no-restore --warnaserror
+dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-restore
+```
+
+The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
+
+The latest Windows run passed all 149 tests. They cover:
+
+- Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
+- Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
+- Safe binary replacement, shorter saves, failed serialization, settings JSON keys, and valid new-shop defaults.
+- Deep clones, item identity with duplicate or changed IDs, no-op edits, sale value comparison, and in-memory undo/redo.
+- Selected price/time rules and existing category validation.
+- Exact resource paths, case, sizes, and SHA-256 hashes.
+- Portable image path resolution, DDS-to-PNG mapping, fallback, resizing, caching, and decoding actual bundled PNGs with Skia.
+- Bounded rejection of negative/oversized counts and truncated fields; a valid 256-subcategory fixture verifies that the loop counter cannot wrap.
+- Persisted undo/redo stack order, malformed-import preservation, original-byte snapshots, and protected client/server file export.
+- Recoverable multi-file saves, interrupted transaction fixtures, concurrent writes, lock contention, metadata corruption, and session/history reset while preserving preferences.
+
+Raster tests initialize the real application resources and Skia renderer without starting a native window. They do not exercise desktop startup, bindings, clipboard, navigation, or drag/drop. Synthetic fixtures validate the documented test contracts; they do not independently certify compatibility with every game version. Legacy load normalization remains explicitly characterized rather than silently corrected.
+
+## Resource contract
+
+The immutable inventory is [baseline/assets.json](baseline/assets.json), captured before stack edits from commit `ef1aa7762b2c3bfcc2e0444bc214f76c7c2dea7f`. It covers all 4,580 files and 70,247,582 bytes in `Resources`.
+
+```powershell
+./scripts/Test-AssetBaseline.ps1
+dotnet publish Ultimate_Gshop.csproj --configuration Release --no-restore --self-contained false --output artifacts/publish
+./scripts/Test-AssetBaseline.ps1 -RepositoryRoot artifacts/publish -ManifestPath Docs/baseline/assets.json -Mode Published
+```
+
+Source mode checks all resources. Published mode checks the 4,554 game surface files copied alongside the executable; UI resources are embedded. Both checks enforce exact paths, case, sizes, and hashes, and reject additions or omissions in their selected tree. Neither modifies assets or regenerates the manifest. The local framework-dependent publish passed this check; self-contained releases and native execution on other operating systems remain pending.
+
+## Whole-application coverage
+
+In PowerShell, use an absolute report path to avoid runner working-directory differences:
+
+```powershell
+dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-restore --coverage --coverage-output-format cobertura --coverage-output (Join-Path $PWD 'TestResults/application-coverage.cobertura.xml') --coverage-settings tests/application-coverage.config
+./scripts/Write-CoverageSummary.ps1
+```
+
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest Windows measurement is **711/3,861 executable lines (18.41%)** and **289/1,396 branches (20.70%)**. These are whole-application measurements, replacing the earlier source-linked bootstrap subset's narrow 100% result.
+
+[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 18.0% lines and 20.0% branches, raised after the parser/history/import/export checks, with end-of-stage targets of 80% and 70%. The targets have not been reached. Keep untested application code in the denominator and raise floors as tests expand; validate platform differences when hosted Linux collection first runs.
+
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The workflow is prepared but has not run on GitHub.
+
+## Remaining coverage before broader improvements
+
+- Independent known-good, redistributable game files and original-revision differential fixtures.
+- Broader malformed parser cases, unsupported variants, and documented resource limits for unusually large inputs.
+- Physical interruption/full-disk scenarios, broader backup policies, and native presentation of recovery errors. Arbitrary corrupt JSON without recovery backups remains an explicit error.
+- Delete, clone, reorder, selection, and bulk operations with duplicate game IDs.
+- Confirmed game-specific sale/time/status rules and boundary conditions.
+- Headless UI bindings, commands, navigation, search, clipboard, and drag/drop.
+- Native startup and critical edit/export workflows from packaged output on Windows, macOS, and Linux.
+
+Add a reproducing test before changing each affected behavior. Saves and session creation now stage their binary/JSON payloads together and maintain a recoverable journal. This is not an instantaneous filesystem transaction for arbitrary external readers. See [persistence and recovery](persistence.md) for the protocol and its limits.
+
+Imports validate a private snapshot before replacing session files and retain its original bytes, including fields normalized in memory by the legacy loader. A successful import/new shop resets history and preserves user preferences; malformed imports leave existing files intact. Native dialogs and interaction glue remain separately unvalidated.
+
+The published executable's `--verify-installation` diagnostic passed locally on Windows, exercising actual application resources/native raster decoding and synthetic save/load/export from a different working directory. It uses an isolated temporary directory, not the user's session. This smoke run is separate from the test count/coverage measurement. See [release checks](releasing.md); self-contained multi-OS packaging is prepared but not yet executed.
+
+Native UI tests are deferred beyond this first phase at the user's request. They remain useful before advertising validated desktop downloads; they do not block tested data-layer fixes.
