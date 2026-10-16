@@ -1,6 +1,6 @@
 # Code Quality and Test Coverage Plan
 
-Updated: 2026-10-16. Two stage 2 increments are complete locally. Coverage is 82.26% lines / 66.89% branches, reaching the final 80% line target; the 70% branch target remains pending. Functional gaps below and stage 3 remain pending. No hosted CI run or native UI validation is claimed for these changes.
+Updated: 2026-10-16. Two stage 2 increments are complete locally. Coverage is 82.26% lines / 66.89% branches, reaching the final 80% line target; the 70% branch target remains pending. Stage 3 has started with two local performance baseline runs; optimizations, functional gaps below and distribution validation remain pending. No hosted CI run or native UI validation is claimed for these changes.
 
 ## Stage 1: Critical editing regressions
 
@@ -84,3 +84,5 @@ Validation: 331 tests pass, Release build with warnings as errors passes, and al
 Final coverage target: 80% lines and 70% branches. Establish repeatable measurements of search, selection, list projection, save latency and memory on representative shop sizes. Use results to guide materialization, image cache ownership, virtualization and asynchronous save changes with safe snapshots/concurrency. Validate packaged desktop startup and edit/import/export flows on Windows, Linux and macOS, including independently verified game fixtures. Set performance budgets from measured baselines.
 
 Service tests do not establish native UI correctness, complete game compatibility, or a validated distributable release. See [persistence.md](persistence.md) for session format compatibility and [releasing.md](releasing.md) for packaging requirements.
+
+Started locally on 2026-10-16 after commit `b82060e`: a standalone Release performance harness and sequential measurement script now exercise actual search, selection, grid projection, transactional save and reload with 1k/10k/50k synthetic shops. Reports retain individual timing/allocation samples and environment metadata. See [performance.md](performance.md) for methodology, baseline findings and limits. This starts measurement work; native rendering, retained memory, optimizations and packaged platform validation remain pending.
