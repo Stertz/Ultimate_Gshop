@@ -91,4 +91,5 @@ if ($IsWindows) {
 }
 $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$archive.sha256", "$hash  $([IO.Path]::GetFileName($archive))`n", [Text.UTF8Encoding]::new($false))
+& (Join-Path $PSScriptRoot 'Test-ReleaseArchive.ps1') -ArchivePath $archive -Runtime $Runtime -ExpectedVersion $Version -ExpectedCommit $Commit
 Write-Output "Release package verified: $archive"

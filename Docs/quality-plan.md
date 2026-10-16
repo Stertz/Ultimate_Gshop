@@ -1,6 +1,6 @@
 # Code Quality and Test Coverage Plan
 
-Updated: 2026-10-16. Two stage 2 increments are complete locally. Coverage is 82.26% lines / 66.89% branches, reaching the final 80% line target; the 70% branch target remains pending. Stage 3 has started with two local performance baseline runs; optimizations, functional gaps below and distribution validation remain pending. No hosted CI run or native UI validation is claimed for these changes.
+Updated: 2026-10-16. Local coverage targets are met: 375 tests, 86.93% lines / 71.37% branches, with enforced floors of 80%/70%. Stage 3 now includes measured search/load/grid optimizations and asynchronous editor saves with detached snapshots. Hosted package execution, native UI/real-game acceptance and the profiling items listed below still determine completion of the full plan.
 
 ## Stage 1: Critical editing regressions
 
@@ -86,3 +86,15 @@ Final coverage target: 80% lines and 70% branches. Establish repeatable measurem
 Service tests do not establish native UI correctness, complete game compatibility, or a validated distributable release. See [persistence.md](persistence.md) for session format compatibility and [releasing.md](releasing.md) for packaging requirements.
 
 Started locally on 2026-10-16 after commit `b82060e`: a standalone Release performance harness and sequential measurement script now exercise actual search, selection, grid projection, transactional save and reload with 1k/10k/50k synthetic shops. Reports retain individual timing/allocation samples and environment metadata. See [performance.md](performance.md) for methodology, baseline findings and limits. This starts measurement work; native rendering, retained memory, optimizations and packaged platform validation remain pending.
+
+Delivered in the stage 3 implementation increment:
+
+- Editor autosave captures detached items, categories, both history stacks and settings on the owning UI thread; serialization, flushing and transactional replacement then run on a worker. Concurrent saves are rejected. Close waits for an active autosave and writes a fresh generation; failure keeps the editor open. Navigation pauses autosave and waits before opening import/export/options, preventing an older snapshot from overwriting a new session.
+- Snapshot tests mutate all nested live data after capture and verify exact saved bytes, stack order and persisted undo/redo. Controlled outstanding writers verify dispatcher delivery, duplicate requests, close retry and navigation ordering.
+- Fixed-width item text decoding reuses stack buffers, preserving CP936/UTF-16 fallback, null handling and truncated-field rejection. Search avoids creating a name-match closure per item. The grid projects immutable six-column rows instead of cloning unused sale/owner data.
+- Real category forms cover rename, no-op/duplicate/blank/cancel, subcategory limits/deletion and reset, with persisted undo/redo. Advanced-price confirmation/rejection now runs through the actual sale form and editor; common four-slot sale normalization is extracted and tested.
+- Two sequential post-change performance runs quantify the improvements and the remaining UI snapshot cost; see [performance.md](performance.md). Release packaging now verifies the archive checksum, extracts it, checks build metadata/assets and executes the extracted installation diagnostic on the matching native runner.
+
+Local acceptance: 375/375 tests pass, 3,633/4,179 lines (86.93%) and 1,189/1,666 branches (71.37%) are covered, Release builds with warnings as errors pass, and all 4,580 resource paths/hashes are unchanged. Collector scope is unchanged. CI now enforces both final coverage targets.
+
+Remaining completion criteria (do not infer completion from coverage alone): hosted expanded-suite/archive runs on all four desktop runtime targets; native picker/clipboard/drag/drop and installed edit/import/export acceptance; independent game fixtures and sale/time/status semantics; retained/peak/native-bitmap memory, cache ownership, virtualization/render and startup profiling; large-history/full-reset scaling and large-shop snapshot latency. Asset redistribution confirmation and signing/notarization are distribution decisions, not established by synthetic tests.

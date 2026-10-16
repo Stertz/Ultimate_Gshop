@@ -6,7 +6,7 @@
   <a href="https://github.com/Stertz/Ultimate_Gshop/actions/workflows/ci.yml"><img src="https://github.com/Stertz/Ultimate_Gshop/actions/workflows/ci.yml/badge.svg?branch=main" alt="Build and tests" /></a>
   <a href="https://github.com/Stertz/Ultimate_Gshop/releases"><img src="https://img.shields.io/github/v/release/Stertz/Ultimate_Gshop?include_prereleases&amp;label=release" alt="Latest release" /></a>
   <!-- COVERAGE-BADGE:START -->
-  <a href="https://github.com/Stertz/Ultimate_Gshop/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/Coverage-82.3%25-brightgreen?logo=dotnet" alt="Code coverage" /></a>
+  <a href="https://github.com/Stertz/Ultimate_Gshop/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/Coverage-86.9%25-brightgreen?logo=dotnet" alt="Code coverage" /></a>
   <!-- COVERAGE-BADGE:END -->
   <!-- STACK-BADGES:START -->
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&amp;logoColor=white" alt=".NET 10.0" /></a>

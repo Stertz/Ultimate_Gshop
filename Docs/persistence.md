@@ -51,7 +51,11 @@ MainWindow's autosave and close paths share a guarded session save using the exi
 
 The autosave interval is clamped to the existing thirty-second UI minimum, reconfigured after returning from the menu, paused during close, and resumed after a failed/canceled close when appropriate. On actual close, the timer stops/unsubscribes and external history notifications detach. Item-list auto-scroll similarly stops/unsubscribes on visual detachment.
 
-Headless tests inject a private session directory into the editor, verify search/edit/history through real controls and pointer events, fail saves with a blocked destination and invalid serialization payload, preserve prior bytes, and retry close/save. The default native startup/menu error path and wall-clock timer delivery are not certified by these tests. Disk writes remain synchronous on the UI thread; moving them off-thread requires measured performance work and safe model snapshots.
+Headless tests inject a private session directory into the editor, verify search/edit/history through real controls and pointer events, fail saves with a blocked destination and invalid serialization payload, preserve prior bytes, and retry close/save. The default native startup/menu error path and wall-clock timer delivery are not certified by these tests.
+
+Editor autosave now captures an exclusively owned snapshot on the UI thread, including categories, item sales/owners, every history backup and both stack orders, and preferences. The worker receives only that snapshot; it never reads the mutable live shop. Serialization and the existing transactional writes run off-thread, preserving durability and recovery behavior. The snapshot capture itself is synchronous and can remain noticeable for very large shops or reset histories; see [performance.md](performance.md).
+
+Overlapping save requests return false. Closing stops the timer, prevents further input, waits for an active save, and writes a fresh final snapshot before closing. Failure retains the window and enables retry. Menu navigation pauses autosave, waits for its completion and then opens the modal menu; import/options cannot race an older generation. On every return, including cancellation, autosave is reconfigured from the current preferences. Menu import/export writes remain synchronous while modal; their latency is a separate profiling item.
 
 ## Menu replacement, export and preferences
 

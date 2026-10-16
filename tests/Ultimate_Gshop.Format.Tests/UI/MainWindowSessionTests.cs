@@ -145,6 +145,7 @@ public sealed class MainWindowSessionTests(ImageRenderingFixture fixture)
             Directory.CreateDirectory(blocker);
             var pending = window.SaveSessionAsync();
             Assert.False(pending.IsCompleted);
+            await HeadlessWait.UntilAsync(() => window.OwnedWindows.OfType<CustomMessageBox>().Any());
             Assert.Single(window.OwnedWindows.OfType<CustomMessageBox>());
             Assert.False(await window.SaveSessionAsync());
             window.Close();
@@ -183,6 +184,7 @@ public sealed class MainWindowSessionTests(ImageRenderingFixture fixture)
             Directory.CreateDirectory(blocker);
             window.Close();
             Assert.True(window.IsVisible);
+            await HeadlessWait.UntilAsync(() => window.OwnedWindows.OfType<CustomMessageBox>().Any());
             Assert.Equal("Could not save the shop", window.OwnedWindows.OfType<CustomMessageBox>().Single().FindControl<TextBlock>("TitleBlock")!.Text);
             // Repeated close requests must not open duplicate confirmation/error dialogs.
             window.Close();
@@ -289,6 +291,7 @@ public sealed class MainWindowSessionTests(ImageRenderingFixture fixture)
             var previous = File.ReadAllBytes(path);
             shop.Itens[0].Sales.Clear();
             var pending = window.SaveSessionAsync();
+            await HeadlessWait.UntilAsync(() => window.OwnedWindows.OfType<CustomMessageBox>().Any());
             Assert.Single(window.OwnedWindows.OfType<CustomMessageBox>());
             Answer(window);
             Assert.False(await pending);

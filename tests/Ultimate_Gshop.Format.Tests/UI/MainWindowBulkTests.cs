@@ -48,7 +48,7 @@ public sealed class MainWindowBulkTests(ImageRenderingFixture fixture)
         if (!window.IsVisible) return;
         Click(window, "DetailUndoButton");
         window.Close();
-        await PumpAsync();
+        await HeadlessWait.UntilAsync(() => !window.IsVisible);
     }
 
     [Theory]
@@ -142,6 +142,62 @@ public sealed class MainWindowBulkTests(ImageRenderingFixture fixture)
             await PumpAsync();
             Assert.Empty(window.OwnedWindows);
             Assert.Equal(before, ShopFixture.Export(shop));
+        }
+        finally { await Cleanup(window); }
+    });
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task AdvancedPricesApplyIndependentSalesOnlyAfterConfirmationAndPersistHistory(bool accept) => fixture.Run(async () =>
+    {
+        using var directory = new TestDirectory();
+        var shop = Create();
+        var before = ShopFixture.Export(shop);
+        var tracking = new ShopTracking();
+        var window = new MainWindow(shop, tracking, new GshopSettings(), directory.Path);
+        try
+        {
+            window.Show();
+            await PumpAsync();
+            Select(window, shop.Itens[0]);
+            Select(window, shop.Itens[1], true);
+            Bulk(window, "Advanced Price");
+            var editor = window.OwnedWindows.OfType<SaleEditorWindow>().Single();
+            editor.UpdateLayout();
+            editor.FindControl<StyledComboBox>("TypeValueComboBox")!.SelectedItem = "Price";
+            editor.FindControl<FloatingLabelTextBox>("ValueTextBox")!.Text = "2.50";
+            editor.GetVisualDescendants().OfType<Button>().Single(button => button.Width == 35 && button.Height == 35)
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(before, ShopFixture.Export(shop));
+            editor.GetVisualDescendants().OfType<Button>().Single(button => button.Name == "CloseButton")
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await HeadlessWait.UntilAsync(() => window.OwnedWindows.OfType<CustomMessageBox>().Any());
+            Answer(window, accept ? 0 : 1);
+            await PumpAsync();
+            Assert.Equal(accept, tracking.CanUndo);
+            if (accept)
+            {
+                Assert.Equal(250, shop.Itens[0].Sales[0].Price);
+                Assert.Equal(250, shop.Itens[1].Sales[0].Price);
+                Assert.NotSame(shop.Itens[0].Sales[0], shop.Itens[1].Sales[0]);
+                Assert.Equal(1000, shop.Itens[2].Sales[0].Price);
+            }
+            var after = ShopFixture.Export(shop);
+            Assert.True(await window.SaveSessionAsync());
+            var loaded = Ultimate_Gshop.Gshop.Services.ContinueGshop.Handle(directory.Path);
+            var history = ShopTracking.Load(Path.Combine(directory.Path, "tracking.json"));
+            Assert.Equal(after, ShopFixture.Export(loaded));
+            if (accept)
+            {
+                history.Undo(loaded);
+                history.Undo(loaded);
+                Assert.Equal(before, ShopFixture.Export(loaded));
+                history.Redo(loaded);
+                history.Redo(loaded);
+                Assert.Equal(after, ShopFixture.Export(loaded));
+            }
+            else Assert.Equal(before, after);
         }
         finally { await Cleanup(window); }
     });

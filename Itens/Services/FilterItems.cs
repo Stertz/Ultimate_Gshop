@@ -14,8 +14,15 @@ internal static class FilterItems
         return items.Where(item =>
             (category < 0 || item.CategoryIndex == category) &&
             (category < 0 || subCategory < 0 || item.SubCategoryIndex == subCategory) &&
-            (terms.All(term => (item.Name ?? string.Empty).Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+            (MatchesName(item.Name, terms) ||
              (searchId && item.ID.ToString(CultureInfo.InvariantCulture).Contains(query))))
             .ToList();
+    }
+
+    private static bool MatchesName(string? name, string[] terms)
+    {
+        foreach (var term in terms)
+            if (!(name ?? string.Empty).Contains(term, StringComparison.OrdinalIgnoreCase)) return false;
+        return true;
     }
 }

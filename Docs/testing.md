@@ -16,7 +16,7 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
 
-The latest local Windows run on 2026-10-16 passed all 331 tests. They cover:
+The latest local Windows run on 2026-10-16 passed all 375 tests. They cover:
 
 - Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
 - Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
@@ -64,11 +64,11 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 ./scripts/Write-CoverageSummary.ps1
 ```
 
-The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **3,385/4,115 executable lines (82.26%)** and **1,085/1,622 branches (66.89%)**, up from the first stage 2 increment's 2,924/4,060 lines (72.02%) and 944/1,582 branches (59.67%). The original baseline was 18.41%/20.70%. No additional source exclusions were introduced: see [the scope audit](coverage-scope.md). The increase includes actual menu/options/bulk workflows and their error/cancellation branches.
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **3,633/4,179 executable lines (86.93%)** and **1,189/1,666 branches (71.37%)**, up from the first stage 2 increment's 2,924/4,060 lines (72.02%) and 944/1,582 branches (59.67%). The original baseline was 18.41%/20.70%. No additional source exclusions were introduced: see [the scope audit](coverage-scope.md). The increase includes actual category and advanced-price workflows, asynchronous save ordering, snapshot isolation and text decoding regressions.
 
-[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 80.0% lines and 65.0% branches, raised after menu/options/bulk regressions. The final 80% line target is reached; the 70% branch target remains pending. The [three-stage quality plan](quality-plan.md) explicitly tracks remaining functional/performance work. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
+[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 80.0% lines and 70.0% branches. Both final coverage targets are reached locally. The [three-stage quality plan](quality-plan.md) explicitly tracks remaining functional/performance work. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 331-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 375-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
 
 ## README badges
 

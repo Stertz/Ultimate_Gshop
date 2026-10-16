@@ -44,10 +44,12 @@ try
             return selection.Items;
         }, value => value.Count == size && ReferenceEquals(value[^1], shop.Itens[^1]));
         Measure("grid-snapshot", size, () => new GridViewModel(shop.Itens),
-            value => value.ItemCount == size && !ReferenceEquals(value.Items[0].Sales, shop.Itens[0].Sales));
+            value => value.ItemCount == size && value.Items[0].Name == shop.Itens[0].Name && value.Items[^1].ID == shop.Itens[^1].ID);
         MeasureSave("session-save-empty-history", size);
         // Fixed history size separates item-count scaling from history growth.
         for (var index = 0; index < 100; index++) tracking.ItemUpdated(index, shop.Itens[index]);
+        Measure("session-snapshot-100-history", size, () => SessionSnapshot.Capture(shop, tracking, settings),
+            value => value is not null);
         MeasureSave("session-save-100-history", size);
         Measure("session-load", size, () => ContinueGshop.Handle(root),
             value => value.Itens.Count == size && value.Itens[^1].ID == shop.Itens[^1].ID);

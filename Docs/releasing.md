@@ -42,6 +42,8 @@ For macOS the complete publish payload stays together under `Contents/MacOS`, so
 
 Each archive has a SHA-256 sidecar. The publication job requires all four archives and matching checksums, creates a draft for the exact source commit, uploads all assets, then publishes it as a prerelease. A preexisting tag or release pointing to a different source is rejected. A failed upload leaves a draft that can be retried; an already published matching release is retained. See [GitHub CLI release creation](https://cli.github.com/manual/gh_release_create).
 
+Packaging now calls `scripts/Test-ReleaseArchive.ps1` after writing the checksum. It verifies the archive filename/hash and expected root, extracts to a private temporary directory, checks version/commit/runtime metadata and self-contained runtime configuration, verifies original assets and required notices, and executes the extracted `--verify-installation` diagnostic from outside the installation folder. It rejects host OS/architecture mismatches and cleans its temporary extraction. This check validates the final archive instead of only its staging folder; it does not exercise native desktop input or installation prompts.
+
 ## Remaining release validation
 
 Native desktop startup, user interaction, independently verified game fixtures, self-contained archive extraction/download checks, confirmed redistribution notices, signing/notarization, and the actual hosted workflow remain pending. Keep prerelease status until those checks justify a stable release. Manual workflow artifacts expire after seven days; actual release assets are separate from those temporary artifacts.

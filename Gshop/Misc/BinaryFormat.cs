@@ -1,4 +1,5 @@
 using Ultimate_Gshop.Misc;
+using System.Text;
 
 namespace Ultimate_Gshop.Gshop.Misc;
 
@@ -23,5 +24,21 @@ internal static class BinaryFormat
         if (bytes.Length != size)
             throw new EndOfStreamException($"Expected a complete {size}-byte field.");
         return bytes;
+    }
+
+    internal static string ReadTextField(BinaryReader reader, Span<byte> bytes, Span<char> chars,
+        Encoding encoding, bool trimEndOnly = false)
+    {
+        reader.BaseStream.ReadExactly(bytes);
+        var length = encoding.GetChars(bytes, chars);
+        var text = chars[..length];
+        // Explanation retains embedded nulls; names/icons stop at the first null.
+        if (trimEndOnly) text = text.TrimEnd('\0');
+        else
+        {
+            var end = text.IndexOf('\0');
+            if (end >= 0) text = text[..end];
+        }
+        return new string(text);
     }
 }
