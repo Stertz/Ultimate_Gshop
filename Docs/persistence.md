@@ -33,6 +33,12 @@ Reordering records now adds one `Reorder` history action, storing independent it
 
 Filtered moves reuse the visible records' existing position slots and leave hidden records unchanged. The binary record order changes with the move because the legacy loader derives in-memory positions from record order. Loader normalization of unrelated game fields is unchanged.
 
+Category resets add a `ResetItems` action with `ItemListBackup`, a deep snapshot of the complete item list. Reset undo restores deleted and surviving records, their original positions, and prior index-based history; redo restores the inverse snapshot. The list object is retained and ItemAmount is synchronized. Full snapshots deliberately trade memory for correctness during destructive category resets; benchmark their memory cost on large shops before optimizing them.
+
+Category rename, subcategory add/rename, and empty-subcategory deletion add a `Category` action with `CategoryBackup` and optional indexed `ItemsBackup`. Deletion adjusts later subcategory indices only in the affected category. Undo/redo restores metadata and affected records together. The window refreshes category sources afterward. Clone operations retain the established per-item Insert history behavior. Existing enum values remain unchanged; these actions are appended, and old histories remain readable by the updated application. Older versions do not support the appended actions.
+
+Save/reload tests preserve the legacy loader contract: surviving reset records may have their Place normalized on load. Undo of a reset restores the original full snapshot; its inverse then captures the actual reloaded state. This work does not introduce lossless parsing of arbitrary game files.
+
 Tests inject failures during staging and after individual replacements, verify first-save rollback, validate concurrent saves and lock contention, and construct interrupted-preparation/replacement/cleanup fixtures. They also cover invalid journal paths, missing backups, corrupt metadata, preference preservation, and history reset.
 
 This is recoverable multi-file persistence, not an instantaneous filesystem transaction visible to arbitrary external readers. Application readers cooperate with the lock; other tools can observe intermediate replacements. File payloads are flushed, but physical power-loss behavior, directory-entry durability, full-disk failures, and all filesystem implementations have not been certified. No destructive process-kill or power-loss test was performed.

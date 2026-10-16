@@ -1,6 +1,6 @@
 # Code Quality and Test Coverage Plan
 
-Updated: 2026-10-16. The first implementation increment of stage 1 is complete locally. Later stages and intermediate coverage targets remain pending. No hosted CI run or native UI validation is claimed for these changes.
+Updated: 2026-10-16. Two implementation increments of stage 1 are complete locally. The 30% branch milestone is reached; the 35% line milestone and later stages remain pending. No hosted CI run or native UI validation is claimed for these changes.
 
 ## Stage 1: Critical editing regressions
 
@@ -18,11 +18,22 @@ Completed in the first increment:
 
 Validation: Release build with warnings as errors, expanded application tests with coverage, coverage policy enforcement, and exact resource hashes. Current numbers are recorded in [testing.md](testing.md).
 
+Completed in the second increment:
+
+- Cloning prepares independent copies, deduplicates selected references, ignores stale records, allocates unique positions once, and rejects exhausted integer positions before any insertion. Tests include duplicate game IDs, cloning the live list, and actual session save/reload with undo/redo.
+- Selection uses record references and displayed order for Shift/Ctrl/Ctrl+Shift, maintains a stable range anchor, removes duplicate selections, and resets stale references when the source refreshes. The control sends selection snapshots to asynchronous bulk handlers and raises one item event per click. Repeated ToList/ID-based lookup inside range loops is removed; native pointer delivery and visual behavior remain unvalidated.
+- Category/subcategory reset is one reversible action and synchronizes ItemAmount. A complete item snapshot preserves record positions and prior index-based history, including after session reload; its memory cost grows with shop size and remains a performance measurement item.
+- Deleting an empty subcategory shifts later subcategory indices in the same category. Metadata and affected items are restored together by undo/redo; nonempty and invalid scopes cannot change data or history.
+- Category rename and subcategory add/rename now participate in persisted history, preventing later metadata edits from bypassing it. No-op/invalid edits preserve redo. Existing name handling and the eleven-subcategory UI limit are retained.
+- History undo/redo recalculates item counts, and the window rebinds category sources after history changes.
+
+Local Windows validation after this increment: 256 tests pass; 969/3,986 lines (24.31%) and 512/1,524 branches (33.60%) are covered. All 4,580 resource paths/hashes remain unchanged. The CI floors are raised to 24%/33%; hosted platform validation remains pending.
+
 Remaining before declaring stage 1 complete:
 
-- Broader clone/selection/delete sequences, category resets and moves, and combinations of bulk operations with persisted history.
+- Broader delete/move sequences and combinations of bulk operations with persisted history.
 - Confirmed game-specific sale/time/status boundaries and additional malformed parser/recovery cases.
-- Progress toward the proposed 35%/30% milestone. Native drag/drop, key event delivery, dialogs, and visual selection have not been exercised by these service tests.
+- Progress toward the proposed 35% line milestone; the proposed 30% branch milestone is reached. Native drag/drop, key event delivery, dialogs, and visual selection have not been exercised by these service tests.
 
 ## Stage 2: Organization and quality checks
 

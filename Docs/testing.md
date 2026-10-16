@@ -16,7 +16,7 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
 
-The latest local Windows run on 2026-10-16 passed all 212 tests. They cover:
+The latest local Windows run on 2026-10-16 passed all 256 tests. They cover:
 
 - Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
 - Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
@@ -30,6 +30,8 @@ The latest local Windows run on 2026-10-16 passed all 212 tests. They cover:
 - Recoverable multi-file saves, interrupted transaction fixtures, concurrent writes, lock contention, metadata corruption, and session/history reset while preserving preferences.
 - Search query broadening/replacement, partial IDs, Unicode and category scope; price rounding, decimal/integer limits and advanced arithmetic overflow.
 - Filtered reorder boundaries, duplicate IDs, one-action undo/redo, save/reload and mixed edit history; duplicate-ID deletion, staged bulk validation and independent clone data.
+- Clone position exhaustion, deduplicated/stale selections, independent sale/owner copies and saved clone history; reference-based Shift/Ctrl/Ctrl+Shift selection with stable anchors and refresh resets.
+- Reversible category/subcategory resets, subcategory index shifts, metadata rename/add/delete history, no-op and invalid edits, real save/reload, and consistent item counts after undo/redo.
 
 Raster tests initialize the real application resources and Skia renderer without starting a native window. They do not exercise desktop startup, bindings, clipboard, navigation, or drag/drop. Synthetic fixtures validate the documented test contracts; they do not independently certify compatibility with every game version. Legacy load normalization remains explicitly characterized rather than silently corrected.
 
@@ -54,11 +56,11 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 ./scripts/Write-CoverageSummary.ps1
 ```
 
-The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **818/3,838 executable lines (21.31%)** and **378/1,388 branches (27.23%)**, up from the 711/3,861 lines (18.41%) and 289/1,396 branches (20.70%) baseline. Small rule extractions removed duplicated untested screen code and added tested application services; no additional source exclusions were introduced.
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **969/3,986 executable lines (24.31%)** and **512/1,524 branches (33.60%)**, up from the first increment's 818/3,838 lines (21.31%) and 378/1,388 branches (27.23%). The original baseline was 18.41%/20.70%. Rule extractions removed duplicated untested screen code and added tested application services; no additional source exclusions were introduced.
 
-[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 21.0% lines and 27.0% branches, raised after search, persisted reorder, duplicate-ID editing/deletion, staged bulk validation and price boundary regressions. The final targets remain 80% and 70%; the [three-stage quality plan](quality-plan.md) proposes intermediate milestones of 35%/30% and 60%/50%. None of these milestones has been reached. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
+[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 24.0% lines and 33.0% branches, raised after clone, selection, category metadata and reset regressions. The final targets remain 80% and 70%; the [three-stage quality plan](quality-plan.md) proposes intermediate milestones of 35%/30% and 60%/50%. The first 30% branch milestone is reached; its 35% line milestone remains pending. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The new 212-test increment and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 256-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
 
 ## README badges
 
@@ -79,7 +81,7 @@ Refresh the marked blocks locally after generating a report:
 - Independent known-good, redistributable game files and original-revision differential fixtures.
 - Broader malformed parser cases, unsupported variants, and documented resource limits for unusually large inputs.
 - Physical interruption/full-disk scenarios, broader backup policies, and native presentation of recovery errors. Arbitrary corrupt JSON without recovery backups remains an explicit error.
-- Delete, clone, reorder, selection, and bulk operations with duplicate game IDs.
+- Broader delete/move and combined bulk-operation sequences with duplicate game IDs and persisted history. Initial clone, reorder, selection, category reset and metadata histories now have regression tests.
 - Confirmed game-specific sale/time/status rules and boundary conditions.
 - Headless UI bindings, commands, navigation, search, clipboard, and drag/drop.
 - Native startup and critical edit/export workflows from packaged output on Windows, macOS, and Linux.

@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using Ultimate_Gshop.Categories;
+using Ultimate_Gshop.Categories.Services;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
@@ -101,9 +102,7 @@ namespace Ultimate_Gshop
             {
                 if (!await ConfirmDiscardChanges() || item is null) return;
 
-                var cloned = item.Clone();                     // clone
-                var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
-                cloned.Place = maxPlace + 1;                   // próximo slot
+                var cloned = CloneItems.Prepare(item, _shop.Itens);
 
                 _currentState = DetailState.Creating;
                 SetItemDetailsEnabled();
@@ -169,17 +168,7 @@ namespace Ultimate_Gshop
 
                 if (await dlg.ShowDialogAsync(this) == "Não") return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-
-                    var cloned = item.Clone();
-                    var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
-                    cloned.Place = maxPlace + 1;
-
-                    InsertItem.Handle(_shop.Itens, cloned, _tracking);
-                    _shop.ItemAmount++;
-                }
+                CloneItems.Handle(_shop, selectedItems, _tracking);
                 UpdateGrid();
             };
 
@@ -640,7 +629,7 @@ namespace Ultimate_Gshop
 
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                _shop.Categories[_selectedCategory].Title = result.Text;
+                if (!EditCategories.RenameCategory(_shop, _selectedCategory, result.Text, _tracking)) return;
                 CategoryList.ItemsSource = _shop.Categories.ToList();
                 SelectCategoryAndSubCategory(_selectedCategory);
             }
@@ -661,8 +650,7 @@ namespace Ultimate_Gshop
             var choice = await dlg.ShowDialogAsync(this);
             if (choice != "Sim") return;
 
-            // Remove in-place para manter a referência da lista
-            var removed = _shop.Itens.RemoveAll(i => i.CategoryIndex == _selectedCategory);
+            var removed = EditCategories.Reset(_shop, _selectedCategory, null, _tracking);
 
             SearchBox.Text = string.Empty;
             SelectCategoryAndSubCategory(_selectedCategory);
@@ -703,7 +691,7 @@ namespace Ultimate_Gshop
 
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                category.SubCategories.Add(result.Text);
+                if (!EditCategories.AddSubCategory(_shop, _selectedCategory, result.Text, _tracking)) return;
                 CategoryList.ItemsSource = _shop.Categories.ToList();
                 SelectCategoryAndSubCategory(_selectedCategory, category.SubCategories.Count - 1);
             }
@@ -734,13 +722,13 @@ namespace Ultimate_Gshop
             var newName = result.Text.Trim();
             if (newName.Length == 0) return;
 
-            if (category.SubCategories.Contains(newName, StringComparer.OrdinalIgnoreCase))
+            if (category.SubCategories.Where((_, index) => index != _selectedSubCategory).Contains(newName, StringComparer.OrdinalIgnoreCase))
             {
                 await new CustomMessageBox("Renomear Subcategoria", "Já existe uma subcategoria com esse nome.", CustomMessageBox.MessageBoxIcon.Error, "OK").ShowDialogAsync(this);
                 return;
             }
 
-            category.SubCategories[_selectedSubCategory] = newName;
+            if (!EditCategories.RenameSubCategory(_shop, _selectedCategory, _selectedSubCategory, newName, _tracking)) return;
 
             // Rebind das fontes UI
             SubCategoryList.ItemsSource = category.SubCategories.ToList();
@@ -770,9 +758,7 @@ namespace Ultimate_Gshop
             var choice = await dlg.ShowDialogAsync(this);
             if (choice != "Sim") return;
 
-            // Remove in-place
-            var removed = _shop.Itens.RemoveAll(i =>
-                i.CategoryIndex == _selectedCategory && i.SubCategoryIndex == _selectedSubCategory);
+            var removed = EditCategories.Reset(_shop, _selectedCategory, _selectedSubCategory, _tracking);
 
             // Rebind UI e mantém mesma sub selecionada
             SearchBox.Text = string.Empty;
@@ -825,7 +811,7 @@ namespace Ultimate_Gshop
             if (choice != "Excluir") return;
 
             // Remove a subcategoria
-            category.SubCategories.RemoveAt(_selectedSubCategory);
+            if (!EditCategories.DeleteSubCategory(_shop, _selectedCategory, _selectedSubCategory, _tracking)) return;
 
             // Limpa seleção de sub e rebind das listas
             _selectedSubCategory = -1;
@@ -1352,11 +1338,26 @@ namespace Ultimate_Gshop
         private void Undo_Click(object? sender, RoutedEventArgs e)
         {
             _tracking.Undo(_shop);
-            UpdateGrid();
+            RefreshHistorySources();
         }
         private void Redo_Click(object? sender, RoutedEventArgs e)
         {
             _tracking.Redo(_shop);
+            RefreshHistorySources();
+        }
+
+        private void RefreshHistorySources()
+        {
+            _currentSelectedItem = null;
+            CategoryList.ItemsSource = _shop.Categories.ToList();
+            DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(category => category.Title).ToList();
+            if (_selectedCategory >= 0 && _selectedCategory < _shop.Categories.Count)
+            {
+                var subCategories = _shop.Categories[_selectedCategory].SubCategories;
+                if (_selectedSubCategory >= subCategories.Count) _selectedSubCategory = -1;
+                SubCategoryList.ItemsSource = subCategories.ToList();
+                DetailSubCategoryComboBox.ItemsSource = subCategories.ToList();
+            }
             UpdateGrid();
         }
 

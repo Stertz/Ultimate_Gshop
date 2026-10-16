@@ -78,6 +78,66 @@ namespace Ultimate_Gshop.Gshop
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
 
+        internal void ItemsReset(List<Item> items)
+        {
+            Record(new ShopChange { Action = EChangeAction.ResetItems, ItemListBackup = items.Select(item => item.Clone()).ToList() });
+        }
+
+        internal void CategoryUpdated(int index, Categories.Category category, Dictionary<int, Item>? affectedItems = null)
+        {
+            Record(new ShopChange
+            {
+                Action = EChangeAction.Category, Index = index,
+                CategoryBackup = CloneCategory(category),
+                ItemsBackup = affectedItems?.ToDictionary(entry => entry.Key, entry => entry.Value.Clone())
+            });
+        }
+
+        private void Record(ShopChange change)
+        {
+            UndoChanges.Push(change);
+            RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
+        }
+
+        private static Categories.Category CloneCategory(Categories.Category category) =>
+            new() { Title = category.Title, SubCategories = [.. category.SubCategories] };
+
+        private static ShopChange ApplyReset(Shop shop, ShopChange change)
+        {
+            if (change.ItemListBackup is null || change.ItemListBackup.Any(item => item is null))
+                throw new InvalidDataException("The reset history contains an invalid item list.");
+            var restored = change.ItemListBackup.Select(item => item.Clone()).ToList();
+            var inverse = new ShopChange
+            {
+                Action = EChangeAction.ResetItems,
+                ItemListBackup = shop.Itens.Select(item => item.Clone()).ToList()
+            };
+            shop.Itens.Clear();
+            shop.Itens.AddRange(restored);
+            return inverse;
+        }
+
+        private static ShopChange ApplyCategory(Shop shop, ShopChange change)
+        {
+            if (change.Index < 0 || change.Index >= shop.Categories.Count || change.CategoryBackup is null ||
+                change.ItemsBackup?.Any(entry => entry.Key < 0 || entry.Key >= shop.Itens.Count || entry.Value is null) == true)
+                throw new InvalidDataException("The category history contains invalid indices or missing metadata.");
+            var category = CloneCategory(change.CategoryBackup);
+            var restoredItems = change.ItemsBackup?.ToDictionary(entry => entry.Key, entry => entry.Value.Clone());
+            var inverse = new ShopChange
+            {
+                Action = EChangeAction.Category, Index = change.Index,
+                CategoryBackup = CloneCategory(shop.Categories[change.Index]),
+                ItemsBackup = restoredItems?.Keys.ToDictionary(index => index, index => shop.Itens[index].Clone())
+            };
+            shop.Categories[change.Index] = category;
+            if (restoredItems is not null)
+                foreach (var (index, item) in restoredItems) shop.Itens[index] = item;
+            return inverse;
+        }
+
         private static ShopChange ApplyReorder(Shop shop, ShopChange change)
         {
             var items = change.ItemsBackup;
@@ -104,6 +164,12 @@ namespace Ultimate_Gshop.Gshop
 
             switch (op.Action)
             {
+                case EChangeAction.ResetItems:
+                    RedoChanges.Push(ApplyReset(shop, op));
+                    break;
+                case EChangeAction.Category:
+                    RedoChanges.Push(ApplyCategory(shop, op));
+                    break;
                 case EChangeAction.Reorder:
                     RedoChanges.Push(ApplyReorder(shop, op));
                     break;
@@ -140,6 +206,7 @@ namespace Ultimate_Gshop.Gshop
             }
 
             UndoChanges.Pop();
+            shop.ItemAmount = shop.Itens.Count;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
 
@@ -154,6 +221,12 @@ namespace Ultimate_Gshop.Gshop
 
             switch (op.Action)
             {
+                case EChangeAction.ResetItems:
+                    UndoChanges.Push(ApplyReset(shop, op));
+                    break;
+                case EChangeAction.Category:
+                    UndoChanges.Push(ApplyCategory(shop, op));
+                    break;
                 case EChangeAction.Reorder:
                     UndoChanges.Push(ApplyReorder(shop, op));
                     break;
@@ -190,6 +263,7 @@ namespace Ultimate_Gshop.Gshop
                     break;
             }
             RedoChanges.Pop();
+            shop.ItemAmount = shop.Itens.Count;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
