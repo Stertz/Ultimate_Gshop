@@ -55,10 +55,10 @@ namespace Ultimate_Gshop.Views.UserControls
 
         private void OnLabelTextChanged(string? newValue)
         {
-            if (_label != null && !string.IsNullOrWhiteSpace(newValue))
+            if (_label != null)
             {
-                _label.Text = newValue;
-                _label.IsVisible = true;
+                _label.Text = newValue ?? string.Empty;
+                _label.IsVisible = !string.IsNullOrWhiteSpace(newValue);
             }
         }
     }

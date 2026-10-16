@@ -2,7 +2,7 @@
 
 The suite uses xUnit.net v3 with Microsoft.Testing.Platform v2 on .NET 10. Its project references the compiled desktop application; production source is not copied or linked into a substitute test assembly. The original application folders and assets are preserved.
 
-The existing test project groups its unchanged test files under `Assets`, `Serialization`, `Editing`, and `Persistence`. Shared fixture helpers stay at the test-project root; project names, namespaces, assembly references, and commands are unchanged.
+The test project groups files under `Assets`, `Serialization`, `Editing`, `Persistence`, and `UI`. Shared binary fixture helpers stay at the test-project root. Headless control/dialog tests share the image-rendering collection and its dedicated Avalonia UI thread. Project names, namespaces, application assembly references, and runner commands are unchanged.
 
 ## Run the suite
 
@@ -16,7 +16,7 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
 
-The latest local Windows run on 2026-10-16 passed all 256 tests. They cover:
+The latest local Windows run on 2026-10-16 passed all 331 tests. They cover:
 
 - Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
 - Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
@@ -32,8 +32,16 @@ The latest local Windows run on 2026-10-16 passed all 256 tests. They cover:
 - Filtered reorder boundaries, duplicate IDs, one-action undo/redo, save/reload and mixed edit history; duplicate-ID deletion, staged bulk validation and independent clone data.
 - Clone position exhaustion, deduplicated/stale selections, independent sale/owner copies and saved clone history; reference-based Shift/Ctrl/Ctrl+Shift selection with stable anchors and refresh resets.
 - Reversible category/subcategory resets, subcategory index shifts, metadata rename/add/delete history, no-op and invalid edits, real save/reload, and consistent item counts after undo/redo.
+- Headless text filtering and two-way control bindings, date/label synchronization, explanation color/newline round trips and preview/edit state.
+- Actual dialog button/input/combo results, cascading selections, wrong-mode rejection and close cancellation; sale row prices/durations, sale creation and advanced form operations.
+- Isolated MainWindow startup, search broadening, actual pointer selection, create/edit/discard/delete with duplicate IDs, and undo/redo via controls.
+- MainWindow save/close failures, serialization failure preservation, concurrent-request rejection, cancel/retry, unopened-session protection and external history unsubscription after close.
+- Read-only grid columns and independent item/sale snapshots, including an empty overview.
+- Menu client/server export routing, overwrite and picker cancellation, picker/I/O failure retry, validated imports/backups, backup failure preservation, startup/new/continue/options and late picker results after closing.
+- Draft options cancellation, interval/overflow validation, protected persistence failures and retry without modifying live preferences.
+- Real bulk form edits, cloning/deletion/category moves with duplicate IDs, hidden records, counts, undo/redo, unsaved-draft confirmation and advanced-price cancellation.
 
-Raster tests initialize the real application resources and Skia renderer without starting a native window. They do not exercise desktop startup, bindings, clipboard, navigation, or drag/drop. Synthetic fixtures validate the documented test contracts; they do not independently certify compatibility with every game version. Legacy load normalization remains explicitly characterized rather than silently corrected.
+Raster and UI tests initialize the real application resources and Skia renderer with a headless window backend. UI operations are dispatched to one dedicated thread, and host windows/dialogs are closed after each test. Editor/menu/options tests inject private temporary session directories; real persistence code runs there, never in the user's session folder. Menu picker functions return test paths, cancellations or failures; they do not open real OS file dialogs. Tests exercise control bindings, dialog/form behavior, initial MainWindow editing/search/history, bulk actions and menu workflows, but do not certify native desktop startup, OS clipboard/file dialogs, complete navigation, or drag/drop. Synthetic fixtures validate the documented contracts; they do not independently certify compatibility with every game version. Legacy load normalization remains explicitly characterized rather than silently corrected.
 
 ## Resource contract
 
@@ -56,11 +64,11 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 ./scripts/Write-CoverageSummary.ps1
 ```
 
-The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **969/3,986 executable lines (24.31%)** and **512/1,524 branches (33.60%)**, up from the first increment's 818/3,838 lines (21.31%) and 378/1,388 branches (27.23%). The original baseline was 18.41%/20.70%. Rule extractions removed duplicated untested screen code and added tested application services; no additional source exclusions were introduced.
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **3,385/4,115 executable lines (82.26%)** and **1,085/1,622 branches (66.89%)**, up from the first stage 2 increment's 2,924/4,060 lines (72.02%) and 944/1,582 branches (59.67%). The original baseline was 18.41%/20.70%. No additional source exclusions were introduced: see [the scope audit](coverage-scope.md). The increase includes actual menu/options/bulk workflows and their error/cancellation branches.
 
-[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 24.0% lines and 33.0% branches, raised after clone, selection, category metadata and reset regressions. The final targets remain 80% and 70%; the [three-stage quality plan](quality-plan.md) proposes intermediate milestones of 35%/30% and 60%/50%. The first 30% branch milestone is reached; its 35% line milestone remains pending. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
+[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 80.0% lines and 65.0% branches, raised after menu/options/bulk regressions. The final 80% line target is reached; the 70% branch target remains pending. The [three-stage quality plan](quality-plan.md) explicitly tracks remaining functional/performance work. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 256-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 331-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
 
 ## README badges
 
@@ -83,7 +91,7 @@ Refresh the marked blocks locally after generating a report:
 - Physical interruption/full-disk scenarios, broader backup policies, and native presentation of recovery errors. Arbitrary corrupt JSON without recovery backups remains an explicit error.
 - Broader delete/move and combined bulk-operation sequences with duplicate game IDs and persisted history. Initial clone, reorder, selection, category reset and metadata histories now have regression tests.
 - Confirmed game-specific sale/time/status rules and boundary conditions.
-- Headless UI bindings, commands, navigation, search, clipboard, and drag/drop.
+- Broader MainWindow category/advanced-price commands and complete navigation, actual OS picker/clipboard behavior and drag/drop. Initial menu/import/export/options and bulk workflows now have headless coverage alongside editor controls and history.
 - Native startup and critical edit/export workflows from packaged output on Windows, macOS, and Linux.
 
 Add a reproducing test before changing each affected behavior. Saves and session creation now stage their binary/JSON payloads together and maintain a recoverable journal. This is not an instantaneous filesystem transaction for arbitrary external readers. See [persistence and recovery](persistence.md) for the protocol and its limits.
@@ -92,4 +100,4 @@ Imports validate a private snapshot before replacing session files and retain it
 
 The published executable's `--verify-installation` diagnostic passed locally on Windows, exercising actual application resources/native raster decoding and synthetic save/load/export from a different working directory. It uses an isolated temporary directory, not the user's session. This smoke run is separate from the test count/coverage measurement. See [release checks](releasing.md); self-contained multi-OS packaging is prepared but not yet executed.
 
-Native UI tests are deferred beyond this first phase at the user's request. They remain useful before advertising validated desktop downloads; they do not block tested data-layer fixes.
+Native UI tests remain deferred. The later request to continue until 40% coverage is implemented with headless controls/dialogs/forms; these tests do not substitute for validation of native desktop downloads.

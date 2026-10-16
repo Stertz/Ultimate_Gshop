@@ -117,6 +117,14 @@ public partial class ItemsListControl : UserControl
         }, DispatcherPriority.Background);
     }
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        StopAutoScroll();
+        if (_autoScrollTimer is not null) _autoScrollTimer.Tick -= OnAutoScrollTick;
+        CancelPendingDrag();
+        base.OnDetachedFromVisualTree(e);
+    }
+
     private void AttachDnDToCards()
     {
         // Percorre os cards visuais e injeta handlers de DragOver/Drop e ponteiro

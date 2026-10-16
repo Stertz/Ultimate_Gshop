@@ -2,6 +2,7 @@
 
 - [Contributing](../CONTRIBUTING.md): setup, compatibility rules, and pull requests.
 - [Testing](testing.md): test commands, coverage reports, and asset checks.
+- [Coverage scope audit](coverage-scope.md): included sources, justified exclusions, and the 40% milestone.
 - [Persistence](persistence.md): session saves and recovery.
 - [Releasing](releasing.md): preview versions, packaging, and GitHub Releases.
 - [Publication](publication.md): repository setup and About settings.

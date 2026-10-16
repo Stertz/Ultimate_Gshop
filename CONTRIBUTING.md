@@ -14,6 +14,8 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 See [testing and coverage](Docs/testing.md), the [modernization plan](Docs/modernization-plan.md), and [current implementation status](Docs/stack-update.md). Native desktop checks need the OS desktop libraries used by Avalonia; the current raster tests do not require opening a window.
 
+The project pins the built-in .NET analyzer level to 10.0. `.editorconfig` enables focused correctness warnings for ValueTask consumption (CA2012), reference equality on value types (CA2013), cancellation-token forwarding (CA2016), and exception rethrowing (CA2200). CI builds with warnings as errors. Apply formatting to edited code only, and preserve legacy encodings rather than performing a repository-wide conversion. The item overview is a read-only snapshot; edits must use the tracked editor flows.
+
 ## Compatibility comes first
 
 - Preserve the entire `Resources` structure and exact filenames, case, encodings, formats, and bytes. Run `./scripts/Test-AssetBaseline.ps1` with PowerShell 7.

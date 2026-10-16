@@ -43,4 +43,20 @@ Tests inject failures during staging and after individual replacements, verify f
 
 This is recoverable multi-file persistence, not an instantaneous filesystem transaction visible to arbitrary external readers. Application readers cooperate with the lock; other tools can observe intermediate replacements. File payloads are flushed, but physical power-loss behavior, directory-entry durability, full-disk failures, and all filesystem implementations have not been certified. No destructive process-kill or power-loss test was performed.
 
-If recovery fails, retain the entire session folder and `.session-transaction` evidence before attempting manual repair. Native UI error presentation and broader backup retention remain follow-up work.
+If recovery fails, retain the entire session folder and `.session-transaction` evidence before attempting manual repair. Broader native UI error presentation and backup retention remain follow-up work.
+
+## Editor save and close handling
+
+MainWindow's autosave and close paths share a guarded session save using the existing `gshop_temp.data`, `tracking.json` and `settings.json` protocol. Recoverable I/O, metadata and serialization errors display a dialog and return failure; the window remains open for retry. Close is finalized only after successful persistence. A second save or close request while one is pending does not open another error dialog. An unopened or canceled startup cannot persist an empty shop.
+
+The autosave interval is clamped to the existing thirty-second UI minimum, reconfigured after returning from the menu, paused during close, and resumed after a failed/canceled close when appropriate. On actual close, the timer stops/unsubscribes and external history notifications detach. Item-list auto-scroll similarly stops/unsubscribes on visual detachment.
+
+Headless tests inject a private session directory into the editor, verify search/edit/history through real controls and pointer events, fail saves with a blocked destination and invalid serialization payload, preserve prior bytes, and retry close/save. The default native startup/menu error path and wall-clock timer delivery are not certified by these tests. Disk writes remain synchronous on the UI thread; moving them off-thread requires measured performance work and safe model snapshots.
+
+## Menu replacement, export and preferences
+
+Menu actions use the editor's session directory and share recoverable error presentation. Client/server export preserves the matching writer and checks overwrite confirmation before saving/exporting. Failed exports keep the menu open; saving the session and exporting to another directory are separate protected operations, not a single transaction.
+
+Import selection cancellation returns before any backup. The importer snapshots and validates the selected bytes, then invokes the menu's backup callback before committing the replacement session. Backup failure prevents replacement; failed import/new operations restore the in-memory LastBackupFrom preference. Successfully created backup directories may remain as recovery evidence. Backup names include subsecond time and a random suffix to avoid collisions. History clears only after a successful replacement, and import snapshots are cleaned on failure/success. Closed menus ignore late picker results.
+
+Options work on a separate draft. A blank interval retains the existing default-thirty-second behavior; a supplied interval must fit Int32 and be at least thirty seconds. Protected settings persistence precedes updates to the live preferences, preserving session source/backup metadata. Cancel or I/O failure cannot apply the draft. Options opened from a menu are owned/modal. Picker paths are injected in headless tests; real OS picker behavior remains pending.

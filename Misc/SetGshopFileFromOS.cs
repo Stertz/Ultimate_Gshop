@@ -15,7 +15,7 @@ namespace Ultimate_Gshop.Misc
 
             var folders = await window.StorageProvider.OpenFolderPickerAsync(options);
 
-            var folder = folders.ToList().FirstOrDefault();
+            var folder = folders.FirstOrDefault();
 
             return folder?.TryGetLocalPath();
         }

@@ -1,0 +1,15 @@
+root = true
+
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+# Keep existing source encodings; some legacy files are not UTF-8.
+# Focus build diagnostics on correctness without reformatting existing code.
+dotnet_diagnostic.CA2012.severity = warning
+dotnet_diagnostic.CA2013.severity = warning
+dotnet_diagnostic.CA2016.severity = warning
+dotnet_diagnostic.CA2200.severity = warning

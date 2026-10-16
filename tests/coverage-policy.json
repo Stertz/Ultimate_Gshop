@@ -1,8 +1,8 @@
 {
   "assembly": "Ultimate_Gshop",
-  "minimumLineCoverage": 24.0,
-  "minimumBranchCoverage": 33.0,
+  "minimumLineCoverage": 80.0,
+  "minimumBranchCoverage": 65.0,
   "targetLineCoverage": 80,
   "targetBranchCoverage": 70,
-  "reason": "Raised after clone position/identity, Shift/Ctrl selection, persisted category resets and metadata history regressions. Preserve untested UI and installation diagnostics in the denominator; confirm the new floors on hosted Linux CI."
+  "reason": "The 80% line target is reached after menu import/export cancellation and failure handling, draft options persistence, and real bulk editor regressions. UI/XAML, entry points and diagnostics remain included. Branch target 70% and hosted platform validation remain pending."
 }

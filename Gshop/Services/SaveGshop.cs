@@ -8,8 +8,11 @@ namespace Ultimate_Gshop.Gshop.Services
     {
         public static void Handle(Shop shop, ShopTracking tracking, GshopSettings settings)
         {
-            WriteSession(shop, tracking, settings, ApplicationSettings.AppFolder, "gshop_temp.data");
+            HandleSession(shop, tracking, settings, ApplicationSettings.AppFolder);
         }
+
+        internal static void HandleSession(Shop shop, ShopTracking tracking, GshopSettings settings, string directory)
+            => WriteSession(shop, tracking, settings, directory, "gshop_temp.data");
 
         public static void Handle(Shop shop, ShopTracking tracking, GshopSettings settings, string path)
         {

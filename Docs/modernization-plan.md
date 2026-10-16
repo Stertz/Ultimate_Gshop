@@ -1,6 +1,6 @@
 # Ultimate Gshop Modernization and Open Source Plan
 
-Status: Two critical editing/test increments are implemented locally, with 256 passing tests and 24.31% line / 33.60% branch coverage. See the [three-stage quality plan](quality-plan.md) and [current validation](testing.md). The earlier 149-test baseline passed hosted builds on Windows/macOS/Linux; the new changes still require hosted validation. Native UI, independent game fixtures, self-contained release execution, and release activation remain pending.
+Status: Stage 2 has progressed locally to 331 passing tests and 82.26% line / 66.89% branch coverage. The final 80% line target is reached without excluding UI/XAML; the 70% branch target remains pending. See the [scope audit](coverage-scope.md), [three-stage quality plan](quality-plan.md) and [current validation](testing.md). The earlier 149-test baseline passed hosted builds on Windows/macOS/Linux; the new changes still require hosted validation. Performance baselines, native UI, independent game fixtures, self-contained release execution, and release activation remain pending.
 Updated: 2026-10-16.
 Source baseline: `ef1aa7762b2c3bfcc2e0444bc214f76c7c2dea7f` from `joaocib/Ultimate_Gshop`.
 Public destination created by the user: `Stertz/Ultimate_Gshop` (`main`). Local `origin` targets it; the original repository remains `upstream`. Original Git history and João's README attribution are retained. Initial publication and the six platform checks have completed.

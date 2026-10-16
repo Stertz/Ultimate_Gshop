@@ -28,6 +28,7 @@ namespace Ultimate_Gshop.Views.UserControls
                 _picker.SelectedDateChanged += OnSelectedDateChanged;
 
             this.GetObservable(LabelTextProperty).Subscribe(UpdateLabelVisibility);
+            this.GetObservable(SelectedDateProperty).Subscribe(_ => SynchronizeDate());
         }
 
         public DateTime? SelectedDate
@@ -36,7 +37,6 @@ namespace Ultimate_Gshop.Views.UserControls
             set
             {
                 SetValue(SelectedDateProperty, value);
-                UpdateFormattedDate();
             }
         }
 
@@ -48,10 +48,10 @@ namespace Ultimate_Gshop.Views.UserControls
 
         private void UpdateLabelVisibility(string? newValue)
         {
-            if (_label != null && !string.IsNullOrWhiteSpace(newValue))
+            if (_label != null)
             {
-                _label.Text = newValue;
-                _label.IsVisible = true;
+                _label.Text = newValue ?? string.Empty;
+                _label.IsVisible = !string.IsNullOrWhiteSpace(newValue);
             }
         }
 
@@ -68,6 +68,15 @@ namespace Ultimate_Gshop.Views.UserControls
                     ? SelectedDate.Value.ToString("dd/MM/yy")
                     : "";
             }
+        }
+
+        private void SynchronizeDate()
+        {
+            if (_picker != null && _picker.SelectedDate?.Date != SelectedDate?.Date)
+                _picker.SelectedDate = SelectedDate is DateTime date
+                    ? new DateTimeOffset(DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified), TimeSpan.Zero)
+                    : null;
+            UpdateFormattedDate();
         }
 
         public int? DateAsInt =>

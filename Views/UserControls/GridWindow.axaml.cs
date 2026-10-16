@@ -8,10 +8,7 @@ namespace Ultimate_Gshop;
 
 public partial class GridWindow : Window
 {
-    public GridWindow()
-    {
-        InitializeComponent();
-    }
+    public GridWindow() : this(Array.Empty<Item>()) { }
     public GridWindow(IEnumerable<Item> itens)
     {
         InitializeComponent();
