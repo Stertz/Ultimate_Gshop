@@ -127,7 +127,7 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
 		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.6" />
 		<!-- These APIs are used directly instead of relying on ReactiveUI's former dependency graph. -->
-		<PackageReference Include="DynamicData" Version="9.4.33" />
+		<PackageReference Include="DynamicData" Version="9.5.0" />
 		<PackageReference Include="System.Reactive" Version="7.0.0" />
 	</ItemGroup>
 
