@@ -1,7 +1,7 @@
 # Ultimate Gshop Modernization and Open Source Plan
 
-Status: Updated stack builds with zero warnings/errors. All 149 compatibility tests and hosted builds pass on Windows/macOS/Linux; whole-application coverage is 18.41% lines / 20.70% branches. The new repository is public. Native UI, independent game fixtures, self-contained release execution, and release activation remain pending. See [stack update status](stack-update.md) and [testing scope](testing.md).
-Updated: 2026-10-15.
+Status: The first critical editing/test increment is implemented locally. See the [three-stage quality plan](quality-plan.md) and [current validation](testing.md). The earlier 149-test baseline passed hosted builds on Windows/macOS/Linux; the new changes still require hosted validation. Native UI, independent game fixtures, self-contained release execution, and release activation remain pending.
+Updated: 2026-10-16.
 Source baseline: `ef1aa7762b2c3bfcc2e0444bc214f76c7c2dea7f` from `joaocib/Ultimate_Gshop`.
 Public destination created by the user: `Stertz/Ultimate_Gshop` (`main`). Local `origin` targets it; the original repository remains `upstream`. Original Git history and João's README attribution are retained. Initial publication and the six platform checks have completed.
 

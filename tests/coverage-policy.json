@@ -1,8 +1,8 @@
 {
   "assembly": "Ultimate_Gshop",
-  "minimumLineCoverage": 18.0,
-  "minimumBranchCoverage": 20.0,
+  "minimumLineCoverage": 21.0,
+  "minimumBranchCoverage": 27.0,
   "targetLineCoverage": 80,
   "targetBranchCoverage": 70,
-  "reason": "Raised after session transaction, restart recovery, concurrent save, and session reset tests. Preserve untested UI and installation diagnostics in the denominator; validate hosted platform measurements before further increases."
+  "reason": "Raised after search, persisted reorder undo/redo, duplicate-ID editing/deletion, bulk validation, and price boundary regressions. Preserve untested UI and installation diagnostics in the denominator; confirm the new floors on hosted Linux CI."
 }

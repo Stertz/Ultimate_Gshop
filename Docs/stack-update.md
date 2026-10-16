@@ -7,6 +7,8 @@ Public repository: `https://github.com/Stertz/Ultimate_Gshop`. Original source i
 
 ## Changes prepared
 
+This document records the original stack migration baseline. The subsequent 2026-10-16 editing/test increment and current local measurements are tracked in [the quality plan](quality-plan.md) and [testing scope](testing.md).
+
 | Component | Before | Current project reference |
 | --- | --- | --- |
 | Target framework | net9.0-windows | net10.0 |

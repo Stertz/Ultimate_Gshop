@@ -9,6 +9,7 @@
 ## Modernization
 
 - [Plan](modernization-plan.md)
+- [Three-stage quality and coverage plan](quality-plan.md)
 - [Implementation status](stack-update.md)
 - [Original source review](source-review.md)
 

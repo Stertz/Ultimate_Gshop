@@ -18,18 +18,17 @@ namespace Ultimate_Gshop.Itens.Services
 
             var result = await msgBox.ShowDialogAsync(window);
 
-            if (result == "Sim")
-            {
-                var index = itens.IndexOf(item);
-                if (itens.Remove(item))
-                {
-                    tracking.ItemDeleted(index, item);
-                    return true;
-                }
-            }
+            return result == "Sim" && Handle(item, itens, tracking);
 
-            return false;
+        }
 
+        internal static bool Handle(Item item, List<Item> items, ShopTracking tracking)
+        {
+            var index = ItemIdentity.FindIndex(items, item);
+            if (index < 0) return false;
+            tracking.ItemDeleted(index, items[index]);
+            items.RemoveAt(index);
+            return true;
         }
     }
 }

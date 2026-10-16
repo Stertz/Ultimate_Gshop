@@ -29,6 +29,10 @@ Standalone settings/history writes use protected replacement and the same sessio
 
 ## Verification and limits
 
+Reordering records now adds one `Reorder` history action, storing independent item snapshots in `ItemsBackup` keyed by list index. Existing Insert/Update/Delete enum values and history properties retain their meanings; older history files remain readable. The new property is omitted for other actions. Reorder undo/redo restores both record order and positions, including after saving and reloading. Only changed records are backed up. Older application versions do not implement this new action and must not be used to undo sessions containing it.
+
+Filtered moves reuse the visible records' existing position slots and leave hidden records unchanged. The binary record order changes with the move because the legacy loader derives in-memory positions from record order. Loader normalization of unrelated game fields is unchanged.
+
 Tests inject failures during staging and after individual replacements, verify first-save rollback, validate concurrent saves and lock contention, and construct interrupted-preparation/replacement/cleanup fixtures. They also cover invalid journal paths, missing backups, corrupt metadata, preference preservation, and history reset.
 
 This is recoverable multi-file persistence, not an instantaneous filesystem transaction visible to arbitrary external readers. Application readers cooperate with the lock; other tools can observe intermediate replacements. File payloads are flushed, but physical power-loss behavior, directory-entry durability, full-disk failures, and all filesystem implementations have not been certified. No destructive process-kill or power-loss test was performed.

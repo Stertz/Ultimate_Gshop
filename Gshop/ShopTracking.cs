@@ -65,15 +65,48 @@ namespace Ultimate_Gshop.Gshop
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }
 
+        internal void ItemsReordered(Dictionary<int, Item> originalItems)
+        {
+            if (originalItems.Count == 0) return;
+            UndoChanges.Push(new ShopChange
+            {
+                Action = EChangeAction.Reorder,
+                ItemsBackup = originalItems.ToDictionary(entry => entry.Key, entry => entry.Value.Clone())
+            });
+            RedoChanges.Clear();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
+        }
+
+        private static ShopChange ApplyReorder(Shop shop, ShopChange change)
+        {
+            var items = change.ItemsBackup;
+            if (items is null || items.Count == 0 ||
+                items.Any(entry => entry.Key < 0 || entry.Key >= shop.Itens.Count || entry.Value is null))
+                throw new InvalidDataException("The reorder history contains invalid item indices.");
+
+            var inverse = new ShopChange
+            {
+                Action = EChangeAction.Reorder,
+                ItemsBackup = items.Keys.ToDictionary(index => index, index => shop.Itens[index].Clone())
+            };
+            foreach (var (index, item) in items)
+                shop.Itens[index] = item.Clone();
+            return inverse;
+        }
+
         public void Undo(Shop shop)
         {
             if (UndoChanges.Count == 0)
                 return;
 
-            var op = UndoChanges.Pop();
+            var op = UndoChanges.Peek();
 
             switch (op.Action)
             {
+                case EChangeAction.Reorder:
+                    RedoChanges.Push(ApplyReorder(shop, op));
+                    break;
                 case EChangeAction.Delete:
                     shop.Itens.Insert(op.Index, op.ItemBackup!.Clone());
                     RedoChanges.Push(new ShopChange
@@ -106,6 +139,7 @@ namespace Ultimate_Gshop.Gshop
                     break;
             }
 
+            UndoChanges.Pop();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
 
@@ -116,10 +150,13 @@ namespace Ultimate_Gshop.Gshop
             if (RedoChanges.Count == 0)
                 return;
 
-            var op = RedoChanges.Pop();
+            var op = RedoChanges.Peek();
 
             switch (op.Action)
             {
+                case EChangeAction.Reorder:
+                    UndoChanges.Push(ApplyReorder(shop, op));
+                    break;
                 case EChangeAction.Delete:
                     var removed = shop.Itens[op.Index];
                     UndoChanges.Push(new ShopChange
@@ -152,6 +189,7 @@ namespace Ultimate_Gshop.Gshop
                     });
                     break;
             }
+            RedoChanges.Pop();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanUndo)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRedo)));
         }

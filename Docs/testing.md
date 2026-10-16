@@ -16,7 +16,7 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
 
-The latest Windows run passed all 149 tests. They cover:
+The latest local Windows run on 2026-10-16 passed all 212 tests. They cover:
 
 - Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
 - Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
@@ -28,6 +28,8 @@ The latest Windows run passed all 149 tests. They cover:
 - Bounded rejection of negative/oversized counts and truncated fields; a valid 256-subcategory fixture verifies that the loop counter cannot wrap.
 - Persisted undo/redo stack order, malformed-import preservation, original-byte snapshots, and protected client/server file export.
 - Recoverable multi-file saves, interrupted transaction fixtures, concurrent writes, lock contention, metadata corruption, and session/history reset while preserving preferences.
+- Search query broadening/replacement, partial IDs, Unicode and category scope; price rounding, decimal/integer limits and advanced arithmetic overflow.
+- Filtered reorder boundaries, duplicate IDs, one-action undo/redo, save/reload and mixed edit history; duplicate-ID deletion, staged bulk validation and independent clone data.
 
 Raster tests initialize the real application resources and Skia renderer without starting a native window. They do not exercise desktop startup, bindings, clipboard, navigation, or drag/drop. Synthetic fixtures validate the documented test contracts; they do not independently certify compatibility with every game version. Legacy load normalization remains explicitly characterized rather than silently corrected.
 
@@ -52,11 +54,11 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 ./scripts/Write-CoverageSummary.ps1
 ```
 
-The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest Windows measurement is **711/3,861 executable lines (18.41%)** and **289/1,396 branches (20.70%)**. These are whole-application measurements, replacing the earlier source-linked bootstrap subset's narrow 100% result.
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **818/3,838 executable lines (21.31%)** and **378/1,388 branches (27.23%)**, up from the 711/3,861 lines (18.41%) and 289/1,396 branches (20.70%) baseline. Small rule extractions removed duplicated untested screen code and added tested application services; no additional source exclusions were introduced.
 
-[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 18.0% lines and 20.0% branches, raised after the parser/history/import/export checks, with end-of-stage targets of 80% and 70%. The targets have not been reached. Keep untested application code in the denominator and raise floors as tests expand; validate platform differences when hosted Linux collection first runs.
+[coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 21.0% lines and 27.0% branches, raised after search, persisted reorder, duplicate-ID editing/deletion, staged bulk validation and price boundary regressions. The final targets remain 80% and 70%; the [three-stage quality plan](quality-plan.md) proposes intermediate milestones of 35%/30% and 60%/50%. None of these milestones has been reached. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux, uploads Cobertura/HTML artifacts with seven-day retention, and passes builds/tests on all three operating systems. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) measured the same coverage as the local baseline.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The new 212-test increment and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
 
 ## README badges
 

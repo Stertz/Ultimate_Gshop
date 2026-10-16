@@ -95,7 +95,7 @@ namespace Ultimate_Gshop
                     return new
                     {
                         SalesIndex = index,
-                        Price = ToCents(s.Price),
+                        Price = s.Price / 100m,
                         Days = s.Day,
                         Time = time,
                         SetTime = setTime,
@@ -148,11 +148,7 @@ namespace Ultimate_Gshop
             var start = SalesStartPicker.DateAsInt ?? 0;
             var end = SalesEndPicker.DateAsInt ?? 0;
 
-            var priceText = (PriceTextBox.Text ?? "0").Trim().Replace(',', '.');
-            var priceCents = decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var priceDec)
-                ? ToCents(priceDec)
-                : 0;
-            priceCents = NonNeg(priceCents);
+            var priceCents = PriceUtils.ToCents(PriceUtils.Parse(PriceTextBox.Text));
 
             var unitName = SetTimeComboBox.SelectedItem as string ?? "Minute";
             var unitSeconds = _timeUnits.TryGetValue(unitName, out var sec) ? sec : 60;
@@ -207,37 +203,12 @@ namespace Ultimate_Gshop
         // Helpers de preço/parse:
         // -----------------------
 
-        private static int ToCents(decimal value)
-        {
-            // Ex.: 12.34 -> 1234 (sempre arredonda afastando de zero)
-            var cents = value * 100m;
-            var rounded = Math.Round(cents, 0, MidpointRounding.AwayFromZero);
-            if (rounded < 0) rounded = 0;
-            if (rounded > int.MaxValue) rounded = int.MaxValue;
-            return (int)rounded;
-        }
-
-        private static decimal ParseDecimalInvariant(string? s)
-        {
-            s = (s ?? "").Trim().Replace(',', '.');
-            return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : 0m;
-        }
-
-        private static int RoundCents(decimal cents)
-        {
-            // cents já está em centavos (ex.: 1234m). Arredonda para int (>=0).
-            var rounded = Math.Round(cents, 0, MidpointRounding.AwayFromZero);
-            if (rounded < 0) rounded = 0;
-            if (rounded > int.MaxValue) rounded = int.MaxValue;
-            return (int)rounded;
-        }
-
         private bool ApplyTypeValueToFirstSale()
         {
             var typeSel = TypeValueComboBox.SelectedItem as string;
             var hasType = !string.IsNullOrWhiteSpace(typeSel);
 
-            var valDec = ParseDecimalInvariant(ValueTextBox.Text);
+            var valDec = PriceUtils.Parse(ValueTextBox.Text);
             var hasValue = valDec != 0m || (ValueTextBox.Text ?? "").Trim() == "0" || (ValueTextBox.Text ?? "").Trim() == "0.0";
 
             if (!hasType || !hasValue || _item == null)
@@ -247,44 +218,8 @@ namespace Ultimate_Gshop
             if (_item.Sales.Count == 0)
                 _item.Sales.Add(new Sale { Price = 0 });
 
-            var currentCents = _item.Sales[0].Price;           // int em centavos
-            decimal currentAsCents = currentCents;             // decimal em centavos (para evitar perda em %/mult/div)
-
-            int newCents;
-
-            switch (typeSel)
-            {
-                case "Price":
-                    // Define diretamente (Value interpretado como reais)
-                    newCents = ToCents(valDec);
-                    break;
-
-                case "Add %":
-                    // Aumenta por percentual: cents * (1 + v/100)
-                    newCents = RoundCents(currentAsCents * (1m + (valDec / 100m)));
-                    break;
-
-                case "Remove %":
-                    // Reduz por percentual: cents * (1 - v/100)
-                    newCents = RoundCents(currentAsCents * (1m - (valDec / 100m)));
-                    break;
-
-                case "Multiply":
-                    // Multiplica por Value (Value pode ser decimal)
-                    newCents = RoundCents(currentAsCents * valDec);
-                    break;
-
-                case "Divide":
-                    if (valDec == 0m) return true; // evita divisão por zero; não altera
-                    newCents = RoundCents(currentAsCents / valDec);
-                    break;
-
-                default:
-                    return false; // opção desconhecida -> segue fluxo normal
-            }
-
-            // Não negativo
-            if (newCents < 0) newCents = 0;
+            if (!PriceUtils.TryApply(_item.Sales[0].Price, typeSel, valDec, out var newCents))
+                return false;
 
             _item.Sales[0].Price = newCents;
             // Atualiza o label de preço válido

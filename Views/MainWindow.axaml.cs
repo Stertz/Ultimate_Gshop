@@ -37,7 +37,7 @@ namespace Ultimate_Gshop
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
 
-        private IQueryable<Item>? _currentItems;
+        private List<Item> _currentItems = [];
         private readonly List<Item> _currentSelectedItems = [];
         private Item? _currentSelectedItem;
         private int _selectedCategory = -1;
@@ -142,33 +142,17 @@ namespace Ultimate_Gshop
                 SelectItem(item);
             };
 
-            // ItemsList: reorder (recalcula Place preservando base do escopo)
-            ItemsList.ReorderRequested += (_, args) =>
+            // Reorder only visible records and keep one undo entry for the entire move.
+            ItemsList.ReorderRequested += async (_, args) =>
             {
-                var scope = _shop.Itens
-                    .Where(i => i.CategoryIndex == _selectedCategory &&
-                                (_selectedSubCategory < 0 || i.SubCategoryIndex == _selectedSubCategory))
-                    .OrderBy(i => i.Place)
-                    .ToList();
-
-                if (scope.Count == 0) return;
-
-                var basePlace = scope.Min(i => i.Place);
-                var srcIdx = scope.FindIndex(i => i.Place == args.SourcePlace);
-                if (srcIdx < 0) return;
-
-                var moving = scope[srcIdx];
-                scope.RemoveAt(srcIdx);
-
-                var insertIdx = Math.Clamp(args.TargetIndex, 0, scope.Count);
-                scope.Insert(insertIdx, moving);
-
-                for (int i = 0; i < scope.Count; i++)
-                    scope[i].Place = basePlace + i;
+                if (!await ConfirmDiscardChanges()) return;
+                var moving = ReorderItems.Handle(_shop.Itens, _currentItems,
+                    args.SourcePlace, args.TargetIndex, _tracking);
+                if (moving is null) return;
 
                 UpdateGrid();
                 ItemsList.SelectByPlace(moving.Place);
-                SelectItem(moving.Clone());
+                SelectItem(moving);
             };
 
             ItemsList.MultipleCloneRequested += async (_, selectedItems) =>
@@ -216,15 +200,7 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newAmount) || newAmount < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Amount = newAmount;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.Amount = newAmount, _tracking);
                 UpdateGrid();
             };
 
@@ -245,15 +221,7 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newLimit) || newLimit < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.LimitPeriod = newLimit;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.LimitPeriod = newLimit, _tracking);
                 UpdateGrid();
             };
 
@@ -274,15 +242,7 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newFreq) || newFreq < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.AvailFrequency = newFreq;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.AvailFrequency = newFreq, _tracking);
                 UpdateGrid();
             };
 
@@ -303,22 +263,13 @@ namespace Ultimate_Gshop
                 var res = await dlg.ShowInputDialogAsync(this);
                 if (res.Button != "OK") return;
 
-                static int NonNeg(int v) => v < 0 ? 0 : v;
-                var priceText = (res.Text?.Trim() ?? "0").Replace(',', '.');
-                var priceCents = decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var priceDec)
-                    ? (int)Math.Round(priceDec * 100m, MidpointRounding.AwayFromZero)
-                    : 0;
-                priceCents = NonNeg(priceCents);
+                var priceCents = PriceUtils.ToCents(PriceUtils.Parse(res.Text));
 
-                foreach (var item in _currentSelectedItems)
+                UpdateItems.Handle(_shop.Itens, _currentSelectedItems, item =>
                 {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Sales[0].Price = priceCents;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                    if (item.Sales.Count == 0) item.Sales.Add(new Sale());
+                    item.Sales[0].Price = priceCents;
+                }, _tracking);
                 UpdateGrid();
             };
 
@@ -326,7 +277,7 @@ namespace Ultimate_Gshop
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
-                var editorWindow = new SaleEditorWindow(selectedItems.FirstOrDefault())
+                var editorWindow = new SaleEditorWindow(selectedItems.FirstOrDefault()?.Clone())
                 {
                     WindowStartupLocation = WindowStartupLocation.Manual
                 };
@@ -362,15 +313,8 @@ namespace Ultimate_Gshop
                     .OrderByDescending(s => s.Price) // maiores preços primeiro
                     .Take(4)];
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Sales = sales;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems,
+                    item => item.Sales = sales.Select(sale => sale.Clone()).ToList(), _tracking);
 
                 UpdateGrid();
             };
@@ -410,7 +354,8 @@ namespace Ultimate_Gshop
                     icon: CustomMessageBox.MessageBoxIcon.Information,
                     combo1Label: "Category",
                     combo1Items: combo1Items,
-                    selected1: categories[_selectedCategory].Title ?? combo1Items.FirstOrDefault(),
+                    selected1: _selectedCategory >= 0 && _selectedCategory < categories.Count
+                        ? categories[_selectedCategory].Title : combo1Items.FirstOrDefault(),
                     combo2Label: "SubCategory",
                     combo2Resolver: SubCategoriesResolver,
                     selected2: selected2,
@@ -427,21 +372,15 @@ namespace Ultimate_Gshop
                     return;
 
                 var categoryIndex = categories.FindIndex(c => string.Equals(c.Title, categoryTitle));
-                var subCategoryIndex = categories[categoryIndex].SubCategories.IndexOf(subcategory);
-
                 if (categoryIndex < 0) return; // categoria não encontrada
+                var subCategoryIndex = categories[categoryIndex].SubCategories.IndexOf(subcategory);
                 if (subCategoryIndex < 0) return; // subcategoria não encontrada
 
-                foreach (var item in selectedItems)
+                UpdateItems.Handle(_shop.Itens, selectedItems, item =>
                 {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.CategoryIndex = categoryIndex;
-                    updated.SubCategoryIndex = subCategoryIndex;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                    item.CategoryIndex = categoryIndex;
+                    item.SubCategoryIndex = subCategoryIndex;
+                }, _tracking);
 
                 UpdateGrid();
             };
@@ -466,17 +405,11 @@ namespace Ultimate_Gshop
                 {
                     if (item is null) continue;
 
-                    var index = _shop.Itens.IndexOf(item);
-
-                    if (_shop.Itens.Remove(item))
-                    {
-                        _tracking.ItemDeleted(index, item);
-                    }
-
-                    _shop.ItemAmount--;
+                    DeleteItem.Handle(item, _shop.Itens, _tracking);
 
                 }
 
+                _shop.ItemAmount = _shop.Itens.Count;
                 UpdateGrid();
 
             };
@@ -997,42 +930,7 @@ namespace Ultimate_Gshop
             SetItemDetailsEnabled();
             FillItemDetails(null);
 
-            var query = SearchBox.Text?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                UpdateGrid(); // reset quando vazio
-                return;
-            }
-
-            // termos para busca por nome (like por partes)
-            var searchTerms = query
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
-
-            // só considerar ID se o usuário digitou só números (permite parcial)
-            bool isDigitsOnly = query.All(char.IsDigit);
-
-            var filtered = _currentItems?
-                .AsEnumerable()
-                .Where(i =>
-                {
-                    var name = i.Name ?? string.Empty;
-
-                    bool nameMatch = searchTerms.All(term =>
-                    name.Contains(term, StringComparison.OrdinalIgnoreCase));
-
-                    bool idMatch = isDigitsOnly && i.ID.ToString().Contains(query);
-
-                    return nameMatch || idMatch;
-                })
-                .ToList();
-
-            if (filtered != null)
-            {
-                _currentItems = filtered.AsQueryable();
-                ItemsList.ItemsSource = _currentItems;
-                ItemsList.FillTable();
-            }
+            UpdateGrid();
         }
 
         #endregion
@@ -1097,11 +995,7 @@ namespace Ultimate_Gshop
             // Fonte de verdade para Sales e OwnerNpcs é o item do painel
             var tagItem = DetailPanel.Tag as Item;
 
-            // Permite vírgula ou ponto como separador decimal
-            var giftPriceText = DetailGiftPrice.Text?.Replace(',', '.') ?? "0";
-            var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
-                ? (int)(parsed * 100)
-                : 0;
+            var giftPrice = PriceUtils.ToCents(PriceUtils.Parse(DetailGiftPrice.Text));
             static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
 
             // Sempre cria lista a partir do existente ou vazia
@@ -1407,21 +1301,13 @@ namespace Ultimate_Gshop
         {
             if (_shop == null) return;
 
-            var query = _shop.Itens.AsQueryable();
-
-            if (_selectedCategory > -1)
-                query = query.Where(i => i.CategoryIndex == _selectedCategory);
-
-            if (_selectedSubCategory > -1 && _selectedCategory > -1)
-                query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
-
             RemoveShadow(_lastSelectedBorder);
             _lastSelectedBorder = null;
             FillItemDetails(null);
 
-            _currentItems = query;
+            _currentItems = FilterItems.Handle(_shop.Itens, _selectedCategory,
+                _selectedSubCategory, SearchBox.Text);
             ItemsList.ItemsSource = _currentItems;
-            ItemsList.FillTable();
         }
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
