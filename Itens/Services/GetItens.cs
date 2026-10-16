@@ -9,6 +9,9 @@ namespace Ultimate_Gshop.Itens.Services
         {
 
             var itens = new List<Item>();
+            Span<byte> textBytes = stackalloc byte[1024];
+            Span<char> textChars = stackalloc char[1025];
+            var iconEncoding = Encoding.GetEncoding(936);
 
             BinaryFormat.GetCategoryOffset(fs, itemAmount);
             fs.Seek(BinaryFormat.HeaderSize, SeekOrigin.Begin);
@@ -22,7 +25,7 @@ namespace Ultimate_Gshop.Itens.Services
 
                     CategoryIndex = br.ReadInt32(),
                     SubCategoryIndex = br.ReadInt32(),
-                    Icon = Encoding.GetEncoding(936).GetString(BinaryFormat.ReadField(br, 128)).Split('\0')[0],
+                    Icon = BinaryFormat.ReadTextField(br, textBytes[..128], textChars, iconEncoding),
                     ID = br.ReadInt32(),
                     Amount = br.ReadInt32(),
                     Sales = new List<Sale>(Variables.MaxSalesPerItem)
@@ -47,8 +50,8 @@ namespace Ultimate_Gshop.Itens.Services
                     item.Sales.Add(sale);
                 }
 
-                item.Explanation = Encoding.Unicode.GetString(BinaryFormat.ReadField(br, 1024)).TrimEnd('\0');
-                item.Name = Encoding.Unicode.GetString(BinaryFormat.ReadField(br, 64)).Split('\0')[0];
+                item.Explanation = BinaryFormat.ReadTextField(br, textBytes, textChars, Encoding.Unicode, trimEndOnly: true);
+                item.Name = BinaryFormat.ReadTextField(br, textBytes[..64], textChars, Encoding.Unicode);
 
                 item.GiftID = br.ReadInt32();
                 item.GiftAmount = br.ReadInt32();

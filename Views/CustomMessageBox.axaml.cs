@@ -8,7 +8,7 @@ namespace Ultimate_Gshop.Views
     public partial class CustomMessageBox : Window
     {
         // ---------------- Result Types ----------------
-        private readonly TaskCompletionSource<string> _tcsButtonOnly = new();
+        private readonly TaskCompletionSource<string> _tcsButtonOnly = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public sealed record MessageBoxResult(string Button, string? Text);
         public sealed record ComboBoxResult(string Button, object? Selected1, object? Selected2);
 
@@ -78,7 +78,7 @@ namespace Ultimate_Gshop.Views
                 if (!string.IsNullOrEmpty(initialText))
                     InputBox.Text = initialText;
 
-                _tcsWithInput = new TaskCompletionSource<MessageBoxResult>();
+                _tcsWithInput = new TaskCompletionSource<MessageBoxResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             }
             else
             {
@@ -152,7 +152,7 @@ namespace Ultimate_Gshop.Views
             _hasSecondCombo = false;
             ComboPanel2.IsVisible = false;
 
-            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>();
+            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private void ConfigureTwoCombos(string label1, System.Collections.IEnumerable items1, object? selected1,
@@ -175,7 +175,7 @@ namespace Ultimate_Gshop.Views
             ComboBox2.ItemsSource = items2;
             ComboBox2.SelectedItem = selected2;
 
-            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>();
+            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private void ConfigureTwoCombosDependent(string label1, System.Collections.IEnumerable items1, object? selected1,
@@ -203,7 +203,7 @@ namespace Ultimate_Gshop.Views
                 RefreshSecondCombo(ComboBox1.SelectedItem, null);
             };
 
-            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>();
+            _tcsWithCombo = new TaskCompletionSource<ComboBoxResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private void RefreshSecondCombo(object? firstSelected, object? preferredSelected)
@@ -334,6 +334,14 @@ namespace Ultimate_Gshop.Views
         }
         #endregion
 
+        protected override void OnClosed(EventArgs e)
+        {
+            // Window close and owner shutdown must complete the custom dialog tasks too.
+            _tcsButtonOnly.TrySetResult("Cancelar");
+            _tcsWithInput?.TrySetResult(new MessageBoxResult("Cancelar", null));
+            _tcsWithCombo?.TrySetResult(new ComboBoxResult("Cancelar", null, null));
+            base.OnClosed(e);
+        }
         #region Public APIs
         public Task<string> ShowDialogAsync(Window owner)
         {

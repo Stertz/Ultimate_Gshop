@@ -185,7 +185,7 @@
 		</Grid>
 
 		<!-- Botão de fechar janela -->
-		<Button Width="30" Height="30"
+		<Button x:Name="CloseButton" Width="30" Height="30"
                 Margin="0,25,25,0"
                 Padding="0"
                 Background="Transparent"

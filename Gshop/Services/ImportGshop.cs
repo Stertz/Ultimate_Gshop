@@ -17,7 +17,7 @@ namespace Ultimate_Gshop.Gshop.Services
             return Handle(filepath, ApplicationSettings.AppFolder, settings);
         }
 
-        internal static Shop Handle(string filepath, string sessionDirectory, GshopSettings? settings = null)
+        internal static Shop Handle(string filepath, string sessionDirectory, GshopSettings? settings = null, Action? beforeCommit = null)
         {
             // Restore an interrupted generation before taking a snapshot of an existing session file.
             SessionTransaction.Read(sessionDirectory, () => true);
@@ -36,6 +36,7 @@ namespace Ultimate_Gshop.Gshop.Services
                 // Validate the same snapshot that will be committed, retaining its original bytes.
                 var shop = LoadGshop.Handle(snapshot);
                 settings ??= GshopSettings.Load(Path.Combine(sessionDirectory, "settings.json"));
+                beforeCommit?.Invoke();
                 StartGshopSession.Handle(shop, settings, sessionDirectory, filepath, snapshot);
                 return shop;
             }

@@ -5,7 +5,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using DynamicData;
 using System.Globalization;
 using Ultimate_Gshop.Itens;
 
@@ -54,10 +53,10 @@ public partial class ItemsListControl : UserControl
     public event EventHandler<ReorderRequestEventArgs>? ReorderRequested;
 
     private Border? _lastSelectedBorder;
-    private int _lastSourceIndex;
+    private readonly ItemSelection _selection = new();
     private List<ItemRow> _rows = [];
 
-    public List<Item> SelectedItems { get; set; } = [];
+    public List<Item> SelectedItems => _selection.Items;
     public bool IsMultiSelecting { get; set; }
 
     // Parâmetros de "arming" do drag: só inicia o DnD se segurar/esperar ou mover o suficiente.
@@ -73,6 +72,8 @@ public partial class ItemsListControl : UserControl
     public ItemsListControl()
     {
         InitializeComponent();
+        ItemList.ElementPrepared += (_, args) =>
+            Dispatcher.UIThread.Post(() => AttachDnDToCards(args.Element), DispatcherPriority.Background);
 
         // Habilita área de drop no ScrollViewer raiz e controla auto-scroll via DragOver
         DragDrop.SetAllowDrop(RootScroll, true);
@@ -87,6 +88,10 @@ public partial class ItemsListControl : UserControl
     public void FillTable()
     {
         StopAutoScroll();
+        _selection.Reset();
+        _lastSelectedBorder = null;
+        IsMultiSelecting = false;
+        SelectedPlace = null;
 
         // Projeta Item -> ItemRow (modelo visual), já ordenado por Place
         _rows = (ItemsSource?
@@ -99,7 +104,7 @@ public partial class ItemsListControl : UserControl
                 Amount = i.Amount,
                 LimitPeriod = i.LimitPeriod == 0 ? "Perm." : $"{i.LimitPeriod} dias",
                 Price = i.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture),
-                IconBitmap = i.LoadImageReduced(),
+
                 Place = i.Place
             })
             .ToList()) ?? [];
@@ -109,15 +114,23 @@ public partial class ItemsListControl : UserControl
         // Aguarda layout/virtual tree estabilizar para anexar handlers de DnD nos cards
         Dispatcher.UIThread.Post(() =>
         {
-            AttachDnDToCards();
+            AttachDnDToCards(ItemList);
             if (SelectedPlace is int sp) HighlightByPlace(sp); // visual já existe agora
         }, DispatcherPriority.Background);
     }
 
-    private void AttachDnDToCards()
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        StopAutoScroll();
+        if (_autoScrollTimer is not null) _autoScrollTimer.Tick -= OnAutoScrollTick;
+        CancelPendingDrag();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void AttachDnDToCards(Control root)
     {
         // Percorre os cards visuais e injeta handlers de DragOver/Drop e ponteiro
-        foreach (var b in ItemList.GetVisualDescendants().OfType<Border>().Where(x => x.Name == "CardBorder"))
+        foreach (var b in new[] { root }.Concat(root.GetVisualDescendants().OfType<Control>()).OfType<Border>().Where(x => x.Name == "CardBorder"))
         {
             DragDrop.SetAllowDrop(b, true);
             b.RemoveHandler(DragDrop.DragOverEvent, OnItem_DragOver);
@@ -127,7 +140,15 @@ public partial class ItemsListControl : UserControl
         }
     }
 
-    public void SelectByPlace(int place) => SelectedPlace = place;
+    public void SelectByPlace(int place)
+    {
+        var visible = _rows.Select(row => row.Tag).ToList();
+        var item = visible.FirstOrDefault(candidate => candidate.Place == place);
+        if (item is null) return;
+        _selection.Select(visible, item, extend: false, toggle: false);
+        IsMultiSelecting = false;
+        SelectedPlace = place;
+    }
 
     private void HighlightByPlace(int? place)
     {
@@ -146,7 +167,6 @@ public partial class ItemsListControl : UserControl
             {
                 ApplyGoldShadow(border);
                 _lastSelectedBorder = border;
-                _lastSourceIndex = ItemsSource.IndexOf(it);
                 border.BringIntoView();
                 break;
             }
@@ -169,53 +189,19 @@ public partial class ItemsListControl : UserControl
         // 2) Seleção “lógica”
         if (sender is Grid g && g.Tag is Item item)
         {
-            if (!IsMultiSelecting)
+            var visible = _rows.Select(row => row.Tag).ToList();
+            _selection.Select(visible, item, e.KeyModifiers.HasFlag(KeyModifiers.Shift),
+                e.KeyModifiers.HasFlag(KeyModifiers.Control));
+            var selected = new HashSet<Item>(SelectedItems, ReferenceEqualityComparer.Instance);
+            foreach (var border in ItemList.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "CardBorder"))
             {
-                SelectedItems.Clear();
-                var list = ItemList.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "CardBorder");
-                foreach (var border in list)
-                {
-                    if (border.Tag is not null)
-                    {
-                        if ((int)border.Tag != item.Place)
-                        {
-                            RemoveShadow(border);
-                        }
-                    }
-                }
+                var card = border.GetVisualDescendants().OfType<Grid>().FirstOrDefault();
+                if (card?.Tag is Item record && selected.Contains(record)) ApplyGoldShadow(border);
+                else RemoveShadow(border);
             }
-
-            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-            {
-                var targetIndex = ItemsSource.IndexOf(item);
-
-                if (targetIndex > _lastSourceIndex)
-                {
-                    for (int i = _lastSourceIndex; i <= targetIndex; i++)
-                    {
-                        var aux = ItemsSource.ToList()[i];
-                        ItemPressed?.Invoke(this, aux);
-                        SelectByPlace(aux.Place);
-                        SelectedItems.Add(aux);
-                    }
-                }
-                else
-                {
-                    for (int i = _lastSourceIndex; i >= targetIndex; i--)
-                    {
-                        var aux = ItemsSource.ToList()[i];
-                        ItemPressed?.Invoke(this, aux);
-                        SelectByPlace(aux.Place);
-                        SelectedItems.Add(aux);
-                    }
-                }
-            }
-            else
-            {
-                ItemPressed?.Invoke(this, item);
-                SelectByPlace(item.Place);
-                SelectedItems.Add(item);
-            }
+            ItemPressed?.Invoke(this, item);
+            // HighlightByPlace would reselect a record toggled off with Ctrl.
+            SelectedPlace = selected.Contains(item) ? item.Place : null;
 
         }
 
@@ -458,43 +444,43 @@ public partial class ItemsListControl : UserControl
     private void MultipleClone_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemsSource is null) return;
-        MultipleCloneRequested?.Invoke(this, SelectedItems);
+        MultipleCloneRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultipleAmount_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleAmountRequested?.Invoke(this, SelectedItems);
+        MultipleAmountRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultipleLimitPeriod_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleLimitPeriodRequested?.Invoke(this, SelectedItems);
+        MultipleLimitPeriodRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultipleAvailFrequency_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleAvailFrequencyRequested?.Invoke(this, SelectedItems);
+        MultipleAvailFrequencyRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultiplePrice_Click(object? sender, RoutedEventArgs e)
     {
-        MultiplePriceRequested?.Invoke(this, SelectedItems);
+        MultiplePriceRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultipleAdvancedPrice_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleAdvancedPriceRequested?.Invoke(this, SelectedItems);
+        MultipleAdvancedPriceRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     public void MultipleMove_Click(object? sender, RoutedEventArgs e)
     {
-        MultipleMoveRequested?.Invoke(this, SelectedItems);
+        MultipleMoveRequested?.Invoke(this, SelectedItems.ToList());
     }
 
     private void MultipleDelete_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemsSource is null) return;
-        MultipleDeleteRequested?.Invoke(this, SelectedItems);
+        MultipleDeleteRequested?.Invoke(this, SelectedItems.ToList());
     }
     private static void ApplyGoldShadow(Border border) =>
         border.BoxShadow = new BoxShadows(new BoxShadow { Color = Color.Parse("#ebb935"), Blur = 15, OffsetX = 0, OffsetY = 0 });
@@ -581,7 +567,7 @@ public partial class ItemsListControl : UserControl
         public string Name { get; set; } = "";
         public int Amount { get; set; }
         public string LimitPeriod { get; set; } = "";
-        public IImage? IconBitmap { get; set; }
+        public IImage IconBitmap => Tag.LoadImageReduced();
         public string Price { get; set; } = "";
         public int Place { get; set; }
     }

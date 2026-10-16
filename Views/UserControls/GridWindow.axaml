@@ -6,25 +6,29 @@
 		mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
         x:Class="Ultimate_Gshop.GridWindow"
 		x:DataType="vm:GridViewModel"
-        Title="GridWindow">
+        Title="Shop overview" Width="900" Height="500">
 
-	<Grid>
-
-		<Button VerticalAlignment="Top" Margin="20" Content="{Binding Teste}"></Button>
-
-
-		<ScrollViewer>
-			<DataGrid Margin="20"
+	<Grid RowDefinitions="Auto,*" Margin="20">
+		<TextBlock Margin="0,0,0,12" Text="{Binding ItemCount, StringFormat='Read-only snapshot: {0} items'}"/>
+			<DataGrid Grid.Row="1"
 			  ItemsSource="{Binding Items}"
-			  AutoGenerateColumns="True"
+			  AutoGenerateColumns="False"
+			  IsReadOnly="True"
 			  GridLinesVisibility="All"
 			  BorderThickness="1"
-			  VerticalAlignment="Top"
+			  VerticalAlignment="Stretch"
 			  Background="White"
 			  Foreground="Black">
 
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Position" Binding="{Binding Place}"/>
+					<DataGridTextColumn Header="ID" Binding="{Binding ID}"/>
+					<DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+					<DataGridTextColumn Header="Amount" Binding="{Binding Amount}"/>
+					<DataGridTextColumn Header="Category" Binding="{Binding CategoryIndex}"/>
+					<DataGridTextColumn Header="Subcategory" Binding="{Binding SubCategoryIndex}"/>
+				</DataGrid.Columns>
 			</DataGrid>
-		</ScrollViewer>
 
 	</Grid>
 

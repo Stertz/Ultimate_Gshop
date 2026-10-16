@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using Ultimate_Gshop.Categories;
+using Ultimate_Gshop.Categories.Services;
 using Ultimate_Gshop.Gshop;
 using Ultimate_Gshop.Gshop.Services;
 using Ultimate_Gshop.Itens;
@@ -22,6 +23,14 @@ namespace Ultimate_Gshop
     public partial class MainWindow : Window
     {
         private bool _isClosingHandled = false;
+        private bool _closeInProgress;
+        private bool _saveInProgress;
+        private bool _navigationInProgress;
+        private Task<bool> _activeSave = Task.FromResult(true);
+        private readonly Func<SessionSnapshot, string, Task> _writeSnapshot = (snapshot, directory) => snapshot.WriteAsync(directory);
+        private bool _sessionReady;
+        private readonly bool _providedSession;
+        private readonly string _sessionDirectory = ApplicationSettings.AppFolder;
 
         private DispatcherTimer? _saveTimer;
 
@@ -37,7 +46,7 @@ namespace Ultimate_Gshop
         private Border? _lastSelectedCategory;
         private Border? _lastSelectedSubCategory;
 
-        private IQueryable<Item>? _currentItems;
+        private List<Item> _currentItems = [];
         private readonly List<Item> _currentSelectedItems = [];
         private Item? _currentSelectedItem;
         private int _selectedCategory = -1;
@@ -51,6 +60,19 @@ namespace Ultimate_Gshop
         {
             InitializeComponent();
         }
+
+        internal MainWindow(Shop shop, ShopTracking tracking, GshopSettings settings, string sessionDirectory, Func<SessionSnapshot, string, Task>? writeSnapshot = null) : this()
+        {
+            ArgumentNullException.ThrowIfNull(shop);
+            ArgumentNullException.ThrowIfNull(tracking);
+            ArgumentNullException.ThrowIfNull(settings);
+            _shop = shop;
+            _tracking = tracking;
+            _settings = settings;
+            _sessionDirectory = Path.GetFullPath(sessionDirectory);
+            _providedSession = true;
+            if (writeSnapshot is not null) _writeSnapshot = writeSnapshot;
+        }
         /// <summary>
         /// Disparado ao abrir a janela
         /// </summary>
@@ -63,36 +85,36 @@ namespace Ultimate_Gshop
 
             Cursor = ApplicationSettings.InitializeCustomCursor();
 
-            _shop = ApplicationSettings.GshopExists
-                ? ContinueGshop.Handle()
-                : await ReturnGshopFromMenu();
-
-            if (_shop is null) { Close(); return; }
+            try
+            {
+                if (!_providedSession)
+                {
+                    _shop = ApplicationSettings.GshopExists
+                        ? ContinueGshop.Handle()
+                        : await ReturnGshopFromMenu();
+                    if (_shop is null) { _isClosingHandled = true; Close(); return; }
+                    _settings = GshopSettings.Load();
+                    _tracking = ShopTracking.Load();
+                }
+            }
+            catch (Exception error) when (OperationErrors.IsRecoverable(error))
+            {
+                await OperationErrors.ShowAsync(this, "Could not open the shop", error);
+                _isClosingHandled = true;
+                Close();
+                return;
+            }
 
             // Routed events essenciais
             DetailGiftID.AddHandler(KeyDownEvent, DetailGiftID_KeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
             DetailGiftID.AddHandler(LostFocusEvent, DetailGiftID_LostFocus, RoutingStrategies.Bubble);
             SearchBox.AddHandler(InputElement.KeyUpEvent, SearchBox_KeyUp, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
-            _settings = GshopSettings.Load();
-
             UndoButton.IsEnabled = false;
             RedoButton.IsEnabled = false;
 
-            _tracking = ShopTracking.Load();
             _tracking.PropertyChanged += OnTrackingChange;
             RefreshTracking();
-
-            if (_settings.AutoSave)
-            {
-                _saveTimer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromSeconds((_settings.SaveFromSeconds ?? 30))
-                };
-
-                _saveTimer.Tick += SaveTimer_Tick;
-                _saveTimer.Start();
-            }
 
             InitializeShopSources();
 
@@ -101,9 +123,7 @@ namespace Ultimate_Gshop
             {
                 if (!await ConfirmDiscardChanges() || item is null) return;
 
-                var cloned = item.Clone();                     // clone
-                var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
-                cloned.Place = maxPlace + 1;                   // próximo slot
+                var cloned = CloneItems.Prepare(item, _shop.Itens);
 
                 _currentState = DetailState.Creating;
                 SetItemDetailsEnabled();
@@ -129,6 +149,7 @@ namespace Ultimate_Gshop
                 FillItemDetails(item);
                 if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
                 {
+                    _shop.ItemAmount = _shop.Itens.Count;
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
                     SetItemDetailsEnabled();
@@ -142,38 +163,22 @@ namespace Ultimate_Gshop
                 SelectItem(item);
             };
 
-            // ItemsList: reorder (recalcula Place preservando base do escopo)
-            ItemsList.ReorderRequested += (_, args) =>
+            // Reorder only visible records and keep one undo entry for the entire move.
+            ItemsList.ReorderRequested += async (_, args) =>
             {
-                var scope = _shop.Itens
-                    .Where(i => i.CategoryIndex == _selectedCategory &&
-                                (_selectedSubCategory < 0 || i.SubCategoryIndex == _selectedSubCategory))
-                    .OrderBy(i => i.Place)
-                    .ToList();
-
-                if (scope.Count == 0) return;
-
-                var basePlace = scope.Min(i => i.Place);
-                var srcIdx = scope.FindIndex(i => i.Place == args.SourcePlace);
-                if (srcIdx < 0) return;
-
-                var moving = scope[srcIdx];
-                scope.RemoveAt(srcIdx);
-
-                var insertIdx = Math.Clamp(args.TargetIndex, 0, scope.Count);
-                scope.Insert(insertIdx, moving);
-
-                for (int i = 0; i < scope.Count; i++)
-                    scope[i].Place = basePlace + i;
+                if (!await ConfirmDiscardChanges()) return;
+                var moving = ReorderItems.Handle(_shop.Itens, _currentItems,
+                    args.SourcePlace, args.TargetIndex, _tracking);
+                if (moving is null) return;
 
                 UpdateGrid();
                 ItemsList.SelectByPlace(moving.Place);
-                SelectItem(moving.Clone());
+                SelectItem(moving);
             };
 
             ItemsList.MultipleCloneRequested += async (_, selectedItems) =>
             {
-                if (!await ConfirmDiscardChanges()) return;
+                if (!await PrepareBulkEditAsync()) return;
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
                 var dlg = new CustomMessageBox(
@@ -183,25 +188,16 @@ namespace Ultimate_Gshop
                     buttons: ["Sim", "Não"]
                 );
 
-                if (await dlg.ShowDialogAsync(this) == "Não") return;
+                if (await dlg.ShowDialogAsync(this) != "Sim") return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-
-                    var cloned = item.Clone();
-                    var maxPlace = _shop.Itens.Count != 0 ? _shop.Itens.Max(i => i.Place) : 0;
-                    cloned.Place = maxPlace + 1;
-
-                    InsertItem.Handle(_shop.Itens, cloned, _tracking);
-                    _shop.ItemAmount++;
-                }
+                CloneItems.Handle(_shop, selectedItems, _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultipleAmountRequested += async (_, selectedItems) =>
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
                 var dlg = new CustomMessageBox(
                     title: "Alterar Quantidade",
@@ -216,21 +212,14 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newAmount) || newAmount < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Amount = newAmount;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.Amount = newAmount, _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultipleLimitPeriodRequested += async (_, selectedItems) =>
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
                 var dlg = new CustomMessageBox(
                     title: "Alterar Período",
@@ -245,21 +234,14 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newLimit) || newLimit < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.LimitPeriod = newLimit;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.LimitPeriod = newLimit, _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultipleAvailFrequencyRequested += async (_, selectedItems) =>
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
                 var dlg = new CustomMessageBox(
                     title: "Alterar Frequência",
@@ -274,21 +256,14 @@ namespace Ultimate_Gshop
 
                 if (res.Button != "OK" || !int.TryParse(res.Text, out int newFreq) || newFreq < 0) return;
 
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.AvailFrequency = newFreq;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                UpdateItems.Handle(_shop.Itens, selectedItems, item => item.AvailFrequency = newFreq, _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultiplePriceRequested += async (_, _currentSelectedItems) =>
             {
                 if (_currentSelectedItems is null || _currentSelectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
                 var dlg = new CustomMessageBox(
                     title: "Alterar Preço",
@@ -296,37 +271,29 @@ namespace Ultimate_Gshop
                     icon: CustomMessageBox.MessageBoxIcon.Information,
                     withInput: true,
                     inputLabel: "Price",
-                    initialText: ((_currentSelectedItems.FirstOrDefault()?.Sales[0].Price ?? 0) / 100m).ToString("F2", CultureInfo.InvariantCulture),
+                    initialText: ((_currentSelectedItems.FirstOrDefault()?.Sales.FirstOrDefault()?.Price ?? 0) / 100m).ToString("F2", CultureInfo.InvariantCulture),
                     buttons: ["OK", "Cancelar"]
                 );
 
                 var res = await dlg.ShowInputDialogAsync(this);
                 if (res.Button != "OK") return;
 
-                static int NonNeg(int v) => v < 0 ? 0 : v;
-                var priceText = (res.Text?.Trim() ?? "0").Replace(',', '.');
-                var priceCents = decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var priceDec)
-                    ? (int)Math.Round(priceDec * 100m, MidpointRounding.AwayFromZero)
-                    : 0;
-                priceCents = NonNeg(priceCents);
+                var priceCents = PriceUtils.ToCents(PriceUtils.Parse(res.Text));
 
-                foreach (var item in _currentSelectedItems)
+                UpdateItems.Handle(_shop.Itens, _currentSelectedItems, item =>
                 {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Sales[0].Price = priceCents;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                    if (item.Sales.Count == 0) item.Sales.Add(new Sale());
+                    item.Sales[0].Price = priceCents;
+                }, _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultipleAdvancedPriceRequested += async (_, selectedItems) =>
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
-                var editorWindow = new SaleEditorWindow(selectedItems.FirstOrDefault())
+                var editorWindow = new SaleEditorWindow(selectedItems.FirstOrDefault()?.Clone())
                 {
                     WindowStartupLocation = WindowStartupLocation.Manual
                 };
@@ -338,6 +305,7 @@ namespace Ultimate_Gshop
                 );
 
                 var sales = await editorWindow.ShowDialog<List<Sale>>(this);
+                if (sales is null) return;
 
                 var dlg = new CustomMessageBox(
                     title: "Alterar Preços",
@@ -348,36 +316,15 @@ namespace Ultimate_Gshop
                 var res = await dlg.ShowDialogAsync(this);
                 if (res != "Sim") return;
 
-                // Sempre cria lista a partir do existente ou vazia
-                sales = (sales?.Count > 0)
-                    ? [.. sales]
-                    : [];
-
-                // Ajusta para ter exatamente 4 itens
-                while (sales.Count < 4)
-                    sales.Add(new Sale()); // zerado
-
-                if (sales.Count > 4)
-                    sales = [.. sales
-                    .OrderByDescending(s => s.Price) // maiores preços primeiro
-                    .Take(4)];
-
-                foreach (var item in selectedItems)
-                {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.Sales = sales;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
-
+                UpdateItems.Handle(_shop.Itens, selectedItems,
+                    item => item.Sales = ItemPayload.NormalizeSales(sales), _tracking);
                 UpdateGrid();
             };
 
             ItemsList.MultipleMoveRequested += async (_, selectedItems) =>
             {
                 if (selectedItems is null || selectedItems.Count == 0) return;
+                if (!await PrepareBulkEditAsync()) return;
 
                 var categories = _shop.Categories;
 
@@ -410,7 +357,8 @@ namespace Ultimate_Gshop
                     icon: CustomMessageBox.MessageBoxIcon.Information,
                     combo1Label: "Category",
                     combo1Items: combo1Items,
-                    selected1: categories[_selectedCategory].Title ?? combo1Items.FirstOrDefault(),
+                    selected1: _selectedCategory >= 0 && _selectedCategory < categories.Count
+                        ? categories[_selectedCategory].Title : combo1Items.FirstOrDefault(),
                     combo2Label: "SubCategory",
                     combo2Resolver: SubCategoriesResolver,
                     selected2: selected2,
@@ -427,21 +375,15 @@ namespace Ultimate_Gshop
                     return;
 
                 var categoryIndex = categories.FindIndex(c => string.Equals(c.Title, categoryTitle));
-                var subCategoryIndex = categories[categoryIndex].SubCategories.IndexOf(subcategory);
-
                 if (categoryIndex < 0) return; // categoria não encontrada
+                var subCategoryIndex = categories[categoryIndex].SubCategories.IndexOf(subcategory);
                 if (subCategoryIndex < 0) return; // subcategoria não encontrada
 
-                foreach (var item in selectedItems)
+                UpdateItems.Handle(_shop.Itens, selectedItems, item =>
                 {
-                    if (item is null) continue;
-                    var index = _shop.Itens.IndexOf(item);
-                    if (index < 0) continue;
-                    var updated = _shop.Itens[index].Clone();
-                    updated.CategoryIndex = categoryIndex;
-                    updated.SubCategoryIndex = subCategoryIndex;
-                    UpdateItem.Handle(_shop.Itens, updated, _shop.Itens[index], _tracking);
-                }
+                    item.CategoryIndex = categoryIndex;
+                    item.SubCategoryIndex = subCategoryIndex;
+                }, _tracking);
 
                 UpdateGrid();
             };
@@ -449,7 +391,7 @@ namespace Ultimate_Gshop
             ItemsList.MultipleDeleteRequested += async (_, selectedItems) =>
             {
 
-                if (!await ConfirmDiscardChanges()) return;
+                if (!await PrepareBulkEditAsync()) return;
                 if (selectedItems is null || selectedItems.Count == 0) return;
 
                 var dlg = new CustomMessageBox(
@@ -459,28 +401,24 @@ namespace Ultimate_Gshop
                     buttons: ["Sim", "Não"]
 );
 
-                if (await dlg.ShowDialogAsync(this) == "Não") return;
+                if (await dlg.ShowDialogAsync(this) != "Sim") return;
 
 
                 foreach (var item in selectedItems)
                 {
                     if (item is null) continue;
 
-                    var index = _shop.Itens.IndexOf(item);
-
-                    if (_shop.Itens.Remove(item))
-                    {
-                        _tracking.ItemDeleted(index, item);
-                    }
-
-                    _shop.ItemAmount--;
+                    DeleteItem.Handle(item, _shop.Itens, _tracking);
 
                 }
 
+                _shop.ItemAmount = _shop.Itens.Count;
                 UpdateGrid();
 
             };
 
+            _sessionReady = true;
+            ConfigureAutoSave();
         }
 
         private void InitializeShopSources()
@@ -489,14 +427,70 @@ namespace Ultimate_Gshop
             DetailClassComboBox.ItemsSource = ItemClass;
             DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(c => c.Title).ToList();
 
-            if (_shop.Categories.Count > 0) // Seleciona a primeira categoria e primeira subcategoria
-                SelectCategoryAndSubCategory(0, 0);
+            if (_shop.Categories.Count > 0)
+                SelectCategoryAndSubCategory(0, _shop.Categories[0].SubCategories.Count > 0 ? 0 : -1);
         }
 
-        private void SaveTimer_Tick(object? sender, EventArgs e) => SaveGshop.Handle(_shop, _tracking, _settings);
+        private async void SaveTimer_Tick(object? sender, EventArgs e)
+        {
+            if (!_closeInProgress && !_navigationInProgress) await SaveSessionAsync();
+        }
+
+        private void StopAutoSave()
+        {
+            if (_saveTimer is null) return;
+            _saveTimer.Stop();
+            _saveTimer.Tick -= SaveTimer_Tick;
+            _saveTimer = null;
+        }
+
+        private void ConfigureAutoSave()
+        {
+            StopAutoSave();
+            if (!_sessionReady || !_settings.AutoSave) return;
+            _saveTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(Math.Max(30, _settings.SaveFromSeconds ?? 30))
+            };
+            _saveTimer.Tick += SaveTimer_Tick;
+            _saveTimer.Start();
+        }
+
+        internal Task<bool> SaveSessionAsync()
+        {
+            Dispatcher.UIThread.VerifyAccess();
+            if (!_sessionReady || _saveInProgress || _isClosingHandled || _navigationInProgress) return Task.FromResult(false);
+            _saveInProgress = true;
+            return _activeSave = SaveSnapshotAsync();
+        }
+
+        private async Task<bool> SaveSnapshotAsync()
+        {
+            try
+            {
+                var snapshot = SessionSnapshot.Capture(_shop, _tracking, _settings);
+                await _writeSnapshot(snapshot, _sessionDirectory);
+                return true;
+            }
+            catch (Exception error) when (OperationErrors.IsRecoverable(error))
+            {
+                await OperationErrors.ShowAsync(this, "Could not save the shop", error);
+                return false;
+            }
+            finally { _saveInProgress = false; }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _sessionReady = false;
+            StopAutoSave();
+            _tracking.PropertyChanged -= OnTrackingChange;
+            base.OnClosed(e);
+        }
         protected override void OnClosing(WindowClosingEventArgs e)
         {
             base.OnClosing(e);
+            if (!_sessionReady) _isClosingHandled = true;
             if (!_isClosingHandled)
             {
                 e.Cancel = true;
@@ -506,7 +500,7 @@ namespace Ultimate_Gshop
 
         private async Task<Shop> ReturnGshopFromMenu()
         {
-            var menuWindow = new MenuWindow()
+            var menuWindow = new MenuWindow(null, null, null, _sessionDirectory)
             {
                 WindowStartupLocation = WindowStartupLocation.Manual
             };
@@ -521,15 +515,25 @@ namespace Ultimate_Gshop
 
         private async Task HandleClosingAsync()
         {
-            if (_isClosingHandled)
-                return;
-
-            if (await ConfirmDiscardChanges())
+            if (_isClosingHandled || _closeInProgress || _navigationInProgress) return;
+            _closeInProgress = true;
+            var resumeAutoSave = _saveTimer?.IsEnabled == true;
+            try
             {
-                _isClosingHandled = true;
+                if (!await ConfirmDiscardChanges()) return;
                 _saveTimer?.Stop();
-                SaveGshop.Handle(_shop, _tracking, _settings);
+                IsEnabled = false;
+                if (_saveInProgress && !await _activeSave) return;
+                // Changes made after an autosave snapshot require a fresh final generation.
+                if (!await SaveSessionAsync()) return;
+                _isClosingHandled = true;
                 Close();
+            }
+            finally
+            {
+                _closeInProgress = false;
+                if (!_isClosingHandled) IsEnabled = true;
+                if (!_isClosingHandled && resumeAutoSave) _saveTimer?.Start();
             }
         }
 
@@ -565,6 +569,7 @@ namespace Ultimate_Gshop
             {
                 if (await DeleteItem.Handle(item, _shop.Itens, _tracking, this))
                 {
+                    _shop.ItemAmount = _shop.Itens.Count;
                     UpdateGrid();
                     _currentState = DetailState.Viewing;
                     SetItemDetailsEnabled();
@@ -707,7 +712,7 @@ namespace Ultimate_Gshop
 
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                _shop.Categories[_selectedCategory].Title = result.Text;
+                if (!EditCategories.RenameCategory(_shop, _selectedCategory, result.Text, _tracking)) return;
                 CategoryList.ItemsSource = _shop.Categories.ToList();
                 SelectCategoryAndSubCategory(_selectedCategory);
             }
@@ -728,8 +733,7 @@ namespace Ultimate_Gshop
             var choice = await dlg.ShowDialogAsync(this);
             if (choice != "Sim") return;
 
-            // Remove in-place para manter a referência da lista
-            var removed = _shop.Itens.RemoveAll(i => i.CategoryIndex == _selectedCategory);
+            var removed = EditCategories.Reset(_shop, _selectedCategory, null, _tracking);
 
             SearchBox.Text = string.Empty;
             SelectCategoryAndSubCategory(_selectedCategory);
@@ -770,7 +774,7 @@ namespace Ultimate_Gshop
 
             if (result.Button == "OK" && !string.IsNullOrWhiteSpace(result.Text))
             {
-                category.SubCategories.Add(result.Text);
+                if (!EditCategories.AddSubCategory(_shop, _selectedCategory, result.Text, _tracking)) return;
                 CategoryList.ItemsSource = _shop.Categories.ToList();
                 SelectCategoryAndSubCategory(_selectedCategory, category.SubCategories.Count - 1);
             }
@@ -801,13 +805,13 @@ namespace Ultimate_Gshop
             var newName = result.Text.Trim();
             if (newName.Length == 0) return;
 
-            if (category.SubCategories.Contains(newName, StringComparer.OrdinalIgnoreCase))
+            if (category.SubCategories.Where((_, index) => index != _selectedSubCategory).Contains(newName, StringComparer.OrdinalIgnoreCase))
             {
                 await new CustomMessageBox("Renomear Subcategoria", "Já existe uma subcategoria com esse nome.", CustomMessageBox.MessageBoxIcon.Error, "OK").ShowDialogAsync(this);
                 return;
             }
 
-            category.SubCategories[_selectedSubCategory] = newName;
+            if (!EditCategories.RenameSubCategory(_shop, _selectedCategory, _selectedSubCategory, newName, _tracking)) return;
 
             // Rebind das fontes UI
             SubCategoryList.ItemsSource = category.SubCategories.ToList();
@@ -837,9 +841,7 @@ namespace Ultimate_Gshop
             var choice = await dlg.ShowDialogAsync(this);
             if (choice != "Sim") return;
 
-            // Remove in-place
-            var removed = _shop.Itens.RemoveAll(i =>
-                i.CategoryIndex == _selectedCategory && i.SubCategoryIndex == _selectedSubCategory);
+            var removed = EditCategories.Reset(_shop, _selectedCategory, _selectedSubCategory, _tracking);
 
             // Rebind UI e mantém mesma sub selecionada
             SearchBox.Text = string.Empty;
@@ -892,7 +894,7 @@ namespace Ultimate_Gshop
             if (choice != "Excluir") return;
 
             // Remove a subcategoria
-            category.SubCategories.RemoveAt(_selectedSubCategory);
+            if (!EditCategories.DeleteSubCategory(_shop, _selectedCategory, _selectedSubCategory, _tracking)) return;
 
             // Limpa seleção de sub e rebind das listas
             _selectedSubCategory = -1;
@@ -997,42 +999,7 @@ namespace Ultimate_Gshop
             SetItemDetailsEnabled();
             FillItemDetails(null);
 
-            var query = SearchBox.Text?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                UpdateGrid(); // reset quando vazio
-                return;
-            }
-
-            // termos para busca por nome (like por partes)
-            var searchTerms = query
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
-
-            // só considerar ID se o usuário digitou só números (permite parcial)
-            bool isDigitsOnly = query.All(char.IsDigit);
-
-            var filtered = _currentItems?
-                .AsEnumerable()
-                .Where(i =>
-                {
-                    var name = i.Name ?? string.Empty;
-
-                    bool nameMatch = searchTerms.All(term =>
-                    name.Contains(term, StringComparison.OrdinalIgnoreCase));
-
-                    bool idMatch = isDigitsOnly && i.ID.ToString().Contains(query);
-
-                    return nameMatch || idMatch;
-                })
-                .ToList();
-
-            if (filtered != null)
-            {
-                _currentItems = filtered.AsQueryable();
-                ItemsList.ItemsSource = _currentItems;
-                ItemsList.FillTable();
-            }
+            UpdateGrid();
         }
 
         #endregion
@@ -1067,6 +1034,16 @@ namespace Ultimate_Gshop
 
         #region Utils
 
+        private async Task<bool> PrepareBulkEditAsync()
+        {
+            if (_currentState == DetailState.Viewing) return true;
+            if (!await ConfirmDiscardChanges()) return false;
+            _currentState = DetailState.Viewing;
+            SetItemDetailsEnabled();
+            FillItemDetails(null);
+            return true;
+        }
+
         private async Task<bool> ConfirmDiscardChanges()
         {
             if (_currentState == DetailState.Viewing) return true;
@@ -1097,26 +1074,10 @@ namespace Ultimate_Gshop
             // Fonte de verdade para Sales e OwnerNpcs é o item do painel
             var tagItem = DetailPanel.Tag as Item;
 
-            // Permite vírgula ou ponto como separador decimal
-            var giftPriceText = DetailGiftPrice.Text?.Replace(',', '.') ?? "0";
-            var giftPrice = decimal.TryParse(giftPriceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
-                ? (int)(parsed * 100)
-                : 0;
+            var giftPrice = PriceUtils.ToCents(PriceUtils.Parse(DetailGiftPrice.Text));
             static int ParseInt(string? text) => int.TryParse(text, out var value) ? value : 0;
 
-            // Sempre cria lista a partir do existente ou vazia
-            var sales = (tagItem?.Sales?.Count > 0)
-                ? [.. tagItem.Sales]
-                : new List<Sale>();
-
-            // Ajusta para ter exatamente 4 itens
-            while (sales.Count < 4)
-                sales.Add(new Sale()); // zerado
-
-            if (sales.Count > 4)
-                sales = [.. sales
-                    .OrderByDescending(s => s.Price) // maiores preços primeiro
-                    .Take(4)];
+            var sales = ItemPayload.NormalizeSales(tagItem?.Sales);
 
             // Normaliza OwnerNpcs: >0, distintos, no máximo 8, e preenche com zeros.
             int[] owners;
@@ -1407,54 +1368,56 @@ namespace Ultimate_Gshop
         {
             if (_shop == null) return;
 
-            var query = _shop.Itens.AsQueryable();
-
-            if (_selectedCategory > -1)
-                query = query.Where(i => i.CategoryIndex == _selectedCategory);
-
-            if (_selectedSubCategory > -1 && _selectedCategory > -1)
-                query = query.Where(i => i.SubCategoryIndex == _selectedSubCategory);
-
             RemoveShadow(_lastSelectedBorder);
             _lastSelectedBorder = null;
             FillItemDetails(null);
 
-            _currentItems = query;
+            _currentItems = FilterItems.Handle(_shop.Itens, _selectedCategory,
+                _selectedSubCategory, SearchBox.Text);
             ItemsList.ItemsSource = _currentItems;
-            ItemsList.FillTable();
         }
 
         private async void NavButton_Click(object? sender, RoutedEventArgs e)
         {
-            var menuWindow = new MenuWindow(_shop, _settings, _tracking)
+            if (_navigationInProgress || _closeInProgress || !_sessionReady) return;
+            _navigationInProgress = true;
+            _saveTimer?.Stop();
+            try
             {
-                WindowStartupLocation = WindowStartupLocation.Manual
-            };
-
-            // Pega tamanho do MainWindow e do MenuWindow
-            var mainBounds = this.Bounds;
-
-            menuWindow.Position = new PixelPoint(
-                (int)(Position.X + (mainBounds.Width - menuWindow.Width) / 2),
-                (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2)
-            );
-
-            var nextShop = await menuWindow.ShowDialog<Shop>(this);
-            if (nextShop is null) return;
-            if (!ReferenceEquals(_shop, nextShop))
-            {
-                _currentSelectedItem = null;
-                _currentSelectedItems.Clear();
-                _selectedCategory = -1;
-                _selectedSubCategory = -1;
-                _currentState = DetailState.Viewing;
-                SetItemDetailsEnabled();
+                if (!await PrepareBulkEditAsync()) return;
+                IsEnabled = false;
+                // Import/options must never race an older autosave generation.
+                if (_saveInProgress && !await _activeSave) return;
+                IsEnabled = true;
+                var menuWindow = new MenuWindow(_shop, _settings, _tracking, _sessionDirectory)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual
+                };
+                var mainBounds = Bounds;
+                menuWindow.Position = new PixelPoint(
+                    (int)(Position.X + (mainBounds.Width - menuWindow.Width) / 2),
+                    (int)(Position.Y + (mainBounds.Height - menuWindow.Height) / 2));
+                var nextShop = await menuWindow.ShowDialog<Shop>(this);
+                if (nextShop is null) return;
+                if (!ReferenceEquals(_shop, nextShop))
+                {
+                    _currentSelectedItem = null;
+                    _currentSelectedItems.Clear();
+                    _selectedCategory = -1;
+                    _selectedSubCategory = -1;
+                    _currentState = DetailState.Viewing;
+                    SetItemDetailsEnabled();
+                }
+                _shop = nextShop;
+                InitializeShopSources();
+                UpdateGrid();
             }
-            _shop = nextShop;
-
-            InitializeShopSources();
-            UpdateGrid();
-
+            finally
+            {
+                _navigationInProgress = false;
+                IsEnabled = true;
+                ConfigureAutoSave();
+            }
         }
 
         private async void GridButton_Click(object? sender, RoutedEventArgs e)
@@ -1466,11 +1429,26 @@ namespace Ultimate_Gshop
         private void Undo_Click(object? sender, RoutedEventArgs e)
         {
             _tracking.Undo(_shop);
-            UpdateGrid();
+            RefreshHistorySources();
         }
         private void Redo_Click(object? sender, RoutedEventArgs e)
         {
             _tracking.Redo(_shop);
+            RefreshHistorySources();
+        }
+
+        private void RefreshHistorySources()
+        {
+            _currentSelectedItem = null;
+            CategoryList.ItemsSource = _shop.Categories.ToList();
+            DetailCategoryComboBox.ItemsSource = _shop.Categories.Select(category => category.Title).ToList();
+            if (_selectedCategory >= 0 && _selectedCategory < _shop.Categories.Count)
+            {
+                var subCategories = _shop.Categories[_selectedCategory].SubCategories;
+                if (_selectedSubCategory >= subCategories.Count) _selectedSubCategory = -1;
+                SubCategoryList.ItemsSource = subCategories.ToList();
+                DetailSubCategoryComboBox.ItemsSource = subCategories.ToList();
+            }
             UpdateGrid();
         }
 

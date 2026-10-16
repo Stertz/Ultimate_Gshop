@@ -1,36 +1,53 @@
-# Session Persistence and Recovery
+# Persistence and recovery
 
-The existing binary filenames and JSON property names are retained. Resource files are never part of a session transaction.
+## Session directory
 
-## Save and session switching
+The application stores sessions in `ultimate_gshop` under the directory returned by .NET's `Environment.SpecialFolder.ApplicationData`.
 
-Normal saves stage the client binary, tracking JSON, and settings JSON together. Explicit backup saves retain the `gshop.data` filename; the current session retains `gshop_temp.data`.
+| File | Purpose |
+| --- | --- |
+| `gshop_temp.data` | Current shop in client binary format |
+| `gshop_before.data` | Initial bytes when a session is created or imported |
+| `tracking.json` | Undo and redo history |
+| `settings.json` | Autosave preferences and source/backup paths |
+| `.session.lock` | Exclusive file handle used while accessing the session |
+| `.session-transaction/` | Staged payloads and rollback files |
 
-Import first copies the source into a private snapshot and validates that snapshot. Starting the imported session writes the original snapshot bytes to `gshop_before.data` and `gshop_temp.data`, resets tracking, and records the source path. It preserves autosave preferences and the last backup location. The original bytes are kept even where the legacy loader normalizes values in memory.
+Backups are written beneath the session's `backups` directory in timestamped folders with a random suffix. A backup contains `gshop.data`, `tracking.json` and `settings.json`.
 
-Starting a new shop similarly writes both session binaries and empty history, clears the source path, and retains user preferences. The menu clears both in-memory history stacks only after successful session creation. Closing/canceling a menu does not substitute a null shop; changing shops clears the previous item selection and edit state. Native dialog interactions remain untested in this phase.
+## Saving
 
-## Recovery protocol
+Editor autosave captures a detached copy of the shop, categories, item sales/owners, both history stacks and settings on the UI thread. Serialization and filesystem writes then run on a worker. A second save request is rejected while one is outstanding.
 
-`SessionTransaction` serializes in-process access and holds a `.session.lock` file handle with exclusive sharing. A competing process fails with an I/O error rather than replacing files concurrently. The lock file itself may remain after the handle is released; its existence does not mean the session is locked.
+Closing pauses autosave, waits for any outstanding save, captures the latest committed state and saves it before closing. A save failure displays an error and keeps the editor open for retry. Opening the menu also pauses autosave and waits for its completion before allowing session operations. Autosave is reconfigured when the menu closes.
 
-The `.session-transaction` directory contains only the recovery protocol's staged payloads and backups:
+The autosave interval is at least 30 seconds. Settings use the JSON properties `AutoSave`, `SaveFromSeconds`, `LastGshopLoadedFrom` and `LastBackupFrom`. Options edit a separate draft; the live preferences change after settings persistence succeeds.
 
-1. Write and flush all `*.next` payloads and `*.previous` backups.
-2. Write the complete manifest to `prepared.json`, then rename it to `pending.json` before changing destinations.
-3. Replace the destination files individually.
-4. Write a `resolved` marker after all replacements succeed, then remove recovery files.
+## Transaction and recovery
 
-Before a session read or write, an unresolved pending manifest restores every previous file and removes destinations that did not exist before the operation. Backups are checked before restoring any destination and retained until recovery completes. Recovery also writes `resolved` before cleanup, allowing cleanup to be interrupted and retried safely.
+Session reads and writes share an in-process lock and an exclusive `.session.lock` file handle. Another process attempting access while the handle is held receives an I/O error. The lock file can remain after the handle is released.
 
-An incomplete preparation without a pending manifest never changed destination files and is discarded. A resolved operation keeps its final files and only finishes cleanup. Missing backups, malformed manifests, and unsupported filenames produce an error and retain recovery evidence. Recovery names are restricted to the known session binary/JSON filenames; computed directories are not recursively deleted.
+A multi-file write follows these steps:
 
-Standalone settings/history writes use protected replacement and the same session lock/recovery boundary. Unrelated corrupt JSON is reported and left intact; it is not silently overwritten with defaults. A complete recovery journal can restore the prior metadata generation, but there is no guaranteed repair for arbitrary preexisting corruption without a backup.
+1. Write and flush new payloads as `*.next` and existing-file backups as `*.previous` inside `.session-transaction`.
+2. Write `prepared.json`, then rename it to `pending.json` before replacing destinations.
+3. Replace each destination with its staged payload.
+4. Write `resolved` and remove the journal files.
 
-## Verification and limits
+Before reading or writing a session, recovery processes any existing journal. An unresolved pending operation restores prior files and removes destinations that did not previously exist. A resolved operation retains the committed files and finishes cleanup. Preparation without a pending manifest is discarded. Invalid manifests or missing recovery backups raise an error and leave the journal available for recovery.
 
-Tests inject failures during staging and after individual replacements, verify first-save rollback, validate concurrent saves and lock contention, and construct interrupted-preparation/replacement/cleanup fixtures. They also cover invalid journal paths, missing backups, corrupt metadata, preference preservation, and history reset.
+The transaction recognizes only the session binary and JSON filenames. Standalone settings/history writes use protected replacement under the same lock/recovery boundary. Cooperating application readers use that boundary; destination files are replaced individually.
 
-This is recoverable multi-file persistence, not an instantaneous filesystem transaction visible to arbitrary external readers. Application readers cooperate with the lock; other tools can observe intermediate replacements. File payloads are flushed, but physical power-loss behavior, directory-entry durability, full-disk failures, and all filesystem implementations have not been certified. No destructive process-kill or power-loss test was performed.
+## Import and new shops
 
-If recovery fails, retain the entire session folder and `.session-transaction` evidence before attempting manual repair. Native UI error presentation and broader backup retention remain follow-up work.
+Import copies the selected file into a private temporary snapshot and parses it before replacing the session. The menu backs up the current shop after validation and before replacement. The imported snapshot's original bytes initialize `gshop_before.data` and `gshop_temp.data`; subsequent saves serialize the in-memory shop.
+
+Creating a shop writes the generated client binary to both session files. Creating/importing a shop writes empty history, preserves autosave preferences and backup metadata, and updates the source path. The menu clears the live history after session creation succeeds. Canceling file selection leaves the session unchanged.
+
+## Undo and redo
+
+`tracking.json` stores both history stacks with the top entry first. Item insert/update/delete entries retain item snapshots. Reordering stores changed records by index; category resets retain a complete item-list snapshot. Category metadata changes retain category and affected-item snapshots. Undo/redo restores these values and recalculates the item count.
+
+## Export
+
+Client export writes `gshop.data`; server export writes `gshopsev.data`. The menu confirms replacement of an existing destination, saves the current session and writes the selected format. Session persistence and destination export are separate protected operations.

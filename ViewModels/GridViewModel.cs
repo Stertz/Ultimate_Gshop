@@ -12,9 +12,13 @@ namespace Ultimate_Gshop.ViewModels
     {
         public GridViewModel(IEnumerable<Item> items)
         {
-            Items = new ObservableCollection<Item>([.. items]);
+            Items = new ReadOnlyCollection<GridItemSnapshot>(items.Select(item => new GridItemSnapshot(
+                item.Place, item.ID, item.Name, item.Amount, item.CategoryIndex, item.SubCategoryIndex)).ToList());
         }
-        public ObservableCollection<Item> Items { get; set; }
-        public string? Teste => "Hello Word";
+        public ReadOnlyCollection<GridItemSnapshot> Items { get; }
+        public int ItemCount => Items.Count;
     }
+
+    public sealed record GridItemSnapshot(int Place, int ID, string Name, int Amount,
+        int CategoryIndex, int SubCategoryIndex);
 }

@@ -1,8 +1,8 @@
 {
   "assembly": "Ultimate_Gshop",
-  "minimumLineCoverage": 18.0,
-  "minimumBranchCoverage": 20.0,
+  "minimumLineCoverage": 80.0,
+  "minimumBranchCoverage": 70.0,
   "targetLineCoverage": 80,
   "targetBranchCoverage": 70,
-  "reason": "Raised after session transaction, restart recovery, concurrent save, and session reset tests. Preserve untested UI and installation diagnostics in the denominator; validate hosted platform measurements before further increases."
+  "reason": "Whole-application coverage includes UI/XAML, entry points and diagnostics. CI requires at least 80% line coverage and 70% branch coverage."
 }

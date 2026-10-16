@@ -20,18 +20,7 @@ namespace Ultimate_Gshop.Misc
 
             var files = await window.StorageProvider.OpenFilePickerAsync(options);
 
-            var file = files.ToList().FirstOrDefault();
-
-            if (file is null)
-            {
-                var result = await new CustomMessageBox("No valid file provided", "Try again?", "Yes", "No").ShowDialogAsync(window);
-                if (result == "Yes")
-                {
-                    return await Handle(window);
-                }
-            }
-
-            return file;
+            return files.FirstOrDefault();
 
         }
     }
