@@ -1,35 +1,32 @@
 # Contributing to Ultimate Gshop
 
-Ultimate Gshop is undergoing modernization and remains a preview. Contributions are welcome, especially reproducible format issues, independent redistributable fixtures, compatibility tests, and small maintenance changes.
+Pull requests are welcome for bug fixes, usage guides, game compatibility reports, examples and platform improvements.
 
 ## Development
 
-Install the .NET SDK selected by `global.json`, then run from the repository root:
+Install the .NET SDK selected by `global.json`, then run:
 
 ```sh
 dotnet restore Ultimate_Gshop.sln
 dotnet build Ultimate_Gshop.sln --configuration Release --no-restore --warnaserror
-dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-restore
+dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Tests.csproj --configuration Release --no-build --no-restore
 ```
 
-See [testing and coverage](Docs/testing.md), the [modernization plan](Docs/modernization-plan.md), and [current implementation status](Docs/stack-update.md). Native desktop checks need the OS desktop libraries used by Avalonia; the current raster tests do not require opening a window.
+See [development checks](Docs/testing.md) for coverage and resource verification, and [persistence](Docs/persistence.md) for session storage and recovery.
 
-The project pins the built-in .NET analyzer level to 10.0. `.editorconfig` enables focused correctness warnings for ValueTask consumption (CA2012), reference equality on value types (CA2013), cancellation-token forwarding (CA2016), and exception rethrowing (CA2200). CI builds with warnings as errors. Apply formatting to edited code only, and preserve legacy encodings rather than performing a repository-wide conversion. The item overview is a read-only snapshot; edits must use the tracked editor flows.
+## Code changes
 
-## Compatibility comes first
+- Keep pull requests focused and describe the resulting behavior and relevant validation.
+- Add a regression test when fixing a reproducible bug.
+- Follow surrounding C# style, format only edited code and preserve existing file encodings.
+- Preserve resource paths, filenames, case, formats and bytes. Run `./scripts/Test-AssetBaseline.ps1` with PowerShell 7.
+- Preserve binary field order/width/padding, reserved fields, game identifiers and JSON keys when making unrelated changes.
+- Keep application code in coverage measurements and follow the configured coverage floors.
 
-- Preserve the entire `Resources` structure and exact filenames, case, encodings, formats, and bytes. Run `./scripts/Test-AssetBaseline.ps1` with PowerShell 7.
-- Preserve game-facing paths, binary widths/order/padding, reserved fields, and existing JSON keys. Do not translate serialized values or game identifiers for style consistency.
-- Reproduce a bug with a focused test before changing its behavior. Keep characterization of legacy behavior separate from an independently confirmed format rule.
-- Use synthetic fixtures or files you have permission to redistribute. Include the game-format version, producing tool/version, expected result, and provenance. Never attach credentials or private server data.
-- Keep existing application folders in place. Prefer a small extraction or reuse of an existing rule over adding layers, dependencies, or a new project layout.
+## Documentation and compatibility
 
-## Pull requests
+Improve the [usage guide](Docs/usage.md) with worked examples and screenshots. Add game-build reports using the format in [compatibility](Docs/compatibility.md). Include concrete values and reproduction steps when documenting sale dates, status flags or format differences.
 
-Keep changes focused and describe the concrete trigger, resulting behavior, and validation. Use English for new code comments, documentation, messages, and PR descriptions. Explain non-obvious compatibility decisions; avoid comments that merely repeat the code. Follow surrounding C# style without reformatting unrelated files or changing legacy file encoding incidentally.
+Bug reports should include the application version/commit, OS/architecture, reproduction steps, and expected/actual behavior. Use synthetic or redistributable fixtures for examples and tests.
 
-Include relevant local test/build results and any native checks you performed. Explain coverage changes and unresolved limits. Whole-application coverage includes untested UI; do not narrow the collector scope or lower floors to hide a regression. End-of-stage coverage targets are goals, not current claims.
-
-Discuss large format changes, new dependencies, or distribution changes in an issue before implementation. A useful bug report includes app version/commit, OS/architecture, exact reproduction steps, expected and actual behavior, and a minimal shareable fixture where possible. Community checks use GitHub-hosted runners and require no deployment server or private credentials.
-
-Contributions are made under the project's existing [GPL license](LICENSE), declared as GPL-3.0-or-later in project metadata. Preserve both original authors and third-party notices. Source licensing does not establish redistribution rights for game assets.
+Use English for documentation, code comments and pull request descriptions. Contributions use the existing [GPL-3.0-or-later license](LICENSE); preserve author attribution and third-party notices.

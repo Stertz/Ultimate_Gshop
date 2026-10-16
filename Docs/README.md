@@ -1,19 +1,10 @@
-# Developer Documentation
+# Documentation
 
-- [Contributing](../CONTRIBUTING.md): setup, compatibility rules, and pull requests.
-- [Testing](testing.md): test commands, coverage reports, and asset checks.
-- [Coverage scope audit](coverage-scope.md): included sources, justified exclusions, and the 40% milestone.
-- [Persistence](persistence.md): session saves and recovery.
-- [Performance](performance.md): reproducible stage 3 scaling measurements and remaining profiling work.
-- [Game compatibility](game-compatibility.md): missing original samples and a community validation checklist.
-- [Releasing](releasing.md): preview versions, packaging, and GitHub Releases.
-- [Publication](publication.md): repository setup and About settings.
+- [Usage](usage.md): sessions, editing, import and export.
+- [Persistence](persistence.md): session files, history and recovery.
+- [Compatibility](compatibility.md): community reports and contribution format.
+- [Development checks](testing.md): build, tests and resource verification.
+- [Packaging](releasing.md): self-contained archives and verification.
+- [Contributing](../CONTRIBUTING.md): pull request guidelines.
 
-## Modernization
-
-- [Plan](modernization-plan.md)
-- [Three-stage quality and coverage plan](quality-plan.md)
-- [Implementation status](stack-update.md)
-- [Original source review](source-review.md)
-
-The root README is for application users. Keep implementation findings, test inventories, and migration notes in these documents.
+Pull requests improving usage guides, examples and compatibility reports are welcome.

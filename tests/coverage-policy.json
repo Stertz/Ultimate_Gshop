@@ -4,5 +4,5 @@
   "minimumBranchCoverage": 70.0,
   "targetLineCoverage": 80,
   "targetBranchCoverage": 70,
-  "reason": "Both final targets are reached locally after real category workflows, snapshot isolation, async-save coordination and text-decoder regressions. UI/XAML, entry points and diagnostics remain included. Hosted and native platform validation remain pending."
+  "reason": "Whole-application coverage includes UI/XAML, entry points and diagnostics. CI requires at least 80% line coverage and 70% branch coverage."
 }
