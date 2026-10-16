@@ -1,6 +1,6 @@
 # Code Quality and Test Coverage Plan
 
-Updated: 2026-10-16. Local coverage targets are met: 375 tests, 86.93% lines / 71.37% branches, with enforced floors of 80%/70%. Stage 3 now includes measured search/load/grid optimizations and asynchronous editor saves with detached snapshots. Hosted package execution, native UI/real-game acceptance and the profiling items listed below still determine completion of the full plan.
+Updated: 2026-10-16. Local coverage targets are met: 380 tests, 86.91% lines / 71.46% branches, with enforced floors of 80%/70%. Stage 3 now includes measured search/load/grid optimizations and asynchronous editor saves with detached snapshots. Hosted package execution, native UI/real-game acceptance and the profiling items listed below still determine completion of the full plan.
 
 ## Stage 1: Critical editing regressions
 
@@ -64,7 +64,7 @@ Validation: 300 tests pass, Release build with warnings as errors passes, and al
 Remaining in stage 2:
 
 - Native OS picker behavior and platform error presentation; headless import/export/menu/options cancellation/failure paths now have regression tests.
-- More category/advanced-price interactions through the actual MainWindow, smaller extractions of remaining duplicated editor payload rules, and deeper timer/reattachment validation.
+- Category/advanced-price interactions and duplicated sale normalization are now covered/extracted in stage 3. Actual wall-clock timer delivery and deeper native reattachment/input acceptance remain separate checks.
 - Hosted Windows/Linux/macOS execution of the expanded headless suite and raised floors.
 
 Completed in the second stage 2 increment:
@@ -95,6 +95,10 @@ Delivered in the stage 3 implementation increment:
 - Real category forms cover rename, no-op/duplicate/blank/cancel, subcategory limits/deletion and reset, with persisted undo/redo. Advanced-price confirmation/rejection now runs through the actual sale form and editor; common four-slot sale normalization is extracted and tested.
 - Two sequential post-change performance runs quantify the improvements and the remaining UI snapshot cost; see [performance.md](performance.md). Release packaging now verifies the archive checksum, extracts it, checks build metadata/assets and executes the extracted installation diagnostic on the matching native runner.
 
-Local acceptance: 375/375 tests pass, 3,633/4,179 lines (86.93%) and 1,189/1,666 branches (71.37%) are covered, Release builds with warnings as errors pass, and all 4,580 resource paths/hashes are unchanged. Collector scope is unchanged. CI now enforces both final coverage targets.
+Local acceptance: 380/380 tests pass, 3,653/4,203 lines (86.91%) and 1,202/1,682 branches (71.46%) are covered, Release builds with warnings as errors pass, and all 4,580 resource paths/hashes are unchanged. Collector scope is unchanged. CI now enforces both final coverage targets.
 
-Remaining completion criteria (do not infer completion from coverage alone): hosted expanded-suite/archive runs on all four desktop runtime targets; native picker/clipboard/drag/drop and installed edit/import/export acceptance; independent game fixtures and sale/time/status semantics; retained/peak/native-bitmap memory, cache ownership, virtualization/render and startup profiling; large-history/full-reset scaling and large-shop snapshot latency. Asset redistribution confirmation and signing/notarization are distribution decisions, not established by synthetic tests.
+Follow-up: item-card icons are loaded only when realized; canonical cache keys share aliases and one missing-image fallback. Lazy cache values prevent duplicate bitmap factories, and desktop exit releases shared images after views close. Recycled item cards receive drop-target handlers on preparation. The 1,000-distinct-icon headless regression verifies detached projection, bounded realization/cache growth and scrolling to the final record. Service memory/peak-working-set and full-reset history probes are recorded in [performance.md](performance.md).
+
+Hosted core validation at `1e6250c` passed [CI on Windows/Linux/macOS](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38940317196) and [all four self-contained package jobs](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38940334747), including extracted installation diagnostics. The image follow-up must be validated at its own commit. The maintainer confirmed original game samples are unavailable; specific game-build compatibility is deferred to [community homologation](game-compatibility.md), with existing format semantics preserved.
+
+Remaining acceptance/follow-up (do not infer completion from coverage alone): hosted execution of the final image follow-up; native picker/clipboard/drag/drop and installed edit/import/export acceptance; community game fixtures and sale/time/status semantics; native bitmap/frame timing and cold startup profiling; larger history scaling and reduction of the measured large-shop snapshot latency. Initial managed-memory/full-reset probes, bitmap ownership and headless virtualization checks are delivered. Asset redistribution confirmation and signing/notarization are distribution decisions, not established by synthetic tests.

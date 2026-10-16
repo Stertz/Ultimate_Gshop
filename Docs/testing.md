@@ -16,7 +16,7 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 
 The SDK uses the MTP runner. Do not mix VSTest collector flags such as `--collect:"XPlat Code Coverage"` into these commands.
 
-The latest local Windows run on 2026-10-16 passed all 375 tests. They cover:
+The latest local Windows run on 2026-10-16 passed all 380 tests. They cover:
 
 - Fixed-width UTF-16 and CP936 bytes, padding, embedded nulls, Unicode, truncation, headers, record offsets, and categories.
 - Synthetic client/server serialization, exact field offsets and record widths, load/save round trips, and stale item counts.
@@ -64,11 +64,11 @@ dotnet test --project tests/Ultimate_Gshop.Format.Tests/Ultimate_Gshop.Format.Te
 ./scripts/Write-CoverageSummary.ps1
 ```
 
-The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **3,633/4,179 executable lines (86.93%)** and **1,189/1,666 branches (71.37%)**, up from the first stage 2 increment's 2,924/4,060 lines (72.02%) and 944/1,582 branches (59.67%). The original baseline was 18.41%/20.70%. No additional source exclusions were introduced: see [the scope audit](coverage-scope.md). The increase includes actual category and advanced-price workflows, asynchronous save ordering, snapshot isolation and text decoding regressions.
+The configuration includes the compiled `Ultimate_Gshop` assembly, including untested UI logic and mapped XAML source. Tests and generated `obj` sources are excluded; auto-properties are skipped by the collector's default configuration. The latest local Windows measurement on 2026-10-16 is **3,653/4,203 executable lines (86.91%)** and **1,202/1,682 branches (71.46%)**, up from the first stage 2 increment's 2,924/4,060 lines (72.02%) and 944/1,582 branches (59.67%). The original baseline was 18.41%/20.70%. No additional source exclusions were introduced: see [the scope audit](coverage-scope.md). The increase includes actual category and advanced-price workflows, asynchronous save ordering, snapshot isolation and text decoding regressions.
 
 [coverage-policy.json](../tests/coverage-policy.json) records current regression floors of 80.0% lines and 70.0% branches. Both final coverage targets are reached locally. The [three-stage quality plan](quality-plan.md) explicitly tracks remaining functional/performance work. Keep untested application code in the denominator and confirm the raised floors in the next hosted Linux CI run.
 
-The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 375-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
+The summary script rejects missing, empty, inconsistent, or wrong-assembly reports and fails below the recorded floors. It writes a GitHub step summary when available and a standalone per-class HTML report at `TestResults/coverage/index.html`. Reports are ignored by Git. Hosted CI collects coverage on Linux and uploads Cobertura/HTML artifacts with seven-day retention. The [first successful run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38798147466) passed the original 149-test suite on all three operating systems and measured the same coverage as the original local baseline. The expanded 380-test suite and raised floors are locally validated on Windows; their hosted multi-platform validation is pending.
 
 ## README badges
 
@@ -98,6 +98,6 @@ Add a reproducing test before changing each affected behavior. Saves and session
 
 Imports validate a private snapshot before replacing session files and retain its original bytes, including fields normalized in memory by the legacy loader. A successful import/new shop resets history and preserves user preferences; malformed imports leave existing files intact. Native dialogs and interaction glue remain separately unvalidated.
 
-The published executable's `--verify-installation` diagnostic passed locally on Windows, exercising actual application resources/native raster decoding and synthetic save/load/export from a different working directory. It uses an isolated temporary directory, not the user's session. This smoke run is separate from the test count/coverage measurement. See [release checks](releasing.md); self-contained multi-OS packaging is prepared but not yet executed.
+The published executable's `--verify-installation` diagnostic passed locally on Windows, exercising actual application resources/native raster decoding and synthetic save/load/export from a different working directory. It uses an isolated temporary directory, not the user's session. This smoke run is separate from the test count/coverage measurement. See [release checks](releasing.md); self-contained multi-OS packaging at commit 1e6250c passed the hosted manual workflow linked in the release checks.
 
 Native UI tests remain deferred. The later request to continue until 40% coverage is implemented with headless controls/dialogs/forms; these tests do not substitute for validation of native desktop downloads.

@@ -72,6 +72,8 @@ public partial class ItemsListControl : UserControl
     public ItemsListControl()
     {
         InitializeComponent();
+        ItemList.ElementPrepared += (_, args) =>
+            Dispatcher.UIThread.Post(() => AttachDnDToCards(args.Element), DispatcherPriority.Background);
 
         // Habilita área de drop no ScrollViewer raiz e controla auto-scroll via DragOver
         DragDrop.SetAllowDrop(RootScroll, true);
@@ -102,7 +104,7 @@ public partial class ItemsListControl : UserControl
                 Amount = i.Amount,
                 LimitPeriod = i.LimitPeriod == 0 ? "Perm." : $"{i.LimitPeriod} dias",
                 Price = i.GetValidPrice().ToString("F2", CultureInfo.InvariantCulture),
-                IconBitmap = i.LoadImageReduced(),
+
                 Place = i.Place
             })
             .ToList()) ?? [];
@@ -112,7 +114,7 @@ public partial class ItemsListControl : UserControl
         // Aguarda layout/virtual tree estabilizar para anexar handlers de DnD nos cards
         Dispatcher.UIThread.Post(() =>
         {
-            AttachDnDToCards();
+            AttachDnDToCards(ItemList);
             if (SelectedPlace is int sp) HighlightByPlace(sp); // visual já existe agora
         }, DispatcherPriority.Background);
     }
@@ -125,10 +127,10 @@ public partial class ItemsListControl : UserControl
         base.OnDetachedFromVisualTree(e);
     }
 
-    private void AttachDnDToCards()
+    private void AttachDnDToCards(Control root)
     {
         // Percorre os cards visuais e injeta handlers de DragOver/Drop e ponteiro
-        foreach (var b in ItemList.GetVisualDescendants().OfType<Border>().Where(x => x.Name == "CardBorder"))
+        foreach (var b in new[] { root }.Concat(root.GetVisualDescendants().OfType<Control>()).OfType<Border>().Where(x => x.Name == "CardBorder"))
         {
             DragDrop.SetAllowDrop(b, true);
             b.RemoveHandler(DragDrop.DragOverEvent, OnItem_DragOver);
@@ -565,7 +567,7 @@ public partial class ItemsListControl : UserControl
         public string Name { get; set; } = "";
         public int Amount { get; set; }
         public string LimitPeriod { get; set; } = "";
-        public IImage? IconBitmap { get; set; }
+        public IImage IconBitmap => Tag.LoadImageReduced();
         public string Price { get; set; } = "";
         public int Place { get; set; }
     }

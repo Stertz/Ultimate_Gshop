@@ -16,6 +16,7 @@ const int warmups = 3;
 const int iterations = 15;
 var output = Path.GetFullPath(args.Length == 0 ? "TestResults/performance/latest.json" : args.Single());
 var results = new List<Measurement>();
+var memoryProfiles = new List<MemoryProfile>();
 var tempRoot = Path.GetFullPath(Path.Combine(Path.GetTempPath(), $"ultimate-gshop-perf-{Guid.NewGuid():N}"));
 Directory.CreateDirectory(tempRoot);
 try
@@ -54,6 +55,21 @@ try
         Measure("session-load", size, () => ContinueGshop.Handle(root),
             value => value.Itens.Count == size && value.Itens[^1].ID == shop.Itens[^1].ID);
 
+        var managedBefore = GC.GetTotalMemory(forceFullCollection: true);
+        var heldSnapshot = SessionSnapshot.Capture(shop, tracking, settings);
+        var managedWithSnapshot = GC.GetTotalMemory(forceFullCollection: true);
+        var heldGrid = new GridViewModel(shop.Itens);
+        var managedWithGrid = GC.GetTotalMemory(forceFullCollection: true);
+        memoryProfiles.Add(new MemoryProfile(size, managedBefore, managedWithSnapshot, managedWithGrid));
+        GC.KeepAlive(heldSnapshot);
+        GC.KeepAlive(heldGrid);
+        // A full-shop reset is the largest current history payload; keep it separate from I/O samples.
+        tracking.ItemsReset(shop.Itens);
+        Measure("snapshot-with-reset-history", size, () => SessionSnapshot.Capture(shop, tracking, settings),
+            value => value is not null);
+        GC.KeepAlive(shop);
+        GC.KeepAlive(tracking);
+
         void MeasureSave(string name, int count)
         {
             Measure(name, count, () =>
@@ -82,6 +98,8 @@ try
         Iterations = iterations,
         TieredCompilation = false,
         Fixture = "Synthetic ShopFixture: 8 categories, 4 sales and 8 owner IDs per item",
+        ProcessPeakWorkingSetBytes = Process.GetCurrentProcess().PeakWorkingSet64,
+        MemoryProfiles = memoryProfiles,
         Results = results
     }, new JsonSerializerOptions { WriteIndented = true }));
     Console.WriteLine($"Report: {output}");
@@ -123,5 +141,7 @@ void Measure<T>(string operation, int size, Func<T> action, Func<T, bool> valida
 }
 
 internal sealed record Sample(double ElapsedMs, long AllocatedBytes);
+internal sealed record MemoryProfile(int ItemCount, long ManagedBytesBeforeSnapshot,
+    long ManagedBytesWithSnapshot, long ManagedBytesWithSnapshotAndGrid);
 internal sealed record Measurement(string Operation, int ItemCount, double MedianMs, double P95Ms,
     long MedianAllocatedBytes, IReadOnlyList<Sample> Samples);

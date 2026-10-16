@@ -33,4 +33,6 @@ The second stage 2 increment passed all 331 tests and measured **3,385/4,115 lin
 
 The stage 3 increment passes **375 tests** and measures **3,633/4,179 lines (86.93%)** and **1,189/1,666 branches (71.37%)**, including category/advanced-price forms, async-save ordering, full snapshot isolation and text-reader regressions. Both final targets are reached locally, and the current floors are now **80% lines / 70% branches**. No collector exclusions were added. Denominator changes also reflect extraction of duplicated sale normalization and the smaller immutable grid projection.
 
+After the image-cache/virtualization follow-up, **380 tests** pass with **3,653/4,203 lines (86.91%)** and **1,202/1,682 branches (71.46%)**. The same whole-application scope and 80%/70% floors apply; the added production lifecycle branches remain in the denominator.
+
 Native desktop startup, OS clipboard/file dialogs, real drag/drop, complete menu/navigation and bulk workflows, packaged execution and independent game-format compatibility remain separate validation work. MainWindow, menu, options, and diagnostics stay in the denominator even where untested. MainWindow tests use an injected session in a private temporary directory and do not write application preferences/history to the user's session directory. Hosted Linux/macOS verification is pending.

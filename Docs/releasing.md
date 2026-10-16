@@ -1,6 +1,6 @@
 # Preview Releases
 
-The release workflow is in the public repository. Its package jobs have not run on GitHub; automatic runs are skipped while activation is disabled. No downloadable release has been published by this modernization work.
+The manual package workflow passed for Windows x64, Linux x64 and macOS Intel/Apple Silicon at commit `1e6250c` on 2026-10-16: [package validation run](https://github.com/Stertz/Ultimate_Gshop/actions/runs/38940334747). All four self-contained archives passed checksums, extraction, original resource hashes and the extracted installation diagnostic on their native runners. The publication job was skipped in manual mode; these artifacts are not a published GitHub Release.
 
 Source is published at [Stertz/Ultimate_Gshop](https://github.com/Stertz/Ultimate_Gshop). See [repository settings](publication.md) for About text, branch checks, and activation guidance.
 
@@ -36,7 +36,7 @@ Runner architecture labels follow [GitHub's runner table](https://docs.github.co
 
 `scripts/New-ReleasePackage.ps1` rejects framework-dependent output, mismatched assembly versions, and mismatched host OS/architecture. It verifies original game asset hashes, includes the source license/README/notices and `build-info.json`, preserves the complete publish layout, and runs `--verify-installation` from a working directory outside the installation folder.
 
-The executable diagnostic initializes real application resources and the Skia raster renderer without native windows, decodes a bundled surface and embedded fallback, and performs a synthetic new-shop save/load and client/server export in an isolated temporary directory. It does not read or modify the user's saved session. The local Windows framework-dependent executable passed this check; self-contained runtime packs and the other OS builds have not been executed locally.
+The executable diagnostic initializes real application resources and the Skia raster renderer without native windows, decodes a bundled surface and embedded fallback, and performs a synthetic new-shop save/load and client/server export in an isolated temporary directory. It does not read or modify the user's saved session. Windows self-contained archive extraction was also verified locally at commit `1e6250c`; all four runtime packs passed the hosted manual workflow linked above.
 
 For macOS the complete publish payload stays together under `Contents/MacOS`, so `AppContext.BaseDirectory` still resolves the unchanged `Resources/surfaces` tree. The script writes/lints `Info.plist`; no source assets are renamed or converted. See [Avalonia macOS deployment guidance](https://docs.avaloniaui.net/docs/deployment/macos). These previews have no distribution certificate or notarization; diagnostic execution does not validate Finder/Gatekeeper installation behavior.
 
@@ -46,4 +46,4 @@ Packaging now calls `scripts/Test-ReleaseArchive.ps1` after writing the checksum
 
 ## Remaining release validation
 
-Native desktop startup, user interaction, independently verified game fixtures, self-contained archive extraction/download checks, confirmed redistribution notices, signing/notarization, and the actual hosted workflow remain pending. Keep prerelease status until those checks justify a stable release. Manual workflow artifacts expire after seven days; actual release assets are separate from those temporary artifacts.
+Interactive native desktop startup/input/edit/import/export acceptance remains pending. Original game fixtures are unavailable; [community game validation](game-compatibility.md) is needed before certifying a specific build. Asset redistribution confirmation, complete notices and signing/notarization remain publication decisions. Keep preview status until the appropriate acceptance checks justify a stable release. Manual workflow artifacts expire after seven days; actual release assets are separate from those temporary artifacts. The hosted archive/extraction diagnostic is complete for `1e6250c`; later code must be validated at its own commit.

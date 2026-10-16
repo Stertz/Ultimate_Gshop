@@ -18,6 +18,7 @@ namespace Ultimate_Gshop
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.MainWindow = new MainWindow();
+                desktop.Exit += (_, _) => Misc.ImageUtils.ReleaseResources();
             }
 
             base.OnFrameworkInitializationCompleted();

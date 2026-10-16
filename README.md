@@ -17,6 +17,8 @@
 
 Edit shop categories, items, sales, and gifts, then export client and server files. Ultimate Gshop is built with .NET and Avalonia for Windows, macOS, and Linux.
 
+Compatibility with specific game builds still needs community validation: the original sample files are no longer available. See [game compatibility validation](Docs/game-compatibility.md) to help verify a preview.
+
 ![Ultimate Gshop editor](Docs/main.png)
 
 ## Downloads

@@ -65,4 +65,22 @@ Safe asynchronous editor saves are implemented and covered by snapshot-isolation
 
 For comparisons, use two sequential fresh-process runs on the same machine/runtime/storage with no coverage collector, debugger or other benchmark running. Investigate repeated median regressions above 25% or allocation growth above 10% against this baseline; these are review triggers, not portable CI pass/fail budgets. Set release performance budgets after real fixtures and native UI profiling. Do not trade transactional save durability for lower latency.
 
-Still pending: representative real fixtures, history scaling including full-shop reset snapshots, retained/peak memory and bitmap profiling, UI render/input latency, first-save/cold-load/startup measurements, native Windows/Linux/macOS package and interaction acceptance. The initial before/after service optimization measurements above are complete.
+At the end of the first optimization increment, pending work included representative real fixtures, full-shop reset history/retained memory profiling, bitmap and native input/render timing, cold load/startup and platform package acceptance. The follow-up below covers service memory/reset profiling and initial item-card virtualization; the initial before/after measurements above are complete.
+
+## Memory, reset history and virtualized images
+
+The follow-up harness also retains one snapshot and one grid while sampling managed heap after full collections, and records the process's lifetime peak working set. Two sequential runs in `TestResults/performance/final-memory` report the following managed memory (decimal MB):
+
+| Items | Before snapshot | With snapshot | With snapshot and grid |
+| ---: | ---: | ---: | ---: |
+| 1,000 | 1.28 | 1.84 | 1.90 |
+| 10,000 | 6.38 | 11.48 | 12.03 |
+| 50,000 | 28.86 | 54.02 | 56.91 |
+
+Peak working set was about 246 MB across each complete process, including all sizes and stress scenarios; it is not per-operation or bitmap memory. Capture with a full-shop reset history plus 100 update entries allocates 60.87 MB at 50k and takes 111–132 ms median. This quantifies the extra cost of retaining reversible full-shop history; it remains a stress-case optimization opportunity. Memory probes force collections outside timed operation samples. These separate runs do not replace the before/after table above.
+
+Item cards now defer bitmap lookup/decoding until their image binding is realized. A headless 1,000-item test with distinct bundled icons verifies zero image-cache growth during detached projection, fewer than 100 realized cards/images in the viewport, scrolling to the final record and drop-target preparation on recycled cards. This confirms initial virtualization and deferred decoding, not native drag/drop delivery or frame timing.
+
+The image cache owns shared original/scaled bitmaps until desktop exit. Canonical existing-resource paths share entries across DDS/PNG/slash aliases; missing names share one embedded fallback instead of growing the cache per missing name. Lazy values prevent parallel factories from creating unused duplicate bitmaps. Only realized icons are requested, and shared images are disposed after views close. No active-view bitmap is evicted/disposed. Cache entries still accumulate for distinct viewed resources and resize dimensions; a byte-budgeted eviction scheme requires tracked consumer ownership and native-memory measurements first.
+
+The original game files are unavailable, as [recorded by the maintainer](game-compatibility.md). Remaining external acceptance is real-game and native desktop behavior. Cold startup, native frame/bitmap memory profiling and very large history/snapshot latency remain follow-up performance work; coverage alone does not close those items.

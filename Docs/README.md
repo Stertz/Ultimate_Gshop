@@ -5,6 +5,7 @@
 - [Coverage scope audit](coverage-scope.md): included sources, justified exclusions, and the 40% milestone.
 - [Persistence](persistence.md): session saves and recovery.
 - [Performance](performance.md): reproducible stage 3 scaling measurements and remaining profiling work.
+- [Game compatibility](game-compatibility.md): missing original samples and a community validation checklist.
 - [Releasing](releasing.md): preview versions, packaging, and GitHub Releases.
 - [Publication](publication.md): repository setup and About settings.
 
