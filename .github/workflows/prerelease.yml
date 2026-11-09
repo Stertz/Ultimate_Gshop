@@ -37,7 +37,7 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-dotnet@v6.0.0
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Record the exact checked source
@@ -84,7 +84,7 @@ jobs:
         with:
           ref: ${{ needs.metadata.outputs.commit }}
           persist-credentials: false
-      - uses: actions/setup-dotnet@v6.0.0
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Verify source resources
