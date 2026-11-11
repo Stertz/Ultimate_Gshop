@@ -10,7 +10,7 @@
   <!-- COVERAGE-BADGE:END -->
   <!-- STACK-BADGES:START -->
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&amp;logoColor=white" alt=".NET 10.0" /></a>
-  <a href="https://avaloniaui.net/"><img src="https://img.shields.io/badge/Avalonia-12.1.4-FF6600" alt="Avalonia 12.1.4" /></a>
+  <a href="https://avaloniaui.net/"><img src="https://img.shields.io/badge/Avalonia-12.1.5-FF6600" alt="Avalonia 12.1.5" /></a>
   <!-- STACK-BADGES:END -->
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3 license" /></a>
 </p>
