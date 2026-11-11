@@ -120,11 +120,11 @@
 
 	<!-- Control packages have independent release versions. -->
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="12.1.4" />
+		<PackageReference Include="Avalonia" Version="12.1.5" />
 		<PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
 		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
 		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.6" />
 		<!-- These APIs are used directly instead of relying on ReactiveUI's former dependency graph. -->
 		<PackageReference Include="DynamicData" Version="9.5.0" />
